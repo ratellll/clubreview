@@ -15,12 +15,19 @@ public class ClubService {
     public ClubService(ClubRepository clubRepository) {
         this.clubRepository = clubRepository;
     }
-
-    public List<Club> getAllClubs(){
-        return clubRepository.findAll();
+    public List<Club> getClubsSortedById(Long id) {
+        return clubRepository.findAllByOrderById(id);
     }
 
-    public Club createClub(Club club){
+    public List<Club> getClubsSortedByName() {
+        return clubRepository.findAllByOrderByNameAsc();
+    }
+
+    public List<Club> getClubsSortedByRating() {
+        return clubRepository.findAllByOrderByAverageRatingDesc();
+    }
+
+    public Club addClub(Club club) {
         return clubRepository.save(club);
     }
 }

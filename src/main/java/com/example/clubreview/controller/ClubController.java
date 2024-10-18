@@ -2,12 +2,14 @@ package com.example.clubreview.controller;
 
 import com.example.clubreview.domain.Club;
 import com.example.clubreview.service.ClubService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/clubs")
+@Controller
+@RequestMapping("/clubs")
 public class ClubController {
 
     private final ClubService clubService;
@@ -16,13 +18,22 @@ public class ClubController {
         this.clubService = clubService;
     }
 
+    // 클럽 목록 조회 (이름순 또는 별점순 정렬)
     @GetMapping
-    public List<Club> getAllClubs() {
-        return clubService.getAllClubs();
+    public String getAllClubs(@RequestParam(defaultValue = "name") String sortBy, Model model) {
+        List<Club> clubs = sortBy.equals("rating") ?
+                clubService.getClubsSortedByRating() : clubService.getClubsSortedByName();
+        model.addAttribute("clubs", clubs);
+        return "club-list";  // 클럽 목록 페이지 렌더링
     }
 
-    @PostMapping
-    public Club createClub(@RequestBody Club club){
-        return clubService.createClub(club);
+    // 클럽 상세 정보 조회
+    @GetMapping("/{id}")
+    public String getClubDetail(@PathVariable Long id, Model model) {
+        Club club = clubService.getClubById(id);
+        model.addAttribute("club", club);
+        model.addAttribute("reviews", club.getReviews());
+        return "club-detail";  // 클럽 상세 페이지 렌더링
     }
+
 }

@@ -1,29 +1,39 @@
 package com.example.clubreview.domain;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Club {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
-    private String location; //위치
+    @Column(nullable = false)
+    private String location;
 
-    private String description; // 클럽 설명
+    private String description;
+
+    private double latitude;
+    private double longitude;
+
+    private double averageRating;
+
+    // 클럽과 리뷰의 1:N 관계 설정
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
+    private List<Review> reviews = new ArrayList<>();
+
 
 
 }
