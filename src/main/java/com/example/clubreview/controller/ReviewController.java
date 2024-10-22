@@ -1,7 +1,7 @@
 package com.example.clubreview.controller;
 
 
-import com.example.clubreview.domain.Review;
+import com.example.clubreview.entity.Review;
 import com.example.clubreview.service.ReviewService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

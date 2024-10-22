@@ -1,6 +1,6 @@
 package com.example.clubreview.repository;
 
-import com.example.clubreview.domain.Review;
+import com.example.clubreview.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

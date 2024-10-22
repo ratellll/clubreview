@@ -1,6 +1,6 @@
 package com.example.clubreview.controller;
 
-import com.example.clubreview.domain.Club;
+import com.example.clubreview.entity.Club;
 import com.example.clubreview.service.ClubService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,10 +30,12 @@ public class ClubController {
     // 클럽 상세 정보 조회
     @GetMapping("/{id}")
     public String getClubDetail(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubById(id);
+        Club club = clubService.getClubById(id)
+                .orElseThrow(() -> new RuntimeException("클럽을 찾을 수 없습니다."));
         model.addAttribute("club", club);
         model.addAttribute("reviews", club.getReviews());
         return "club-detail";  // 클럽 상세 페이지 렌더링
     }
+
 
 }

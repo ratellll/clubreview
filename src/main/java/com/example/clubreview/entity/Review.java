@@ -1,4 +1,4 @@
-package com.example.clubreview.domain;
+package com.example.clubreview.entity;
 
 
 import jakarta.persistence.*;

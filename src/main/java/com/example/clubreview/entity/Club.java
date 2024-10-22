@@ -1,4 +1,4 @@
-package com.example.clubreview.domain;
+package com.example.clubreview.entity;
 
 
 import jakarta.persistence.*;
@@ -23,10 +23,7 @@ public class Club {
     @Column(nullable = false)
     private String location;
 
-    private String description;
-
-    private double latitude;
-    private double longitude;
+    private String description; // 클럽ㅈ어보
 
     private double averageRating;
 

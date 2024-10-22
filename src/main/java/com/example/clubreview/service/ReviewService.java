@@ -1,8 +1,8 @@
 package com.example.clubreview.service;
 
 
-import com.example.clubreview.domain.Club;
-import com.example.clubreview.domain.Review;
+import com.example.clubreview.entity.Club;
+import com.example.clubreview.entity.Review;
 import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import org.springframework.stereotype.Service;

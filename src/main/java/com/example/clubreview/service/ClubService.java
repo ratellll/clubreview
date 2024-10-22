@@ -1,11 +1,12 @@
 package com.example.clubreview.service;
 
 
-import com.example.clubreview.domain.Club;
+import com.example.clubreview.entity.Club;
 import com.example.clubreview.repository.ClubRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClubService {
@@ -15,8 +16,8 @@ public class ClubService {
     public ClubService(ClubRepository clubRepository) {
         this.clubRepository = clubRepository;
     }
-    public List<Club> getClubsSortedById(Long id) {
-        return clubRepository.findAllByOrderById(id);
+    public Optional<Club> getClubById(Long id) {
+        return clubRepository.findById(id);
     }
 
     public List<Club> getClubsSortedByName() {
@@ -29,5 +30,9 @@ public class ClubService {
 
     public Club addClub(Club club) {
         return clubRepository.save(club);
+    }
+
+    public void deleteClub(Long id) {
+        clubRepository.deleteById(id);
     }
 }
