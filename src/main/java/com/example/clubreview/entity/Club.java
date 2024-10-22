@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Club {
@@ -23,7 +24,9 @@ public class Club {
     @Column(nullable = false)
     private String location;
 
-    private String description; // 클럽ㅈ어보
+    private String description; // 클럽정보
+
+    private String callNumber; // 해당클럽 전화번호
 
     private double averageRating;
 
