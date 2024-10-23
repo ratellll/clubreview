@@ -1,6 +1,7 @@
 package com.example.clubreview.service;
 
 
+import com.example.clubreview.dto.ClubDto;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.repository.ClubRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +40,8 @@ public class ClubService {
     public void deleteClub(Long clubId) {
         clubRepository.deleteById(clubId);
     }
-}
+
+    public void addClub(ClubDto clubDto) {
+        Club club = club.
+    }
 }

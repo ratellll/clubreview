@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Club {
 
     @Id
@@ -35,5 +36,15 @@ public class Club {
     private List<Review> reviews = new ArrayList<>();
 
 
+    // 리뷰추가 메서드
+    public void addReview(Review review) {
+        review.setClub(this);
+        reviews.add(review);
+    }
+    //리뷰삭제
+    public void removeReview(Review review) {
+        reviews.remove(review);
+        review.setClub(null);
+    }
 
 }
