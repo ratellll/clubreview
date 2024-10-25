@@ -1,9 +1,14 @@
 package com.example.clubreview.dto;
 
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@Builder
 public class ReviewDto {
 
     private String comment;

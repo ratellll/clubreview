@@ -19,6 +19,5 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
     // 클럽 이름으로 검색
     Optional<Club> findByName(String name);
 
-    // 클럽 삭제
-    void deleteById(Long id);
+
 }

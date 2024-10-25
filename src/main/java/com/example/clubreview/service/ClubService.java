@@ -19,6 +19,17 @@ public class ClubService {
 
     private final ClubRepository clubRepository;
 
+
+    // 모든클럽 조회
+    public List<Club> getAllClubs() {
+        return clubRepository.findAll();
+    }
+
+    // 특정 클럽 조회
+    public Club getClubById(Long id) {
+        return clubRepository.findById(id).orElseThrow(() -> new RuntimeException("Club not found"));
+    }
+
     // 이름 오름차순으로 정렬된 클럽 목록 (페이징)
     public Page<Club> getClubsSortedByName(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -42,6 +53,23 @@ public class ClubService {
     }
 
     public void addClub(ClubDto clubDto) {
-        Club club = club.
+        Club club = Club.builder()
+                .name(clubDto.getName())
+                .location(clubDto.getLocation())
+                .description(clubDto.getDescription())
+                .callNumber(clubDto.getCallNumber())
+                .build();
+        clubRepository.save(club);
     }
+    //수정
+    public void updateClub(Long id, ClubDto clubDto) {
+        Club club = getClubById(id);
+        club.setName(clubDto.getName());
+        club.setLocation(clubDto.getLocation());
+        club.setDescription(clubDto.getDescription());
+        club.setCallNumber(clubDto.getCallNumber());
+        clubRepository.save(club);
+    }
+
+
 }
