@@ -20,11 +20,13 @@ public class ClubController {
 
     // 클럽 목록 조회 (이름순 또는 별점순 정렬)
     @GetMapping
-    public String getAllClubs(@RequestParam(defaultValue = "name") String sortBy, Model model) {
-        List<Club> clubs = sortBy.equals("rating") ?
-                clubService.getClubsSortedByRating() : clubService.getClubsSortedByName();
+    public String listClubs(@RequestParam(required = false)String sortBy, Model model) {
+        List<Club> clubs = sortBy != null && sortBy.equals("name")
+                ? clubService.getClubsSortedByName()
+                : clubService.getClubsSortedByRating();
         model.addAttribute("clubs", clubs);
-        return "club-list";  // 클럽 목록 페이지 렌더링
+        return "club/list";
+
     }
 
     // 클럽 상세 정보 조회
