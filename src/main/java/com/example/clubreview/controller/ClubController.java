@@ -30,7 +30,7 @@ public class ClubController {
                 ? clubService.getClubsSortedByName(page, size)
                 : clubService.getClubsSortedByRating(page, size);
         model.addAttribute("clubs", clubs);
-        return "club/list";
+        return "clubs/list";
 
     }
 

@@ -3,42 +3,77 @@ package com.example.clubreview.service;
 
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.entity.Review;
+import com.example.clubreview.entity.User;
 import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
+import com.example.clubreview.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ClubRepository clubRepository;
+    private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, ClubRepository clubRepository) {
+    public ReviewService(ReviewRepository reviewRepository, ClubRepository clubRepository, UserRepository userRepository) {
         this.reviewRepository = reviewRepository;
         this.clubRepository = clubRepository;
+        this.userRepository = userRepository;
     }
 
-    public Review addReview(Long clubId, Long userId, Review review) {
-        Optional<Review> existingReview = reviewRepository.findByClubIdAndUserId(clubId, userId);
-        if (existingReview.isPresent()) {
-            throw new IllegalStateException("이미 클럽에 대한 리뷰가 존재합니다.");
+    // 특정 클럽의 모든 리뷰 조회
+    public List<Review> getReviewsByClubId(Long clubId) {
+        return reviewRepository.findByClubId(clubId);
+    }
+    // 리뷰 ID로 특정 리뷰 조회
+    public Review getReviewByUserId(Long userId) {
+        return reviewRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("리뷰가 존재하지않습니다"));
+    }
+
+    // 리뷰 생성
+    @Transactional
+    public Review addReview(Long userId, Long clubId, String comment, int rating) {
+        if (reviewRepository.findByUserIdAndClubId(userId, clubId).isPresent()) {
+            throw new RuntimeException("이미 해당 클럽에 리뷰를 남기셨습니다.");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을수없습니다"));
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("해당 클럽은 존재하지않습니다."));
+                .orElseThrow(() -> new RuntimeException("해당 클럽은 존재하지않습니다"));
 
+        Review review = new Review();
+        review.setUser(user);
         review.setClub(club);
-        Review savedReview = reviewRepository.save(review);
+        review.setComment(comment);
+        review.setRating(rating);
 
-        double newAverageRating = club.getReviews().stream()
-                .mapToInt(Review::getRating)
-                .average()
-                .orElse(0.0);
+        return reviewRepository.save(review);
+    }
 
-        club.setAverageRating(newAverageRating);
-        clubRepository.save(club);
+    // 리뷰 수정
+    @Transactional
+    public Review updateReview(Long reviewId, String comment, int rating) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("리뷰를 찾을수없습니다."));
+        review.setComment(comment);
+        review.setRating(rating);
 
-        return savedReview;
+        return reviewRepository.save(review);
+    }
+
+    // 리뷰 삭제
+    @Transactional
+    public void deleteReview(Long reviewId) {
+        if (!reviewRepository.existsById(reviewId)) {
+            throw new RuntimeException("리뷰를 찾을수없습니다.");
+        }
+        reviewRepository.deleteById(reviewId);
     }
 }
 
