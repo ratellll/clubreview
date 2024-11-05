@@ -1,0 +1,36 @@
+package com.example.clubreview.service;
+
+import com.example.clubreview.dto.UserDto;
+import com.example.clubreview.entity.User;
+import com.example.clubreview.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public void registerUser(UserDto userDto) {
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(userDto.getPassword());
+
+        // User 엔티티 생성 및 저장
+        User user = User.builder()
+                .username(userDto.getUsername())
+                .password(encodedPassword)
+                .role(User.Role.USER)
+                .build();
+
+        userRepository.save(user);
+    }
+
+}
