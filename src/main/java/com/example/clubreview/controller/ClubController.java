@@ -31,7 +31,6 @@ public class ClubController {
                 : clubService.getClubsSortedByRating(page, size);
         model.addAttribute("clubs", clubs);
         return "clubs/list";
-
     }
 
     // 클럽 상세 정보 조회

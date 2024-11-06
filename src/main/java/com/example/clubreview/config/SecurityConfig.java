@@ -17,13 +17,13 @@ import org.springframework.security.web.SecurityFilterChain;
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                     .authorizeHttpRequests((authz) -> authz
-                            .requestMatchers("/", "/users/register", "/login", "/index").permitAll()  // 접근 허용
-                            .requestMatchers("/clubs/list").authenticated()  // clubs/list는 로그인 필요
+                            .requestMatchers("/", "/users/register", "/login").permitAll()  // 접근 허용
                             .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // admin 경로는 ADMIN 권한 필요
                             .anyRequest().authenticated()
                     )
                     .formLogin((form) -> form
-                            .loginPage("/")                        // 로그인 페이지 경로 설정
+                            .loginPage("/") // 로그인 페이지 경로 설정
+                            .loginProcessingUrl("/login")
                             .defaultSuccessUrl("/clubs/list", true)     // 로그인 성공 후 리디렉션 설정
                             .permitAll()
                     )
