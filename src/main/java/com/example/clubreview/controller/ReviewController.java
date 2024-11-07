@@ -2,11 +2,14 @@ package com.example.clubreview.controller;
 
 
 import com.example.clubreview.entity.Review;
+import com.example.clubreview.entity.User;
 import com.example.clubreview.service.ReviewService;
+import com.example.clubreview.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -14,27 +17,27 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final UserService userService;
 
-    public ReviewController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService, UserService userService) {
         this.reviewService = reviewService;
+        this.userService = userService;
     }
 
-    // 리뷰 생성폼 페이지
-    @GetMapping("/new")
-    public String createReviewForm(@RequestParam Long clubId, Model model) {
-        model.addAttribute("clubId", clubId);
-        model.addAttribute("review", new Review());
-        return "reviews/create";
-    }
+    // 리뷰 등록 처리
+    @PostMapping("/add")
+    public String addReview(@RequestParam Long clubId,
+                            @RequestParam int rating,
+                            @RequestParam String comment,
+                            Principal principal) {
+        // 현재 로그인한 사용자의 이름으로 User 객체 가져오기
+        User user = userService.findByUsername(principal.getName());
 
-    //리뷰 생성처리
-    @PostMapping("/new")
-    public String createReview(@RequestParam Long userId,
-                               @RequestParam Long clubId,
-                               @RequestParam String comment,
-                               @RequestParam int rating) {
-        reviewService.addReview(userId, clubId, comment, rating);
-        return "redirect:/clubs/" + clubId; //생성후 해당클럽 페이지로이동
+        // Review 객체 생성 및 저장
+        reviewService.addReview(clubId, user, rating, comment);
+
+        // 클럽 상세 페이지로 리디렉션
+        return "redirect:/clubs/" + clubId;
     }
 
     //리뷰 수정 폼 이동
