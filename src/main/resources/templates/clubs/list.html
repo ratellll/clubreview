@@ -6,10 +6,10 @@
 </head>
 <body>
 <div class="container mt-5">
-    <h1>Clubs List</h1>
+    <h1>클럽 목록</h1>
     <div class="mb-3">
-        <a href="?sortBy=name" class="btn btn-secondary">Sort by Name</a>
-        <a href="?sortBy=rating" class="btn btn-secondary">Sort by Rating</a>
+        <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>
+        <a href="?sortBy=rating" class="btn btn-secondary">별점 순 정렬</a>
     </div>
     <ul class="list-group">
         <li class="list-group-item" th:each="club : ${clubs.content}">
