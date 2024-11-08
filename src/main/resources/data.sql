@@ -31,10 +31,46 @@ INSERT INTO Club (name, location, description, call_number, average_rating) VALU
                                                                                 ('Odin', '서울 용산구', '이태원의 분위기 있는 클럽 Odin', '010-1000-1029', 4.1),
                                                                                 ('The Function', '서울 중구', '모던한 클럽 The Function', '010-1000-1030', 4.0);
 
--- Review 데이터 (각 클럽마다 5개의 리뷰 추가)
-INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES
-                                                                       ('좋았어요!', 5, 1, 1, NOW()), ('음악이 최고예요!', 4, 1, 2, NOW()), ('조금 혼잡했어요.', 3, 1, 3, NOW()), ('분위기 좋았어요.', 4, 1, 4, NOW()), ('기대 이상이었어요!', 5, 1, 5, NOW()),
-                                                                       ('즐거운 시간 보냈어요!', 5, 2, 6, NOW()), ('또 가고 싶어요!', 4, 2, 7, NOW()), ('친구들과 가기 좋아요.', 5, 2, 8, NOW()), ('분위기가 좋아요.', 4, 2, 9, NOW()), ('너무 재미있었어요!', 5, 2, 10, NOW()),
-                                                                       ('추천합니다!', 4, 3, 11, NOW()), ('재미있는 곳이에요.', 5, 3, 12, NOW()), ('조금 붐볐어요.', 3, 3, 13, NOW()), ('음악이 좋았어요.', 4, 3, 14, NOW()), ('괜찮았어요.', 3, 3, 15, NOW()),
-                                                                       ('조명과 음악 최고!', 5, 4, 16, NOW()), ('다음에 또 가려고요!', 5, 4, 17, NOW()), ('특별한 분위기였어요.', 4, 4, 18, NOW()), ('춤추기 좋아요!', 4, 4, 19, NOW()), ('가볼만해요.', 4, 4, 20, NOW()),
-                                                                       ('친구들이랑 신나게 놀았어요!', 5, 5, 21, NOW()), ('음악이 너무 좋아요!', 5, 5, 22, NOW()), ('깔끔하고 좋습니다.', 4, 5, 23, NOW()), ('다시 방문할 계획이에요.', 4, 5, 24, NOW()), ('즐거웠어요!', 5, 5, 25, NOW());
+-- User 데이터 (테스트 계정 5개)
+INSERT INTO User (username, password, role) VALUES ('testuser1', 'password1', 'USER');
+INSERT INTO User (username, password, role) VALUES ('testuser2', 'password2', 'USER');
+INSERT INTO User (username, password, role) VALUES ('testuser3', 'password3', 'USER');
+INSERT INTO User (username, password, role) VALUES ('testuser4', 'password4', 'USER');
+INSERT INTO User (username, password, role) VALUES ('testuser5', 'password5', 'USER');
+
+
+-- Club ID 1에 대한 리뷰 데이터
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('좋은 경험이었습니다!', 5, 1, 1, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('음악이 좋아요!', 4, 1, 2, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('조금 혼잡했어요.', 3, 1, 3, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('분위기 최고!', 5, 1, 4, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('다시 오고 싶어요.', 4, 1, 5, CURRENT_TIMESTAMP);
+
+-- Club ID 2에 대한 리뷰 데이터
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('즐거운 밤이었어요!', 4, 2, 1, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('추천합니다.', 5, 2, 2, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('조금 시끄러웠어요.', 3, 2, 3, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('서비스가 좋았어요.', 4, 2, 4, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('전반적으로 만족해요.', 5, 2, 5, CURRENT_TIMESTAMP);
+
+-- Club ID 3에 대한 리뷰 데이터
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('굉장히 붐벼요.', 3, 3, 1, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('음악이 너무 좋아요.', 5, 3, 2, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('분위기가 좋아요.', 4, 3, 3, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('친절한 직원들이 많아요.', 4, 3, 4, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('특별한 경험이었어요.', 5, 3, 5, CURRENT_TIMESTAMP);
+
+-- Club ID 4에 대한 리뷰 데이터
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('다시 가고 싶어요.', 5, 4, 1, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('음악이 마음에 들어요.', 4, 4, 2, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('조금 시끄러웠어요.', 3, 4, 3, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('추천하고 싶어요.', 4, 4, 4, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('전반적으로 만족스러웠어요.', 5, 4, 5, CURRENT_TIMESTAMP);
+
+-- Club ID 5에 대한 리뷰 데이터
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('기대 이상이었어요!', 5, 5, 1, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('또 가고 싶어요!', 4, 5, 2, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('기분 좋은 밤이었어요.', 5, 5, 3, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('음악이 너무 커요.', 3, 5, 4, CURRENT_TIMESTAMP);
+INSERT INTO Review (comment, rating, club_id, user_id, created_at) VALUES ('조용했으면 좋겠어요.', 2, 5, 5, CURRENT_TIMESTAMP);
+
