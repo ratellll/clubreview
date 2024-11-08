@@ -11,15 +11,26 @@
         <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>
         <a href="?sortBy=rating" class="btn btn-secondary">별점 순 정렬</a>
     </div>
+
+    <!-- 클럽 리스트 -->
     <ul class="list-group">
         <li class="list-group-item" th:each="club : ${clubs.content}">
-            <a th:href="@{/clubs/{id}(id=${club.id})}" th:text="${club.name}"></a>
-            <span th:text="' - Rating: ' + ${club.averageRating}"></span>
+            <a th:href="@{/clubs/{id}(id=${club.id})}" th:text="${club.name}">클럽 이름</a>
+            <span th:text="' - Rating: ' + ${club.averageRating}">평점</span>
         </li>
     </ul>
-    <div>
-        <span th:if="${clubs.hasPrevious()}" th:text="|<" th:href="@{/clubs?page=${clubs.previousPageable().pageNumber}}">Previous</span>
-        <span th:if="${clubs.hasNext()}" th:text=">|" th:href="@{/clubs?page=${clubs.nextPageable().pageNumber}}">Next</span>
+
+    <!-- 페이지 네비게이션 -->
+    <div class="mt-3">
+        <a th:if="${clubs.hasPrevious()}"
+           th:href="@{/clubs(page=${clubs.previousPageable.pageNumber})}"
+           class="btn btn-outline-secondary">이전</a>
+        <span th:if="${!clubs.hasPrevious()}" class="text-muted">첫 페이지입니다</span>
+
+        <a th:if="${clubs.hasNext()}"
+           th:href="@{/clubs(page=${clubs.nextPageable.pageNumber})}"
+           class="btn btn-outline-secondary">다음</a>
+        <span th:if="${!clubs.hasNext()}" class="text-muted">다음 페이지가 없습니다</span>
     </div>
 </div>
 </body>

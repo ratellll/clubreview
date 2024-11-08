@@ -17,12 +17,10 @@ import java.util.Optional;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ClubRepository clubRepository;
-    private final UserRepository userRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, ClubRepository clubRepository, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, ClubRepository clubRepository ) {
         this.reviewRepository = reviewRepository;
         this.clubRepository = clubRepository;
-        this.userRepository = userRepository;
     }
 
     // 특정 클럽의 모든 리뷰 조회
@@ -37,15 +35,13 @@ public class ReviewService {
 
     // 리뷰 생성
     @Transactional
-    public Review addReview(Long userId, Long clubId, String comment, int rating) {
-        if (reviewRepository.findByUserIdAndClubId(userId, clubId).isPresent()) {
+    public Review addReview(Long clubId, User user,   int rating ,String comment) {
+        if (reviewRepository.findByUserIdAndClubId(user.getId(), clubId).isPresent()) {
             throw new RuntimeException("이미 해당 클럽에 리뷰를 남기셨습니다.");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을수없습니다"));
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("해당 클럽은 존재하지않습니다"));
+                .orElseThrow(() -> new RuntimeException("해당 클럽이 존재하지 않습니다"));
 
         Review review = new Review();
         review.setUser(user);
@@ -60,7 +56,7 @@ public class ReviewService {
     @Transactional
     public Review updateReview(Long reviewId, String comment, int rating) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("리뷰를 찾을수없습니다."));
+                .orElseThrow(() -> new RuntimeException("리뷰를 찾을 수 없습니다."));
         review.setComment(comment);
         review.setRating(rating);
 
