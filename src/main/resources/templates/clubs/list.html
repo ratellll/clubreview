@@ -23,12 +23,12 @@
     <!-- 페이지 네비게이션 -->
     <div class="mt-3">
         <a th:if="${clubs.hasPrevious()}"
-           th:href="@{/clubs(page=${clubs.previousPageable.pageNumber})}"
+           th:href="@{/clubs(page=${clubs.pageable.pageNumber - 1})}"
            class="btn btn-outline-secondary">이전</a>
         <span th:if="${!clubs.hasPrevious()}" class="text-muted">첫 페이지입니다</span>
 
         <a th:if="${clubs.hasNext()}"
-           th:href="@{/clubs(page=${clubs.nextPageable.pageNumber})}"
+           th:href="@{/clubs(page=${clubs.pageable.pageNumber + 1})}"
            class="btn btn-outline-secondary">다음</a>
         <span th:if="${!clubs.hasNext()}" class="text-muted">다음 페이지가 없습니다</span>
     </div>
