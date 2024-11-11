@@ -21,7 +21,7 @@ public class ClubController {
     }
 
     // 클럽 목록 조회 (이름순 또는 별점순 정렬)
-    @GetMapping
+    @GetMapping("/list")
     public String listClubs(@RequestParam(required = false) String sortBy,
                             @RequestParam(defaultValue = "0") int page,
                             @RequestParam(defaultValue = "10") int size,
