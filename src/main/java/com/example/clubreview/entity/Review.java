@@ -32,4 +32,13 @@ public class Review {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+
+    //테스트용
+    public Review(String comment, int rating, Club club, User user) {
+        this.comment = comment;
+        this.rating = rating;
+        this.club = club;
+        this.user = user;
+    }
 }

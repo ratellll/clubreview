@@ -36,6 +36,14 @@ public class Club {
     private List<Review> reviews = new ArrayList<>();
 
 
+    // 생성자 (id 제외) 테스트용
+    public Club(String name, String location, String description, String callNumber, double averageRating) {
+        this.name = name;
+        this.location = location;
+        this.description = description;
+        this.callNumber = callNumber;
+        this.averageRating = averageRating;
+    }
     // 리뷰추가 메서드
     public void addReview(Review review) {
         review.setClub(this);
