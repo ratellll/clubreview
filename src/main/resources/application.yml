@@ -1,17 +1,18 @@
 spring:
   datasource:
-    url: jdbc:h2:tcp://localhost/~/testdb     # H2 서버 모드 URL (testdb는 데이터베이스 이름)
+    url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
-    username: sa                              # 기본 사용자 이름
-    password:                                 # 기본 비밀번호 (없으면 빈 값)
+    username: sa
+    password:
   h2:
     console:
-      enabled: true                           # H2 콘솔 활성화
-      path: /h2-console                       # H2 콘솔 접근 경로
+      enabled: true
+      path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: update                        # 엔티티에 따라 테이블을 자동 생성 및 업데이트
-    show-sql: true                            # SQL 쿼리 로깅 활성화
+      ddl-auto: update
+    show-sql: true
   sql:
     init:
       mode: always
+

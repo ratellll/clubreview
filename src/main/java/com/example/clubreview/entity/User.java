@@ -34,6 +34,13 @@ public class User implements UserDetails {
         USER,ADMIN
     }
 
+    //테스트용 id없는 생성자
+    public User(String username, String password, Role role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
+
     //UserDetails 인터페이스 메서드 구현
     /*
      Collection 문법 확인하기
