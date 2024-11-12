@@ -25,12 +25,19 @@
         <a th:if="${clubs.hasPrevious()}"
            th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber - 1})}"
            class="btn btn-outline-secondary">이전</a>
-        <span th:if="${!clubs.hasPrevious()}" class="text-muted">첫 페이지입니다</span>
 
+        <!-- 페이지 번호 링크 생성 -->
+        <span th:each="pageNum : ${#numbers.sequence(0, clubs.totalPages - 1)}">
+            <a th:href="@{/clubs/list(sortBy=${sortBy}, page=${pageNum})}"
+               th:text="${pageNum + 1}"
+               th:classappend="${pageNum == clubs.pageable.pageNumber} ? 'btn-primary' : 'btn-outline-secondary'"
+               class="btn btn-sm mx-1"></a>
+        </span>
+
+        <!-- 다음 버튼 -->
         <a th:if="${clubs.hasNext()}"
            th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber + 1})}"
            class="btn btn-outline-secondary">다음</a>
-        <span th:if="${!clubs.hasNext()}" class="text-muted">다음 페이지가 없습니다</span>
     </div>
 </div>
 </body>

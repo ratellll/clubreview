@@ -37,7 +37,7 @@ public class DatabaseInitializer {
             User user1 = new User("유저1", passwordEncoder.encode("123"), User.Role.USER);
             User user2 = new User("유저2", passwordEncoder.encode("123"), User.Role.USER);
             User user3 = new User("유저3", passwordEncoder.encode("123"), User.Role.USER);
-            User user4 = new User("123", passwordEncoder.encode("123"), User.Role.USER);
+            User user4 = new User("123", passwordEncoder.encode("123"), User.Role.ADMIN);
             userRepository.saveAll(List.of(user1, user2, user3,user4));
 
             // 클럽 데이터 생성
