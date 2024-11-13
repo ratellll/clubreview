@@ -72,4 +72,8 @@ public class ClubService {
         club.setCallNumber(clubDto.getCallNumber());
         clubRepository.save(club);
     }
+
+    public void deleteReview(Long reviewId) {
+        clubRepository.deleteById(reviewId);
+    }
 }

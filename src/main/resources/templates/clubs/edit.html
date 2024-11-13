@@ -7,24 +7,24 @@
 <body>
 <div class="container mt-5">
     <h1>클럽 수정</h1>
-    <form th:action="@{/clubs/admin/edit/{id}(id=${club.id})}" th:object="${club}" method="post">
+    <form th:action="@{/clubs/admin/edit/{id}(id=${clubId})}" th:object="${club}" method="post">
         <div class="mb-3">
             <label for="name" class="form-label">클럽 이름</label>
-            <input type="text" th:field="*{name}" class="form-control" id="name" required>
+            <input type="text" id="name" th:field="*{name}" class="form-control"/>
         </div>
         <div class="mb-3">
             <label for="location" class="form-label">위치</label>
-            <input type="text" th:field="*{location}" class="form-control" id="location" required>
+            <input type="text" id="location" th:field="*{location}" class="form-control"/>
         </div>
         <div class="mb-3">
             <label for="description" class="form-label">설명</label>
-            <textarea th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
+            <textarea id="description" th:field="*{description}" class="form-control"></textarea>
         </div>
         <div class="mb-3">
             <label for="callNumber" class="form-label">연락처</label>
-            <input type="text" th:field="*{callNumber}" class="form-control" id="callNumber">
+            <input type="text" id="callNumber" th:field="*{callNumber}" class="form-control"/>
         </div>
-        <button type="submit" class="btn btn-primary">수정</button>
+        <button type="submit" class="btn btn-primary">저장</button>
     </form>
 </div>
 </body>

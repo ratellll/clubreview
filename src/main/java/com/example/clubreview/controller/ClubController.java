@@ -56,7 +56,35 @@ public class ClubController {
         return "redirect:/clubs";
     }
 
+    //클럽 수정폼
+    @GetMapping("/admin/edit/{id}")
+    public String editClubForm(@PathVariable Long id, Model model) {
+        Club club = clubService.getClubById(id);
+        ClubDto clubDto = new ClubDto(club.getName(), club.getLocation(), club.getDescription(), club.getCallNumber());
 
+        model.addAttribute("club", clubDto);
+        model.addAttribute("clubId", id);
+        return "clubs/edit";
+    }
 
+    //클럽 수정처리
+    @PostMapping("/admin/edit/{id}")
+    public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto) {
+        clubService.updateClub(id, clubDto);
+        return "redirect:/clubs/list";
+    }
+
+    //클럽삭제
+    @PostMapping("/admin/delete/{id}")
+    public String deleteClub(@PathVariable Long id) {
+        clubService.deleteClub(id);
+        return "redirect:/clubs/list";
+    }
+    //리뷰삭제
+    @PostMapping("/admin/reviews/delete/{reviewId}")
+    public String deleteReview(@PathVariable Long reviewId) {
+        clubService.deleteReview(reviewId);
+        return "redirect:/clubs/list";
+    }
 
 }

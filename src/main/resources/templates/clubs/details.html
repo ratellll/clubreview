@@ -12,12 +12,26 @@
     <p><strong>전화번호 :</strong> <span th:text="${club.callNumber}"></span></p>
     <p><strong>평균 별점:</strong> <span th:text="${club.averageRating}"></span></p>
 
+
+    <!-- 어드민 한테만 노출시키긔 -->
+    <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+        <a th:href="@{/clubs/admin/edit/{id}(id=${club.id})}" class="btn btn-warning mb-3">클럽 수정</a>
+    </div>
+
     <h3>리뷰</h3>
     <ul class="list-group mb-4">
         <li class="list-group-item" th:each="review : ${reviews}">
             <strong th:text="${review.user.username}">User</strong>:
             <span th:text="${review.comment}">리뷰</span>
             <span th:text="'(' + ${review.rating} + '/5)'">별점</span>
+
+            <!-- 어드민 한테만 노출시키긔 -->
+            <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}"
+               th:href="@{/reviews/delete/{id}(id=${review.id})}"
+               class="btn btn-danger btn-sm float-end"
+               onclick="return confirm('정말로 이 리뷰를 삭제하시겠습니까?');">
+                삭제
+            </a>
         </li>
     </ul>
 

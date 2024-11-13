@@ -28,8 +28,8 @@ public class ReviewService {
         return reviewRepository.findByClubId(clubId);
     }
     // 리뷰 ID로 특정 리뷰 조회
-    public Review getReviewByUserId(Long userId) {
-        return reviewRepository.findById(userId)
+    public Review getReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("리뷰가 존재하지않습니다"));
     }
 

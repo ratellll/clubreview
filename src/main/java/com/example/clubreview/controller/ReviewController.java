@@ -8,6 +8,7 @@ import com.example.clubreview.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -43,7 +44,7 @@ public class ReviewController {
     //리뷰 수정 폼 이동
     @GetMapping("/edit/{id}")
     public String editReviewForm(@PathVariable Long id, Model model) {
-        Review review = reviewService.getReviewByUserId(id);
+        Review review = reviewService.getReviewById(id);
         model.addAttribute("review", review);
         return "reviews/edit";
     }
@@ -59,9 +60,14 @@ public class ReviewController {
 
     //리뷰 삭제
     @PostMapping("/delete/{id}")
-    public String deleteReview(@PathVariable Long id) {
-        Review review = reviewService.getReviewByUserId(id);
-        reviewService.deleteReview(id);
-        return "redirect:/clubs/" + review.getClub().getId();
+    public String deleteReview(@PathVariable Long id, @RequestParam Long clubId, RedirectAttributes redirectAttributes) {
+        try {
+            reviewService.deleteReview(id);
+            redirectAttributes.addFlashAttribute("message", "리뷰가 성공적으로 삭제되었습니다.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "리뷰 삭제 중 오류가 발생했습니다.");
+        }
+        return "redirect:/clubs/" + clubId;
     }
+
 }
