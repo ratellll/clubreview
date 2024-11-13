@@ -50,7 +50,7 @@ public class ReviewController {
     }
 
     // 리뷰  수정처리
-    @PostMapping("/edit/{id}")
+    @PostMapping("/admin/edit/{id}")
     public String editReview(@PathVariable Long id,
                              @RequestParam String comment,
                              @RequestParam int rating) {
@@ -59,7 +59,7 @@ public class ReviewController {
     }
 
     //리뷰 삭제
-    @PostMapping("/delete/{id}")
+    @PostMapping("/admin/delete/{id}")
     public String deleteReview(@PathVariable Long id, @RequestParam Long clubId, RedirectAttributes redirectAttributes) {
         try {
             reviewService.deleteReview(id);
