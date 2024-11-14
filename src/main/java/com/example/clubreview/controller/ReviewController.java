@@ -3,8 +3,10 @@ package com.example.clubreview.controller;
 
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
+import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +32,14 @@ public class ReviewController {
     public String addReview(@RequestParam Long clubId,
                             @RequestParam int rating,
                             @RequestParam String comment,
-                            Principal principal) {
-        // 현재 로그인한 사용자의 이름으로 User 객체 가져오기
-        User user = userService.findByUsername(principal.getName());
-
-        // Review 객체 생성 및 저장
-        reviewService.addReview(clubId, user, rating, comment);
-
-        // 클럽 상세 페이지로 리디렉션
+                            RedirectAttributes redirectAttributes,
+                            @AuthenticationPrincipal User user) {
+        try {
+            reviewService.addReview(clubId, user, rating, comment);
+            redirectAttributes.addFlashAttribute("message", "리뷰가 등록되었습니다");
+        }catch (DuplicateReviewException e){
+            redirectAttributes.addFlashAttribute("errorMessage", "리뷰가 등록을 실패하였습니다");
+        }
         return "redirect:/clubs/" + clubId;
     }
 

@@ -4,6 +4,7 @@ package com.example.clubreview.service;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
+import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import com.example.clubreview.repository.UserRepository;
@@ -37,11 +38,11 @@ public class ReviewService {
     @Transactional
     public Review addReview(Long clubId, User user,   int rating ,String comment) {
         if (reviewRepository.findByUserIdAndClubId(user.getId(), clubId).isPresent()) {
-            throw new RuntimeException("이미 해당 클럽에 리뷰를 남기셨습니다.");
+            throw new DuplicateReviewException("이미 해당 클럽에 리뷰를 남기셨습니다.");
         }
 
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("해당 클럽이 존재하지 않습니다"));
+                .orElseThrow(() -> new DuplicateReviewException("해당 클럽이 존재하지 않습니다"));
 
         Review review = new Review();
         review.setUser(user);
