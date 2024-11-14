@@ -80,11 +80,11 @@ public class ClubController {
         clubService.deleteClub(id);
         return "redirect:/clubs/list";
     }
-    //리뷰삭제
-    @PostMapping("/admin/reviews/delete/{reviewId}")
-    public String deleteReview(@PathVariable Long reviewId) {
-        clubService.deleteReview(reviewId);
-        return "redirect:/clubs/list";
-    }
+//    //리뷰삭제
+//    @PostMapping("/admin/reviews/delete/{reviewId}")
+//    public String deleteReview(@PathVariable Long reviewId) {
+//        clubService.deleteReview(reviewId);
+//        return "redirect:/clubs/list";
+//    }
 
 }
