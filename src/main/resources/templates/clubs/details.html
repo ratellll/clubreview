@@ -18,6 +18,9 @@
     <p><strong>전화번호 :</strong> <span th:text="${club.callNumber}"></span></p>
     <p><strong>평균 별점:</strong> <span th:text="${club.averageRating}"></span></p>
 
+    <div class="mb-3">
+        <a th:href="@{/clubs/list}" class="btn btn-secondary">목록으로</a>
+    </div>
 
     <!-- 어드민 한테만 노출시키긔 -->
     <div sec:authorize="hasRole('ADMIN')">

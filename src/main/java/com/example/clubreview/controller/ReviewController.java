@@ -38,7 +38,7 @@ public class ReviewController {
             reviewService.addReview(clubId, user, rating, comment);
             redirectAttributes.addFlashAttribute("message", "리뷰가 등록되었습니다");
         }catch (DuplicateReviewException e){
-            redirectAttributes.addFlashAttribute("errorMessage", "리뷰가 등록을 실패하였습니다");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/clubs/" + clubId;
     }
