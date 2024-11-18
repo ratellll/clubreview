@@ -31,8 +31,11 @@ public class Club {
 
     private double averageRating;
 
-    private double latitude;  // 위도
-    private double longitude; // 경도
+    @Column(nullable = false)
+    private double latitude; // 위도
+
+    @Column(nullable = false)
+    private double longitude; //경도
 
     // 클럽과 리뷰의 1:N 관계 설정
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)

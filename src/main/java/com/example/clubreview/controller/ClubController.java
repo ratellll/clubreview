@@ -9,6 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 @Controller
 @RequestMapping("/clubs")
@@ -30,8 +33,14 @@ public class ClubController {
                 ? clubService.getClubsSortedByName(page, size)
                 : clubService.getClubsSortedByRating(page, size);
 
-        model.addAttribute("clubs", clubs);
-        model.addAttribute("allClubs", clubService.getAllClubs()); // 지도용 데이터 추가
+        List<Map<String, Object>> clubLocations = clubs.getContent().stream().map(club -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", club.getName());
+            map.put("latitude", club.getLatitude());
+            map.put("longitude", club.getLongitude());
+            return map;
+        }).toList();
+        model.addAttribute("clubLocations", clubs.getContent()); // Page에서 사용하는 메서드 해당 데이터가 포함된 list를가져옴
         return "clubs/list";
     }
 
