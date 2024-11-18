@@ -31,18 +31,23 @@ public class Club {
 
     private double averageRating;
 
+    private double latitude;  // 위도
+    private double longitude; // 경도
+
     // 클럽과 리뷰의 1:N 관계 설정
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
 
 
     // 생성자 (id 제외) 테스트용
-    public Club(String name, String location, String description, String callNumber, double averageRating) {
+    public Club(String name, String location, String description, String callNumber, double averageRating,double latitude,double longitude) {
         this.name = name;
         this.location = location;
         this.description = description;
         this.callNumber = callNumber;
         this.averageRating = averageRating;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
     // 리뷰추가 메서드
     public void addReview(Review review) {

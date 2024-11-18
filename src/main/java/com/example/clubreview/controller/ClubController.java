@@ -29,7 +29,9 @@ public class ClubController {
         Page<Club> clubs = (sortBy != null && sortBy.equals("name"))
                 ? clubService.getClubsSortedByName(page, size)
                 : clubService.getClubsSortedByRating(page, size);
+
         model.addAttribute("clubs", clubs);
+        model.addAttribute("allClubs", clubService.getAllClubs()); // 지도용 데이터 추가
         return "clubs/list";
     }
 
@@ -80,11 +82,12 @@ public class ClubController {
         clubService.deleteClub(id);
         return "redirect:/clubs/list";
     }
-//    //리뷰삭제
-//    @PostMapping("/admin/reviews/delete/{reviewId}")
-//    public String deleteReview(@PathVariable Long reviewId) {
-//        clubService.deleteReview(reviewId);
-//        return "redirect:/clubs/list";
-//    }
 
+    //클럽위치매핑
+    @GetMapping("/map")
+    public String getClubsForMap(Model model) {
+        List<Club> clubs = clubService.getAllClubs();
+        model.addAttribute("clubs", clubs);
+        return "clubs/map";
+    }
 }
