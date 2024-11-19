@@ -36,6 +36,9 @@ public class ClubController {
         List<Map<String, Object>> clubLocations = clubs.getContent().stream().map(club -> {
             Map<String, Object> map = new HashMap<>();
             map.put("name", club.getName());
+            map.put("location", club.getLocation());
+            map.put("callNumber", club.getCallNumber());
+            map.put("averageRating", club.getAverageRating());
             map.put("latitude", club.getLatitude());
             map.put("longitude", club.getLongitude());
             return map;
