@@ -40,7 +40,9 @@ public class ClubController {
             map.put("longitude", club.getLongitude());
             return map;
         }).toList();
-        model.addAttribute("clubLocations", clubs.getContent()); // Page에서 사용하는 메서드 해당 데이터가 포함된 list를가져옴
+        model.addAttribute("clubs", clubs);
+        model.addAttribute("clubLocations", clubLocations); // Page에서 사용하는 메서드 해당 데이터가 포함된 list를가져옴
+        System.out.println(clubLocations);
         return "clubs/list";
     }
 

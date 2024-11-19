@@ -16,10 +16,10 @@
 
 
 
-    <script>
+    <script th:inline="javascript">
 
         const clubs = /*[[${clubLocations}]]*/[];
-
+        console.log(clubs);
         // 지도 초기화
         const container = document.getElementById('map');
         const options = {
@@ -54,6 +54,7 @@
         <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>
         <a href="?sortBy=rating" class="btn btn-secondary">별점 순 정렬</a>
     </div>
+
 
     <!-- 클럽 리스트 -->
     <ul class="list-group">
