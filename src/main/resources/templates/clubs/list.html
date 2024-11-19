@@ -18,21 +18,19 @@
 
 
     <script th:inline="javascript">
-        // 클럽 데이터
-        const clubs = /*[[${clubLocations}]]*/[];
+        let currentPhotoModal = null; // 현재 사진 모달 상태 관리
+        let currentInfoWindow = null; // 현재 열려 있는 정보창 상태 관리
+
+        const clubs = /*[[${clubLocations}]]*/ [];
         console.log(clubs);
 
-        // 지도 초기화
         const container = document.getElementById('map');
         const options = {
-            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울의 기본 중심좌표
-            level: 8 // 확대 수준
+            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+            level: 8
         };
 
         const map = new kakao.maps.Map(container, options);
-
-        // 현재 열려있는 정보창을 관리할 변수
-        let currentInfoWindow = null;
 
         // 클럽 데이터로 마커 생성 및 커스텀 정보창 설정
         clubs.forEach(club => {
@@ -44,13 +42,6 @@
                 map: map
             });
 
-            // 리뷰 HTML 생성
-            const reviewsHtml = club.reviews.map(review => `
-            <div class="review-item">
-                <strong>${review.user}</strong>: <span>${review.comment} (${review.rating}/5)</span>
-            </div>
-        `).join('');
-
             // 커스텀 정보창 HTML
             const infoWindowContent = `
             <div class="info-window">
@@ -59,10 +50,7 @@
                 <p>전화번호: ${club.callNumber}</p>
                 <p>정보: ${club.description}</p>
                 <p>평점: ${club.averageRating} / 5</p>
-                <div class="reviews">
-                    <h5 style="margin: 0;">리뷰</h5>
-                    ${reviewsHtml || '<p>리뷰가 없습니다.</p>'}
-                </div>
+                <img src="${club.photoUrl}" alt="클럽 사진" class="club-photo" onclick="showPhotoModal('${club.photoUrl}')">
             </div>
         `;
 
@@ -73,19 +61,47 @@
 
             // 마커 클릭 이벤트
             kakao.maps.event.addListener(marker, 'click', () => {
-                // 기존 열려있는 정보창 닫기
                 if (currentInfoWindow) {
                     currentInfoWindow.close();
                 }
-
-                // 현재 정보창 열기
                 infoWindow.open(map, marker);
-
-                // 현재 열려있는 정보창 업데이트
                 currentInfoWindow = infoWindow;
             });
+
+            // 지도 클릭 시 정보창 닫기
+            kakao.maps.event.addListener(map, 'click', () => {
+                if (currentInfoWindow) {
+                    currentInfoWindow.close();
+                    currentInfoWindow = null;
+                }
+            });
         });
-    </script>
+
+        // 사진 확대용 함수
+        function showPhotoModal(photoUrl) {
+            if (currentPhotoModal) {
+                currentPhotoModal.remove();
+                currentPhotoModal = null;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'photo-modal';
+            modal.innerHTML = `
+            <div class="photo-modal-content">
+                <img src="${photoUrl}" alt="클럽 사진 확대">
+            </div>
+        `;
+
+            document.body.appendChild(modal);
+            currentPhotoModal = modal;
+
+            // 모달 외부 클릭 시 닫기
+            modal.addEventListener('click', () => {
+                modal.remove();
+                currentPhotoModal = null;
+            });
+        }
+</script>
 
     <div class="mb-3">
         <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>

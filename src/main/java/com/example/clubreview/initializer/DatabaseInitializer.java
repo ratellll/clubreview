@@ -42,21 +42,21 @@ public class DatabaseInitializer {
 
             // 클럽 데이터 생성
             List<Club> clubs = List.of(
-                    new Club("Octagon", "서울 강남구", "강남에 위치한 인기 클럽 Octagon", "010-1000-1001", 4.6, 37.504833, 127.044176),
-                    new Club("M2", "서울 마포구", "홍대의 클럽 M2", "010-1000-1002", 4.2, 37.555702, 126.923612),
-                    new Club("Arena", "서울 강남구", "강남에서 유명한 클럽 Arena", "010-1000-1003", 4.5, 37.510722, 127.022393),
-                    new Club("Cakeshop", "서울 용산구", "이태원 클럽 Cakeshop", "010-1000-1004", 4.1, 37.534349, 126.994547),
-                    new Club("Club Made", "서울 마포구", "홍대의 힙한 클럽 Made", "010-1000-1005", 4.3, 37.555869, 126.922759),
-                    new Club("NB2", "서울 마포구", "홍대의 유명한 힙합 클럽 NB2", "010-1000-1006", 4.4, 37.556495, 126.923839),
-                    new Club("FAUST", "서울 중구", "을지로에 위치한 클럽 FAUST", "010-1000-1007", 3.8, 37.565328, 126.977822),
-                    new Club("SOAP", "서울 용산구", "이태원의 클럽 SOAP", "010-1000-1008", 4.0, 37.536925, 126.995072),
-                    new Club("Modeci", "서울 강남구", "럭셔리 클럽 Modeci", "010-1000-1009", 4.2, 37.506427, 127.045735),
-                    new Club("Mass", "서울 강남구", "강남의 대형 클럽 Mass", "010-1000-1010", 4.0, 37.504978, 127.042758),
-                    new Club("Chroma", "서울 송파구", "잠실에 위치한 대형 클럽 Chroma", "010-1000-1011", 4.7, 37.513144, 127.105474),
-                    new Club("Move", "서울 강남구", "음악이 좋은 클럽 Move", "010-1000-1012", 3.9, 37.508292, 127.038199),
-                    new Club("The Henz Club", "서울 마포구", "힙합 분위기의 클럽 The Henz Club", "010-1000-1013", 4.1, 37.556292, 126.923840),
-                    new Club("Hidden Cellar", "서울 용산구", "이태원의 Hidden Cellar", "010-1000-1014", 3.7, 37.535755, 126.994585),
-                    new Club("Vurt", "서울 마포구", "홍대의 작은 클럽 Vurt", "010-1000-1015", 4.0, 37.554232, 126.921872)
+                    new Club("Octagon", "서울 강남구", "강남에 위치한 인기 클럽 Octagon", "010-1000-1001", 4.6, 37.504833, 127.044176, "/images/clubs/capybara.png"),
+                    new Club("M2", "서울 마포구", "홍대의 클럽 M2", "010-1000-1002", 4.2, 37.555702, 126.923612, "/images/clubs/capybara.png"),
+                    new Club("Arena", "서울 강남구", "강남에서 유명한 클럽 Arena", "010-1000-1003", 4.5, 37.510722, 127.022393, "/images/clubs/capybara.png"),
+                    new Club("Cakeshop", "서울 용산구", "이태원 클럽 Cakeshop", "010-1000-1004", 4.1, 37.534349, 126.994547, "/images/clubs/capybara.png"),
+                    new Club("Club Made", "서울 마포구", "홍대의 힙한 클럽 Made", "010-1000-1005", 4.3, 37.555869, 126.922759, "/images/clubs/capybara.png"),
+                    new Club("NB2", "서울 마포구", "홍대의 유명한 힙합 클럽 NB2", "010-1000-1006", 4.4, 37.556495, 126.923839, "/images/clubs/capybara.png"),
+                    new Club("FAUST", "서울 중구", "을지로에 위치한 클럽 FAUST", "010-1000-1007", 3.8, 37.565328, 126.977822, "/images/clubs/capybara.png"),
+                    new Club("SOAP", "서울 용산구", "이태원의 클럽 SOAP", "010-1000-1008", 4.0, 37.536925, 126.995072, "/images/clubs/capybara.png"),
+                    new Club("Modeci", "서울 강남구", "럭셔리 클럽 Modeci", "010-1000-1009", 4.2, 37.506427, 127.045735, "/images/clubs/capybara.png"),
+                    new Club("Mass", "서울 강남구", "강남의 대형 클럽 Mass", "010-1000-1010", 4.0, 37.504978, 127.042758, "/images/clubs/capybara.png"),
+                    new Club("Chroma", "서울 송파구", "잠실에 위치한 대형 클럽 Chroma", "010-1000-1011", 4.7, 37.513144, 127.105474, "/images/clubs/capybara.png"),
+                    new Club("Move", "서울 강남구", "음악이 좋은 클럽 Move", "010-1000-1012", 3.9, 37.508292, 127.038199, "/images/clubs/capybara.png"),
+                    new Club("The Henz Club", "서울 마포구", "힙합 분위기의 클럽 The Henz Club", "010-1000-1013", 4.1, 37.556292, 126.923840, "/images/clubs/capybara.png"),
+                    new Club("Hidden Cellar", "서울 용산구", "이태원의 Hidden Cellar", "010-1000-1014", 3.7, 37.535755, 126.994585, "/images/clubs/capybara.png"),
+                    new Club("Vurt", "서울 마포구", "홍대의 작은 클럽 Vurt", "010-1000-1015", 4.0, 37.554232, 126.921872, "/images/clubs/capybara.png")
             );
             clubRepository.saveAll(clubs);
 

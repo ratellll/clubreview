@@ -42,13 +42,7 @@ public class ClubController {
             map.put("longitude", club.getLongitude());
             map.put("description", club.getDescription());
             map.put("averageRating", club.getAverageRating());
-            map.put("reviews", club.getReviews().stream().map(review -> {
-                Map<String, String> reviewMap = new HashMap<>();
-                reviewMap.put("user", review.getUser().getUsername());
-                reviewMap.put("comment", review.getComment());
-                reviewMap.put("rating", String.valueOf(review.getRating()));
-                return reviewMap;
-            }).toList());
+            map.put("photoUrl", club.getPhotoUrl());
             return map;
         }).toList();
 
