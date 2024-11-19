@@ -38,11 +38,20 @@ public class ClubController {
             map.put("name", club.getName());
             map.put("location", club.getLocation());
             map.put("callNumber", club.getCallNumber());
-            map.put("averageRating", club.getAverageRating());
             map.put("latitude", club.getLatitude());
             map.put("longitude", club.getLongitude());
+            map.put("description", club.getDescription());
+            map.put("averageRating", club.getAverageRating());
+            map.put("reviews", club.getReviews().stream().map(review -> {
+                Map<String, String> reviewMap = new HashMap<>();
+                reviewMap.put("user", review.getUser().getUsername());
+                reviewMap.put("comment", review.getComment());
+                reviewMap.put("rating", String.valueOf(review.getRating()));
+                return reviewMap;
+            }).toList());
             return map;
         }).toList();
+
         model.addAttribute("clubs", clubs);
         model.addAttribute("clubLocations", clubLocations); // Page에서 사용하는 메서드 해당 데이터가 포함된 list를가져옴
         System.out.println(clubLocations);
