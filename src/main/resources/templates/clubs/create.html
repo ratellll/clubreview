@@ -29,8 +29,8 @@
     </div>
 
     <!-- 숨겨진 위도와 경도 필드 -->
-    <input type="hidden" id="latitude" name="latitude">
-    <input type="hidden" id="longitude" name="longitude">
+    <input type="hidden" id="latitude" name="latitude" th:field="*{latitude}" />
+    <input type="hidden" id="longitude" name="longitude" th:field="*{longitude}" />
 
     <div class="mb-3">
       <label for="description" class="form-label">설명</label>

@@ -59,6 +59,9 @@ public class ClubService {
                 .location(clubDto.getLocation())
                 .description(clubDto.getDescription())
                 .callNumber(clubDto.getCallNumber())
+                .longitude(clubDto.getLongitude())
+                .latitude(clubDto.getLatitude())
+                .photoUrl(clubDto.getPhotoUrl())
                 .build();
         clubRepository.save(club);
     }
