@@ -3,10 +3,13 @@ package com.example.clubreview.controller;
 import com.example.clubreview.dto.ClubDto;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.service.ClubService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -70,21 +73,27 @@ public class ClubController {
 
     //클럽 생성처리
     @PostMapping("/admin/new")
-    public String createClub(@ModelAttribute("club") ClubDto clubDto) {
+    public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            return "clubs/create"; // 유효성 검사 실패 시 현재 페이지 유지
+        }
+
         clubService.addClub(clubDto);
-        return "redirect:/clubs";
+        redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
+        return "redirect:/clubs/list"; // 등록 성공 시 list.html로 이동
     }
+
 
     //클럽 수정폼
-    @GetMapping("/admin/edit/{id}")
-    public String editClubForm(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubById(id);
-        ClubDto clubDto = new ClubDto(club.getName(), club.getLocation(), club.getDescription(), club.getCallNumber());
-
-        model.addAttribute("club", clubDto);
-        model.addAttribute("clubId", id);
-        return "clubs/edit";
-    }
+//    @GetMapping("/admin/edit/{id}")
+//    public String editClubForm(@PathVariable Long id, Model model) {
+//        Club club = clubService.getClubById(id);
+//        ClubDto clubDto = new ClubDto(club.getName(), club.getLocation(), club.getDescription(), club.getCallNumber());
+//
+//        model.addAttribute("club", clubDto);
+//        model.addAttribute("clubId", id);
+//        return "clubs/edit";
+//    }
 
     //클럽 수정처리
     @PostMapping("/admin/edit/{id}")
