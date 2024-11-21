@@ -89,9 +89,10 @@ public class ClubController {
         try {
             // 파일 저장 처리
             if (!file.isEmpty()) {
-                String uploadDir = "src/main/resources/static/uploads/"; // 파일 저장 경로
+                String uploadDir = System.getProperty("user.home") + "/uploads/"; // 사용자 디렉토리 내 uploads 폴더
                 String fileName = file.getOriginalFilename();
                 Path filePath = Paths.get(uploadDir + fileName);
+
                 Files.createDirectories(filePath.getParent()); // 디렉토리 생성
                 file.transferTo(filePath.toFile()); // 파일 저장
 
@@ -108,6 +109,7 @@ public class ClubController {
         redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
         return "redirect:/clubs/list"; // 등록 성공 시 리스트 페이지로 이동
     }
+
 
 
 
