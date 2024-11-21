@@ -8,8 +8,11 @@
 </head>
 <body>
 <div class="container mt-5">
+  <!--에러메시지 얼러트위한것-->
+  <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
   <h2>클럽 등록하기</h2>
-  <form th:action="@{/clubs/admin/new}" th:object="${club}" method="post">
+  <form th:action="@{/clubs/admin/new}" th:object="${club}" method="post" enctype="multipart/form-data">
     <div class="mb-3">
       <label for="name" class="form-label">이름</label>
       <input type="text" class="form-control" id="name" th:field="*{name}" required>
@@ -31,7 +34,6 @@
     <!-- 숨겨진 위도와 경도 필드 -->
     <input type="hidden" id="latitude" name="latitude" th:field="*{latitude}" />
     <input type="hidden" id="longitude" name="longitude" th:field="*{longitude}" />
-
     <div class="mb-3">
       <label for="description" class="form-label">설명</label>
       <textarea class="form-control" id="description" th:field="*{description}" required></textarea>
@@ -39,6 +41,10 @@
     <div class="mb-3">
       <label for="callNumber" class="form-label">전화번호</label>
       <input type="text" class="form-control" id="callNumber" th:field="*{callNumber}" required>
+    </div>
+    <div class="mb-3">
+      <label for="file" class="form-label">사진 첨부</label>
+      <input type="file" class="form-control" id="file" name="file" required>
     </div>
     <button type="submit" class="btn btn-primary">등록</button>
   </form>

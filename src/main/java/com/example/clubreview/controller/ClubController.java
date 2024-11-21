@@ -9,8 +9,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -73,15 +78,37 @@ public class ClubController {
 
     //클럽 생성처리
     @PostMapping("/admin/new")
-    public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+    public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto,
+                             BindingResult bindingResult,
+                             @RequestParam("file") MultipartFile file,
+                             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "clubs/create"; // 유효성 검사 실패 시 현재 페이지 유지
         }
 
-        clubService.addClub(clubDto);
+        try {
+            // 파일 저장 처리
+            if (!file.isEmpty()) {
+                String uploadDir = "src/main/resources/static/uploads/"; // 파일 저장 경로
+                String fileName = file.getOriginalFilename();
+                Path filePath = Paths.get(uploadDir + fileName);
+                Files.createDirectories(filePath.getParent()); // 디렉토리 생성
+                file.transferTo(filePath.toFile()); // 파일 저장
+
+                // DTO에 파일 경로 설정
+                clubDto.setPhotoUrl("/uploads/" + fileName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            bindingResult.reject("fileUploadError", "파일 업로드 중 오류가 발생했습니다.");
+            return "clubs/create"; // 파일 업로드 오류 시 다시 등록 페이지로 이동
+        }
+
+        clubService.addClub(clubDto); // 서비스로 전달하여 클럽 저장
         redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
-        return "redirect:/clubs/list"; // 등록 성공 시 list.html로 이동
+        return "redirect:/clubs/list"; // 등록 성공 시 리스트 페이지로 이동
     }
+
 
 
     //클럽 수정폼
