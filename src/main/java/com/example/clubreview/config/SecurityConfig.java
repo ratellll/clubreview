@@ -24,7 +24,7 @@ public class SecurityConfig {
         // 인증 및 권한 설정
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/", "/users/register", "/login", "/h2-console/**").permitAll() // h2-console 접근 허용
+                        .requestMatchers("/", "/users/register", "/login", "/h2-console/**","/uploads/**").permitAll() // h2-console 접근 허용
                         .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // admin 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated()
                 )
