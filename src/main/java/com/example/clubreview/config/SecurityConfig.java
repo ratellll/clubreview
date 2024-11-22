@@ -34,7 +34,10 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/clubs/list", true) // 로그인 성공 후 리디렉션 설정
                         .permitAll()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .permitAll());
 
         return http.build();
     }
