@@ -22,5 +22,10 @@ return clubService.createClub(club);
 클럽수정시 파일,주소 수정할수있게 (등록과 똑같이 위도경도 넘어오게만들어야함)
 
 
+공통 
+
+로그아웃
+
+
  
 
