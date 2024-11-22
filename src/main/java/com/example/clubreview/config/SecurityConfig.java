@@ -1,5 +1,6 @@
 package com.example.clubreview.config;
 
+import com.example.clubreview.security.CustomAuthenticationFailureHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,7 +10,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-        @Bean
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+
+    public SecurityConfig(CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
+        this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
+    }
+
+
+    @Bean
         public BCryptPasswordEncoder passwordEncoder() {
             return new BCryptPasswordEncoder();
         }
@@ -32,6 +40,7 @@ public class SecurityConfig {
                         .loginPage("/") // 로그인 페이지 경로 설정
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/clubs/list", true) // 로그인 성공 후 리디렉션 설정
+                        .failureHandler(customAuthenticationFailureHandler) // 실패 핸들러 등록
                         .permitAll()
                 )
                 .logout(logout -> logout
