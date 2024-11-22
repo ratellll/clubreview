@@ -9,6 +9,7 @@
 <body>
 <div class="container mt-5">
   <!--에러메시지 얼러트위한것-->
+  <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
   <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
   <h2>클럽 등록하기</h2>

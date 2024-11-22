@@ -20,6 +20,10 @@ public class UserService {
 
     @Transactional
     public void registerUser(UserDto userDto) {
+
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 아이디 입니다.");
+        }
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
 

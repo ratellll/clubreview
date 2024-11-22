@@ -7,6 +7,10 @@
 <body>
 <div class="container mt-5">
     <h2>Register</h2>
+    <!--얼러트 태그-->
+    <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
     <form th:action="@{/users/register}" th:object="${user}" method="post">
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
