@@ -5,6 +5,8 @@ return clubService.createClub(club);
 
 --- 중요 ---
 security 공부
+entity로 변환하는이유 builder를 사용하지않고
+
 
  어드민
 
@@ -17,8 +19,7 @@ security 공부
 
 
 공통
-잘못된 아이디로 로그인시 얼러트창 띄우기
-로그아웃
+ 
 
 
  

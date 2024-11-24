@@ -129,20 +129,64 @@ public class ClubController {
 
 
     //클럽 수정폼
-//    @GetMapping("/admin/edit/{id}")
-//    public String editClubForm(@PathVariable Long id, Model model) {
-//        Club club = clubService.getClubById(id);
-//        ClubDto clubDto = new ClubDto(club.getName(), club.getLocation(), club.getDescription(), club.getCallNumber());
-//
-//        model.addAttribute("club", clubDto);
-//        model.addAttribute("clubId", id);
-//        return "clubs/edit";
-//    }
+    @GetMapping("/admin/edit/{id}")
+    public String editClubForm(@PathVariable Long id, Model model) {
+        Club club = clubService.getClubById(id);
+
+        ClubDto clubDto = new ClubDto(club.getName(),
+                club.getLocation(),
+                club.getDescription(),
+                club.getCallNumber(),
+                club.getLatitude(),
+                club.getLongitude(),
+                club.getPhotoUrl());
+
+        model.addAttribute("club", clubDto);
+        model.addAttribute("clubId", id);
+        return "clubs/edit";
+    }
 
     //클럽 수정처리
     @PostMapping("/admin/edit/{id}")
-    public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto) {
-        clubService.updateClub(id, clubDto);
+    public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto,
+                              @RequestParam("file") MultipartFile file,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            //파일처리 - 새로운파일업로드시
+            if (!file.isEmpty()) {
+                String uploadDir = System.getProperty("user.home") + "/uploads/";
+                String originalFileName = file.getOriginalFilename();
+                String fileExtension = "";
+
+                //확장자추출
+                if (originalFileName != null && originalFileName.contains(".")) {
+                    fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                }
+
+                //UUID로 파일이름 다시짓기
+                String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+                Path filePath = Paths.get(uploadDir + uniqueFileName);
+
+                Files.createDirectories(filePath.getParent());
+                file.transferTo(filePath.toFile());
+
+                //새로저장되는거 dto로 다시넣기
+                clubDto.setPhotoUrl("/uploads/" + uniqueFileName);
+            } else {
+                //파일 수정안할대
+                Club existingClub = clubService.getClubById(id);
+                clubDto.setPhotoUrl(existingClub.getPhotoUrl());
+            }
+
+            // Dto 엔티티 변환하고 서비스로 전달
+            clubService.updateClub(id, clubDto);
+            redirectAttributes.addFlashAttribute("message", "클럽 정보가 성공적으로 수정되었습니다!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드 중 오류가 발생했습니다.");
+            return "redirect:/clubs/admin/edit/" + id;
+        }
+
         return "redirect:/clubs/list";
     }
 
@@ -153,11 +197,5 @@ public class ClubController {
         return "redirect:/clubs/list";
     }
 
-    //클럽위치매핑
-    @GetMapping("/map")
-    public String getClubsForMap(Model model) {
-        List<Club> clubs = clubService.getAllClubs();
-        model.addAttribute("clubs", clubs);
-        return "clubs/map";
-    }
+
 }

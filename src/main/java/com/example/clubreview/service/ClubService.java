@@ -73,6 +73,9 @@ public class ClubService {
         club.setLocation(clubDto.getLocation());
         club.setDescription(clubDto.getDescription());
         club.setCallNumber(clubDto.getCallNumber());
+        club.setLongitude(clubDto.getLongitude());
+        club.setLatitude(clubDto.getLatitude());
+        club.setPhotoUrl(clubDto.getPhotoUrl());
         clubRepository.save(club);
     }
 
