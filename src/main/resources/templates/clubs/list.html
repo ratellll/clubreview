@@ -56,7 +56,7 @@
             // 커스텀 정보창 HTML
             const infoWindowContent = `
             <div class="info-window">
-                <h4>${club.name}</h4>
+                <h4><a href="/clubs/${club.id}">${club.name}</a></h4>
                 <p>위치: ${club.location}</p>
                 <p>전화번호: ${club.callNumber}</p>
                 <p>정보: ${club.description}</p>
