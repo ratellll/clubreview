@@ -25,6 +25,9 @@
     <!-- 어드민 한테만 노출시키긔 -->
     <div sec:authorize="hasRole('ADMIN')">
         <a th:href="@{/clubs/admin/edit/{id}(id=${club.id})}" class="btn btn-warning mb-3">클럽 수정</a>
+        <form th:action="@{/clubs/admin/delete/{id}(id=${club.id})}" method="post">
+            <button type="submit" class="btn btn-danger">삭제</button>
+        </form>
     </div>
 
     <h3>리뷰</h3>

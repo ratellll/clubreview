@@ -194,6 +194,7 @@ public class ClubController {
     //클럽삭제
     @PostMapping("/admin/delete/{id}")
     public String deleteClub(@PathVariable Long id) {
+        Club club = clubService.getClubById(id);
         clubService.deleteClub(id);
         return "redirect:/clubs/list";
     }

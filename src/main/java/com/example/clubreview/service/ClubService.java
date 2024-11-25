@@ -48,8 +48,10 @@ public class ClubService {
     }
 
     // 클럽 삭제
-    public void deleteClub(Long clubId) {
-        clubRepository.deleteById(clubId);
+    public void deleteClub(Long id) {
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 클럽을 찾을 수 없습니다. ID: " + id));
+        clubRepository.delete(club);
     }
 
     // 클럽 추가
