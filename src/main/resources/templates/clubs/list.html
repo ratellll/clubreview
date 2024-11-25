@@ -1,157 +1,79 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Clubs List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">클럽 목록</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+<!-- 헤더 -->
+<div th:replace="fragments/common-header :: header"></div>
+
+<!-- 컨텐츠 -->
 <div class="container mt-5">
+    <h1 class="mb-4">클럽 목록</h1>
 
-
-
-    <h1>클럽 목록</h1>
+    <!-- 로그인 정보 -->
     <div class="mb-3 text-end">
         <span th:text="'안녕하세요, ' + ${#authentication.name} + '님!'"></span>
         <a th:href="@{/logout}" class="btn btn-danger">로그아웃</a>
     </div>
-    <!-- 카카오 지도 API -->
+
+    <!-- 지도 -->
     <div id="map" style="width:100%;height:500px;"></div>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9"></script>
-
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9"></script>
     <script th:inline="javascript">
-        <!--유효성 얼러트 넘어오는거 -->
-        /*<![CDATA[*/
-        const message = [[${message}]];
-        if (message) {
-            alert(message);
-        }
-        /*]]>*/
-
-
-        let currentPhotoModal = null; // 현재 사진 모달 상태 관리
-        let currentInfoWindow = null; // 현재 열려 있는 정보창 상태 관리
-
         const clubs = /*[[${clubLocations}]]*/ [];
-        console.log(clubs);
-
         const container = document.getElementById('map');
         const options = {
-            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심
             level: 8
         };
-
         const map = new kakao.maps.Map(container, options);
 
-        // 클럽 데이터로 마커 생성 및 커스텀 정보창 설정
         clubs.forEach(club => {
-            const markerPosition = new kakao.maps.LatLng(club.latitude, club.longitude);
-
-            // 마커 생성
             const marker = new kakao.maps.Marker({
-                position: markerPosition,
+                position: new kakao.maps.LatLng(club.latitude, club.longitude),
                 map: map
             });
 
-            // 커스텀 정보창 HTML
-            const infoWindowContent = `
-            <div class="info-window">
-                <h4><a href="/clubs/${club.id}">${club.name}</a></h4>
-                <p>위치: ${club.location}</p>
-                <p>전화번호: ${club.callNumber}</p>
-                <p>정보: ${club.description}</p>
-                <p>평점: ${club.averageRating} / 5</p>
-                <img src="${club.photoUrl}" alt="클럽 사진" class="club-photo" onclick="showPhotoModal('${club.photoUrl}')">
-            </div>
-        `;
-
-            // 커스텀 정보창 생성
             const infoWindow = new kakao.maps.InfoWindow({
-                content: infoWindowContent
+                content: `
+                      <div class="info-window">
+                          <h4><a href="/clubs/${club.id}" class="text-decoration-none">${club.name}</a></h4>
+                          <p>${club.location}</p>
+                      </div>
+                  `
             });
 
-            // 마커 클릭 이벤트
             kakao.maps.event.addListener(marker, 'click', () => {
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
-                }
                 infoWindow.open(map, marker);
-                currentInfoWindow = infoWindow;
-            });
-
-            // 지도 클릭 시 정보창 닫기
-            kakao.maps.event.addListener(map, 'click', () => {
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
-                    currentInfoWindow = null;
-                }
             });
         });
+    </script>
 
-        // 사진 확대용 함수
-        function showPhotoModal(photoUrl) {
-            if (currentPhotoModal) {
-                currentPhotoModal.remove();
-                currentPhotoModal = null;
-            }
-
-            const modal = document.createElement('div');
-            modal.className = 'photo-modal';
-            modal.innerHTML = `
-            <div class="photo-modal-content">
-                <img src="${photoUrl}" alt="클럽 사진 확대">
-            </div>
-        `;
-
-            document.body.appendChild(modal);
-            currentPhotoModal = modal;
-
-            // 모달 외부 클릭 시 닫기
-            modal.addEventListener('click', () => {
-                modal.remove();
-                currentPhotoModal = null;
-            });
-        }
-</script>
-
-    <div class="mb-3">
+    <!-- 정렬 버튼 -->
+    <div class="mb-4">
         <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>
-        <a href="?sortBy=rating" class="btn btn-secondary">별점 순 정렬</a>
-        <a th:href="@{/clubs/admin/new}"
-           class="btn btn-primary btn-lg w-100 mt-4"
-           sec:authorize="hasRole('ADMIN')">
-            + 클럽 등록
-        </a>
+        <a href="?sortBy=rating" class="btn btn-secondary">평점 순 정렬</a>
+        <a th:href="@{/clubs/admin/new}" class="btn btn-primary ms-3 sec:authorize='hasRole('ADMIN')'">+ 클럽 등록</a>
     </div>
-
 
     <!-- 클럽 리스트 -->
     <ul class="list-group">
         <li class="list-group-item" th:each="club : ${clubs.content}">
-            <a th:href="@{/clubs/{id}(id=${club.id})}" th:text="${club.name}">클럽 이름</a>
-            <span th:text="' - Rating: ' + ${club.averageRating}">평점</span>
+            <a th:href="@{/clubs/{id}(id=${club.id})}" class="text-decoration-none" th:text="${club.name}">클럽 이름</a>
+            <span class="ms-2 text-muted" th:text="'평점: ' + ${club.averageRating} + ' / 5'"></span>
         </li>
     </ul>
 
     <!-- 페이지 네비게이션 -->
-    <div class="mt-3">
-        <a th:if="${clubs.hasPrevious()}"
-           th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber - 1})}"
-           class="btn btn-outline-secondary">이전</a>
-
-        <!-- 페이지 번호 링크 생성 -->
+    <div class="mt-4">
+        <a th:if="${clubs.hasPrevious()}" th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber - 1})}" class="btn btn-outline-secondary">이전</a>
         <span th:each="pageNum : ${#numbers.sequence(0, clubs.totalPages - 1)}">
-            <a th:href="@{/clubs/list(sortBy=${sortBy}, page=${pageNum})}"
-               th:text="${pageNum + 1}"
-               th:classappend="${pageNum == clubs.pageable.pageNumber} ? 'btn-primary' : 'btn-outline-secondary'"
-               class="btn btn-sm mx-1"></a>
-        </span>
-
-        <!-- 다음 버튼 -->
-        <a th:if="${clubs.hasNext()}"
-           th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber + 1})}"
-           class="btn btn-outline-secondary">다음</a>
-    </div>
-</div>
-</body>
-</html>
+              <a th:href="@{/clubs/list(sortBy=${sortBy}, page=${pageNum})}" th:text="${pageNum + 1}" th:classappend="${pageNum == clubs.pageable.pageNumber} ? 'btn-primary' : 'btn-outline-secondary'" class="btn btn-sm mx-1"></a>
+          </span>
+        <a th:if="${clubs.hasNext()}" th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber + 1})}" class="btn btn-outline-secondary">다음</a>
+        <

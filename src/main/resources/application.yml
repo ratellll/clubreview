@@ -18,10 +18,12 @@ spring:
 logging:
   level:
     org.springframework.security: DEBUG
-servlet:
-  multipart:
-    max-file-size: 10MB
-    max-request-size: 10MB
-  web:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+    web:
       resources:
         static-locations: file:${user.home}/uploads/
+thymeleaf:
+  cache: false
