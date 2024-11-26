@@ -33,6 +33,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/", "/users/register", "/login", "/h2-console/**","/uploads/**").permitAll() // h2-console 접근 허용
+                        .requestMatchers("clubs/list").authenticated()
                         .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // admin 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated()
                 )
