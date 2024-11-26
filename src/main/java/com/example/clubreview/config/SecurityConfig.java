@@ -24,29 +24,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // CSRF 비활성화 및 X-Frame-Options 비활성화
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())); // X-Frame-Options 비활성화
 
-        // 인증 및 권한 설정
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/", "/users/register", "/login", "/h2-console/**","/uploads/**").permitAll() // h2-console 접근 허용
-                        .requestMatchers("clubs/list").authenticated()
-                        .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // admin 경로는 ADMIN 권한 필요
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/users/register", "/h2-console/**", "/uploads/**").permitAll() // 공개 경로
+                        .requestMatchers("/clubs/list", "/clubs/{id}", "/clubs/details/**").authenticated() // 클럽 리스트와 상세 페이지는 로그인 필요
+                        .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // ADMIN 권한 필요
+                        .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )
                 .formLogin(form -> form
-                        .loginPage("/") // 로그인 페이지 경로 설정
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/clubs/list", true) // 로그인 성공 후 리디렉션 설정
-                        .failureHandler(customAuthenticationFailureHandler) // 실패 핸들러 등록
+                        .loginPage("/") // "/" 경로를 로그인 페이지로 설정
+                        .loginProcessingUrl("/login") // 로그인 처리 URL
+                        .defaultSuccessUrl("/clubs/list", true) // 로그인 성공 후 이동
+                        .failureHandler(customAuthenticationFailureHandler) // 로그인 실패 핸들러
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutUrl("/logout") // 로그아웃 경로
+                        .logoutSuccessUrl("/") // 로그아웃 후 경로
                         .permitAll());
 
         return http.build();

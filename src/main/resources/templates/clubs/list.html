@@ -19,7 +19,6 @@
     <!-- 로그인 정보 -->
     <div class="mb-3 text-end">
         <span th:text="'안녕하세요, ' + ${#authentication.name} + '님!'"></span>
-        <a th:href="@{/logout}" class="btn btn-danger">로그아웃</a>
     </div>
 
     <!-- 지도 -->
@@ -46,7 +45,7 @@
 
             const infoWindowContent = `
         <div class="info-window">
-            <h4><a href="/clubs/${club.id}" class="text-decoration-none">${club.name}</a></h4>
+           <h4><a th:href="@{/clubs/{id}(id=${club.id})}" class="text-decoration-none">${club.name}</a></h4>
             <p>위치: ${club.location}</p>
             <p>전화번호: ${club.callNumber}</p>
             <p>정보: ${club.description}</p>

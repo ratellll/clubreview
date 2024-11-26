@@ -10,7 +10,7 @@
 <body>
 <div class="container">
   <!-- 공통 헤더 -->
-  <div th:replace="common-header :: header" th:with="pageTitle='클럽 등록하기'"></div>
+  <div th:replace="fragments/common-header :: header"></div>
 
   <!-- 에러 메시지 -->
   <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
