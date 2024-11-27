@@ -33,10 +33,11 @@ public class ReviewController {
     public String addReview(@RequestParam Long clubId,
                             @RequestParam int rating,
                             @RequestParam String comment,
-                            @RequestParam LocalDateTime createTime,
                             RedirectAttributes redirectAttributes,
                             @AuthenticationPrincipal User user) {
         try {
+            LocalDateTime createTime = LocalDateTime.now();
+
             reviewService.addReview(clubId, user, rating, comment,createTime);
             redirectAttributes.addFlashAttribute("message", "리뷰가 등록되었습니다");
         }catch (DuplicateReviewException e){
