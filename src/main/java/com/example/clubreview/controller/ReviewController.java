@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -32,10 +33,11 @@ public class ReviewController {
     public String addReview(@RequestParam Long clubId,
                             @RequestParam int rating,
                             @RequestParam String comment,
+                            @RequestParam LocalDateTime createTime,
                             RedirectAttributes redirectAttributes,
                             @AuthenticationPrincipal User user) {
         try {
-            reviewService.addReview(clubId, user, rating, comment);
+            reviewService.addReview(clubId, user, rating, comment,createTime);
             redirectAttributes.addFlashAttribute("message", "리뷰가 등록되었습니다");
         }catch (DuplicateReviewException e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

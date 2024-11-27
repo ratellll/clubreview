@@ -36,8 +36,12 @@
         <ul class="list-group" th:each="review : ${reviews}">
             <li class="list-group-item">
                 <p><strong th:text="${review.user.username}">사용자 이름</strong></p>
-                <p th:text="${review.content}">리뷰 내용</p>
-                <p class="text-muted" th:text="${review.createdDate}">작성 날짜</p>
+                <p>
+                    <span th:each="star : ${#numbers.sequence(1, review.rating)}" class="text-warning">★</span>
+                    <span th:each="star : ${#numbers.sequence(review.rating + 1, 5)}" class="text-muted">★</span>
+                </p>
+                <p th:text="${review.comment}">리뷰 내용</p>
+                <p class="text-muted" th:text="${#temporals.format(review.createTime, 'yyyy-MM-dd HH:mm')}">작성 날짜</p>
             </li>
         </ul>
     </div>
@@ -48,7 +52,17 @@
         <form th:action="@{/reviews/add}" method="post">
             <input type="hidden" name="clubId" th:value="${club.id}">
             <div class="mb-3">
-                <textarea class="form-control" name="content" rows="3" placeholder="리뷰를 작성하세요" required></textarea>
+                <label for="rating" class="form-label">평점</label>
+                <select class="form-select" id="rating" name="rating" required>
+                    <option value="5">★★★★★ (5점)</option>
+                    <option value="4">★★★★☆ (4점)</option>
+                    <option value="3">★★★☆☆ (3점)</option>
+                    <option value="2">★★☆☆☆ (2점)</option>
+                    <option value="1">★☆☆☆☆ (1점)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" name="comment" rows="3" placeholder="리뷰를 작성하세요" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary">리뷰 등록</button>
         </form>

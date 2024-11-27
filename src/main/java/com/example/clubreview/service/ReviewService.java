@@ -11,6 +11,7 @@ import com.example.clubreview.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ public class ReviewService {
 
     // 리뷰 생성
     @Transactional
-    public Review addReview(Long clubId, User user,   int rating ,String comment) {
+    public Review addReview(Long clubId, User user, int rating , String comment, LocalDateTime createTime) {
         if (reviewRepository.findByUserIdAndClubId(user.getId(), clubId).isPresent()) {
             throw new DuplicateReviewException("이미 해당 클럽에 리뷰를 남기셨습니다.");
         }
@@ -49,6 +50,7 @@ public class ReviewService {
         review.setClub(club);
         review.setComment(comment);
         review.setRating(rating);
+        review.setCreateTime(createTime);
 
         return reviewRepository.save(review);
     }

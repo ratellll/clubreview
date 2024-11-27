@@ -3,6 +3,8 @@ package com.example.clubreview.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -13,5 +15,6 @@ public class ReviewDto {
     private String comment;
     private int rating;
     private String userId;
+    private LocalDateTime createTime;
 
 }

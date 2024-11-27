@@ -31,7 +31,7 @@ public class Review {
     private int rating;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createTime = LocalDateTime.now();
 
 
     //테스트용
