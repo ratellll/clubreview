@@ -7,8 +7,7 @@ return clubService.createClub(club);
 security 공부
 entity로 변환하는이유 builder를 사용하지않고
 
-Error : 마커클릭시 커스텀정보창이 제대로안보임
-클럽 클릭시 로그인해야함
+ 
  
 
 
