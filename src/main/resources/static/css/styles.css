@@ -96,3 +96,24 @@ button:hover {
     cursor: pointer;
 }
 
+/* 모달 전체 화면을 어둡게 하는 배경 */
+.photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8); /* 반투명 검정 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* 높은 우선순위 */
+}
+
+/* 모달 내부 사진 컨테이너 */
+.photo-modal-content img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* 그림자 효과 */
+}
