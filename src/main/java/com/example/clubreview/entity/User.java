@@ -26,8 +26,13 @@ public class User implements UserDetails {
     private String username;
     @Column(nullable = false)
     private String password;
+    @Column(nullable = false,unique = true)
+    private String phoneNumber;
+
+
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Role role = Role.USER;
 
     public enum Role{
@@ -35,9 +40,10 @@ public class User implements UserDetails {
     }
 
     //테스트용 id없는 생성자
-    public User(String username, String password, Role role) {
+    public User(String username, String password,String phoneNumber, Role role) {
         this.username = username;
         this.password = password;
+        this.phoneNumber = phoneNumber;
         this.role = role;
     }
 

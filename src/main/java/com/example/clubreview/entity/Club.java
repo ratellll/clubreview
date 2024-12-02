@@ -41,6 +41,7 @@ public class Club {
 
     // 클럽과 리뷰의 1:N 관계 설정
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
 

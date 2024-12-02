@@ -20,8 +20,32 @@
             <label for="password" class="form-label">비밀번호</label>
             <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="비밀번호를 입력하세요" required>
         </div>
+        <div class="mb-3">
+            <label for="phoneNumber" class="form-label">휴대폰 번호</label>
+            <input
+                    type="tel"
+                    class="form-control"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    placeholder="01012345678"
+                    pattern="[0-9]{11}"
+                    required
+            >
+            <div class="form-text">숫자 11자리를 입력해주세요. 예: 01012345678</div>
+        </div>
         <button type="submit" class="btn btn-primary w-100">회원가입</button>
     </form>
 </div>
+<script>
+    document.querySelector("form").addEventListener("submit", function(event) {
+        const phoneNumber = document.getElementById("phoneNumber").value;
+        const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
+
+        if (!phonePattern.test(phoneNumber)) {
+            event.preventDefault();
+            alert("올바른 휴대폰 번호를 입력해주세요. 예: 01012345678 또는 010-1234-5678");
+        }
+    });
+</script>
 </body>
 </html>

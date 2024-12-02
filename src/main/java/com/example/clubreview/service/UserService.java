@@ -2,6 +2,7 @@ package com.example.clubreview.service;
 
 import com.example.clubreview.dto.UserDto;
 import com.example.clubreview.entity.User;
+import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,7 +23,11 @@ public class UserService {
     public void registerUser(UserDto userDto) {
 
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 아이디 입니다.");
+            throw new DuplicateReviewException("이미 존재하는 아이디 입니다.");
+        }
+
+        if (userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()) {
+            throw new DuplicateReviewException("이미 존재하는 핸드폰번호 입니다.");
         }
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
@@ -31,6 +36,7 @@ public class UserService {
         User user = User.builder()
                 .username(userDto.getUsername())
                 .password(encodedPassword)
+                .phoneNumber(userDto.getPhoneNumber().replaceAll("-","")) //하이픈제거하고넣기
                 .role(User.Role.USER)
                 .build();
 
