@@ -4,6 +4,7 @@ package com.example.clubreview.controller;
 import com.example.clubreview.dto.UserDto;
 import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,9 +28,17 @@ public class UserController {
         return "/users/register";
     }
 
+    //아이디 중복체크
+    @GetMapping("/register/idCheck")
+    public ResponseEntity<Boolean> registerId(@RequestParam String username) {
+        boolean idIsFine = userService.idIsFine(username);
+        return ResponseEntity.ok(idIsFine);
+
+    }
     //회원가입 처리
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes, BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
             return "redirect:/users/register";

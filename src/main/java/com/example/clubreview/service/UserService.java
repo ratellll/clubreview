@@ -49,4 +49,9 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다 " + username));
     }
 
+    //회원가입 아이디중복체크
+    public boolean idIsFine(String username) {
+        return userRepository.findByUsername(username).isEmpty();
+    }
+
 }

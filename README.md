@@ -6,7 +6,7 @@ return clubService.createClub(club);
 --- 중요 ---
 security 공부
 entity로 변환하는이유 builder를 사용하지않고
-
+ResponseEntity<Boolean> 확인하기 
  
  
 
