@@ -125,7 +125,7 @@
     <div class="mb-4">
         <a href="?sortBy=name" class="btn btn-secondary">이름 순 정렬</a>
         <a href="?sortBy=rating" class="btn btn-secondary">평점 순 정렬</a>
-        <a th:href="@{/clubs/admin/new}" class="btn btn-primary ms-3 sec:authorize='hasRole('ADMIN')'">+ 클럽 등록</a>
+        <a th:href="@{/clubs/admin/new}" class="btn btn-primary ms-3" sec:authorize="hasRole('ADMIN')">+ 클럽 등록</a>
     </div>
 
     <!-- 클럽 리스트 -->
