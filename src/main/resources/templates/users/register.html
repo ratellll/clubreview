@@ -53,32 +53,53 @@
     });
 
     // 아이디 중복체크
-    document.getElementById('checkUsernameBtn').addEventListener('click', function () {
-        const username = document.getElementById('username').value;
+    document.getElementById('checkUsernameBtn').addEventListener('click', async function () {
+        const usernameInput = document.getElementById('username');
         const resultDiv = document.getElementById('usernameCheckResult');
+        const username = usernameInput.value.trim();
 
+        // 아이디 입력 여부 확인
         if (!username) {
-            resultDiv.textContent = '아이디를 입력하세요.';
-            resultDiv.className = 'text-danger';
+            updateResult(resultDiv, '아이디를 입력하세요.', 'text-danger');
             return;
         }
 
-        fetch(`/users/register/idCheck?username=${username}`)
-            .then(response => response.json())
-            .then(idIsFine => {
-                if (idIsFine) {
-                    resultDiv.textContent = '사용 가능한 아이디입니다.';
-                    resultDiv.className = 'text-success';
-                } else {
-                    resultDiv.textContent = '이미 사용 중인 아이디입니다.';
-                    resultDiv.className = 'text-danger';
-                }
-            })
-            .catch(() => {
-                resultDiv.textContent = '중복 체크에 실패했습니다. 다시 시도하세요.';
-                resultDiv.className = 'text-danger';
-            });
+        console.log(`Checking username: ${username}`);
+
+        try {
+            // 서버에 요청 보내기
+            const response = await fetch(`/users/register/idCheck?username=${encodeURIComponent(username)}`);
+
+            if (!response.ok) {
+                throw new Error('서버 요청에 실패했습니다.');
+            }
+
+            const idIsFine = await response.json();
+            console.log(`ID check result: ${idIsFine}`);
+
+            // 결과 처리
+            if (idIsFine) {
+                updateResult(resultDiv, '사용 가능한 아이디입니다.', 'text-success');
+            } else {
+                updateResult(resultDiv, '이미 사용 중인 아이디입니다.', 'text-danger');
+            }
+        } catch (error) {
+            console.error('중복 체크 중 에러 발생:', error);
+            updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
+        }
     });
+
+    /**
+     * 결과 메시지를 업데이트하는 헬퍼 함수
+     * @param {HTMLElement} element - 메시지를 표시할 HTML 요소
+     * @param {string} message - 표시할 메시지
+     * @param {string} className - 추가할 클래스 이름
+     */
+    function updateResult(element, message, className) {
+        element.textContent = message;
+        element.className = className;
+    }
+
 </script>
 </body>
 </html>

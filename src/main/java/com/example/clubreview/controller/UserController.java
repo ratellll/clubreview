@@ -31,7 +31,9 @@ public class UserController {
     //아이디 중복체크
     @GetMapping("/register/idCheck")
     public ResponseEntity<Boolean> registerId(@RequestParam String username) {
+        System.out.println("Checking username: " + username);
         boolean idIsFine = userService.idIsFine(username);
+        System.out.println("ID is fine: " + idIsFine);
         return ResponseEntity.ok(idIsFine);
 
     }
