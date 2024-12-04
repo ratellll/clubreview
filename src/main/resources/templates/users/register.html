@@ -34,6 +34,8 @@
                     pattern="[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}"
                     required
             >
+            <button type="button" id="checkPhoneNumberBtn" class="btn btn-secondary mt-2">중복 체크</button>
+            <div id="phoneNumberCheckResult" class="mt-2"></div>
             <div class="form-text">숫자 11자리를 입력해주세요. 예: 01012345678</div>
         </div>
         <button type="submit" class="btn btn-primary w-100">회원가입</button>
@@ -41,16 +43,9 @@
 </div>
 
 <script>
-    // 폼 제출 시 휴대폰 번호 검증
-    document.querySelector("form").addEventListener("submit", function(event) {
-        const phoneNumber = document.getElementById("phoneNumber").value;
-        const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
-
-        if (!phonePattern.test(phoneNumber)) {
-            event.preventDefault();
-            alert("올바른 휴대폰 번호를 입력해주세요. 예: 01012345678 또는 010-1234-5678");
-        }
-    });
+    // 중복 체크 상태 변수
+    let isUsernameAvailable = false;
+    let isPhoneNumberAvailable = false;
 
     // 아이디 중복체크
     document.getElementById('checkUsernameBtn').addEventListener('click', async function () {
@@ -58,16 +53,15 @@
         const resultDiv = document.getElementById('usernameCheckResult');
         const username = usernameInput.value.trim();
 
-        // 아이디 입력 여부 확인
         if (!username) {
             updateResult(resultDiv, '아이디를 입력하세요.', 'text-danger');
+            isUsernameAvailable = false; // 상태 초기화
             return;
         }
 
         console.log(`Checking username: ${username}`);
 
         try {
-            // 서버에 요청 보내기
             const response = await fetch(`/users/register/idCheck?username=${encodeURIComponent(username)}`);
 
             if (!response.ok) {
@@ -77,29 +71,82 @@
             const idIsFine = await response.json();
             console.log(`ID check result: ${idIsFine}`);
 
-            // 결과 처리
             if (idIsFine) {
                 updateResult(resultDiv, '사용 가능한 아이디입니다.', 'text-success');
+                isUsernameAvailable = true; // 상태 업데이트
             } else {
                 updateResult(resultDiv, '이미 사용 중인 아이디입니다.', 'text-danger');
+                isUsernameAvailable = false; // 상태 업데이트
             }
         } catch (error) {
             console.error('중복 체크 중 에러 발생:', error);
             updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
+            isUsernameAvailable = false; // 상태 초기화
         }
     });
 
-    /**
-     * 결과 메시지를 업데이트하는 헬퍼 함수
-     * @param {HTMLElement} element - 메시지를 표시할 HTML 요소
-     * @param {string} message - 표시할 메시지
-     * @param {string} className - 추가할 클래스 이름
-     */
+    // 휴대폰 번호 중복 체크
+    document.getElementById("checkPhoneNumberBtn").addEventListener("click", async function () {
+        const phoneNumberInput = document.getElementById("phoneNumber");
+        const resultDiv = document.getElementById("phoneNumberCheckResult");
+        const phoneNumber = phoneNumberInput.value.trim();
+
+        const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
+
+        if (!phonePattern.test(phoneNumber)) {
+            alert("올바른 휴대폰 번호를 입력해주세요. 예: 01012345678");
+            updateResult(resultDiv, "올바른 휴대폰 번호를 입력해주세요.", "text-danger");
+            isPhoneNumberAvailable = false; // 상태 초기화
+            return;
+        }
+
+        try {
+            const response = await fetch(`/users/register/phoneCheck?phoneNumber=${encodeURIComponent(phoneNumber)}`);
+
+            if (!response.ok) {
+                throw new Error('서버 요청에 실패했습니다.');
+            }
+
+            const isAvailable = await response.json();
+            console.log(`Phone check result: ${isAvailable}`);
+
+            if (isAvailable) {
+                updateResult(resultDiv, "사용 가능한 휴대폰 번호입니다.", "text-success");
+                isPhoneNumberAvailable = true; // 상태 업데이트
+            } else {
+                updateResult(resultDiv, "이미 사용 중인 휴대폰 번호입니다.", "text-danger");
+                isPhoneNumberAvailable = false; // 상태 업데이트
+            }
+        } catch (error) {
+            console.error("중복 체크 중 에러 발생:", error);
+            updateResult(resultDiv, "중복 체크에 실패했습니다. 다시 시도하세요.", "text-danger");
+            isPhoneNumberAvailable = false; // 상태 초기화
+        }
+    });
+
+    // 폼 제출 시 중복 체크 확인
+    document.querySelector("form").addEventListener("submit", function (event) {
+        if (!isUsernameAvailable) {
+            alert("아이디 중복 체크를 완료하고 다시 시도하세요.");
+            event.preventDefault();
+            return;
+        }
+
+        if (!isPhoneNumberAvailable) {
+            alert("휴대폰 번호 중복 체크를 완료하고 다시 시도하세요.");
+            event.preventDefault();
+            return;
+        }
+
+        // 두 조건이 모두 만족된 경우 폼 제출
+        alert("회원가입을 진행합니다.");
+    });
+
+    // 결과 메시지를 업데이트하는 헬퍼 함수
     function updateResult(element, message, className) {
         element.textContent = message;
         element.className = className;
     }
-
 </script>
 </body>
 </html>

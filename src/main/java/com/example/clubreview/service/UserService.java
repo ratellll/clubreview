@@ -54,4 +54,7 @@ public class UserService {
         return userRepository.findByUsername(username).isEmpty();
     }
 
+    public boolean phoneIsFine(String phoneNumber) {
+        return userRepository.findByPhoneNumber(phoneNumber).isEmpty();
+    }
 }

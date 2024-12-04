@@ -37,6 +37,13 @@ public class UserController {
         return ResponseEntity.ok(idIsFine);
 
     }
+    //핸드폰번호 중복체크
+    @GetMapping("/register/phoneCheck")
+    public ResponseEntity<Boolean> registerPhone(@RequestParam String phoneNumber) {
+        boolean phoneIsFine = userService.phoneIsFine(phoneNumber);
+        return ResponseEntity.ok(phoneIsFine);
+
+    }
     //회원가입 처리
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes, BindingResult bindingResult) {

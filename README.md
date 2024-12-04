@@ -7,6 +7,8 @@ return clubService.createClub(club);
 security 공부
 entity로 변환하는이유 builder를 사용하지않고
 ResponseEntity<Boolean> 확인하기 
+securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 디렉토리들을 세분화해서 나눌필요가 있을듯 
+* 왜냐하면 api가 추가될떄마다 접근설정을 다시해야할지도모름 복잡해짐
  
  
 
