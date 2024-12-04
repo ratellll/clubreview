@@ -34,10 +34,10 @@ public class DatabaseInitializer {
     CommandLineRunner initDatabase() {
         return args -> {
             // 유저 생성
-            User user2 = new User("유저2", passwordEncoder.encode("123"),"01012341235", User.Role.USER);
-            User user3 = new User("유저3", passwordEncoder.encode("123"),"01012341236", User.Role.USER);
-            User user1 = new User("유저1", passwordEncoder.encode("123"),"01012341234", User.Role.USER);
-            User user4 = new User("123", passwordEncoder.encode("123"),"01012341237", User.Role.ADMIN);
+            User user2 = new User("유저2", passwordEncoder.encode("123"),"01012341235", User.Role.USER,"안녕1");
+            User user3 = new User("유저3", passwordEncoder.encode("123"),"01012341236", User.Role.USER,"안녕2");
+            User user1 = new User("유저1", passwordEncoder.encode("123"),"01012341234", User.Role.USER,"안녕3");
+            User user4 = new User("123", passwordEncoder.encode("123"),"01012341237", User.Role.ADMIN,"안녕마스터");
             userRepository.saveAll(List.of(user1, user2, user3,user4));
 
             // 클럽 데이터 생성

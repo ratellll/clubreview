@@ -26,7 +26,9 @@ public class User implements UserDetails {
     private String username;
     @Column(nullable = false)
     private String password;
-    @Column(nullable = false,unique = true, length = 11)
+    @Column(nullable = false, unique = true)
+    private String nickname;
+    @Column(nullable = false, unique = true, length = 11)
     private String phoneNumber;
 
 
@@ -40,11 +42,12 @@ public class User implements UserDetails {
     }
 
     //테스트용 id없는 생성자
-    public User(String username, String password,String phoneNumber, Role role) {
+    public User(String username, String password,String phoneNumber, Role role,String nickname) {
         this.username = username;
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.role = role;
+        this.nickname = nickname;
     }
 
     //UserDetails 인터페이스 메서드 구현

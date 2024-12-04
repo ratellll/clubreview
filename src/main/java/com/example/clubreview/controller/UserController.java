@@ -44,6 +44,13 @@ public class UserController {
         return ResponseEntity.ok(phoneIsFine);
 
     }
+    //닉네임 중복체크
+    @GetMapping("/register/nickCheck")
+    public ResponseEntity<Boolean> registerNickName(@RequestParam String nickname) {
+        boolean nickNameIsFine = userService.nickNameIsFine(nickname);
+        return ResponseEntity.ok(nickNameIsFine);
+
+    }
     //회원가입 처리
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes, BindingResult bindingResult) {

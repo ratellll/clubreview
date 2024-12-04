@@ -57,4 +57,7 @@ public class UserService {
     public boolean phoneIsFine(String phoneNumber) {
         return userRepository.findByPhoneNumber(phoneNumber).isEmpty();
     }
+    public boolean nickNameIsFine(String nickName) {
+        return userRepository.findByNickname(nickName).isEmpty();
+    }
 }

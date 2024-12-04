@@ -12,4 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     //폰번호 중복쳌
     Optional<User> findByPhoneNumber(String phoneNumber);
+
+    //닉네임중복첵
+    Optional<User> findByNickname(String nickname);
 }

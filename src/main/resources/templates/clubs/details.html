@@ -35,7 +35,7 @@
         </div>
         <ul class="list-group" th:each="review : ${reviews}">
             <li class="list-group-item">
-                <p><strong th:text="${review.user.username}">사용자 이름</strong></p>
+                <p><strong th:text="${review.user.nickname}">사용자 이름</strong></p>
                 <p>
                     <span th:each="star : ${#numbers.sequence(1, review.rating)}" class="text-warning">★</span>
                     <span th:if="${review.rating < 5}"
