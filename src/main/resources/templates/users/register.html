@@ -54,7 +54,7 @@
     let isPhoneNumberAvailable = false;
     let isNicknameAvailable = false;
 
-    // 아이디 중복체크
+    // 아이디 중복 체크
     document.getElementById('checkUsernameBtn').addEventListener('click', async function () {
         const usernameInput = document.getElementById('username');
         const resultDiv = document.getElementById('usernameCheckResult');
@@ -62,37 +62,35 @@
 
         if (!username) {
             updateResult(resultDiv, '아이디를 입력하세요.', 'text-danger');
-            isUsernameAvailable = false; // 상태 초기화
+            isUsernameAvailable = false;
             return;
         }
 
-        console.log(`Checking username: ${username}`);
-
         try {
             const response = await fetch(`/users/register/idCheck?username=${encodeURIComponent(username)}`);
-
             if (!response.ok) {
                 throw new Error('서버 요청에 실패했습니다.');
             }
 
             const idIsFine = await response.json();
-            console.log(`ID check result: ${idIsFine}`);
-
             if (idIsFine) {
                 updateResult(resultDiv, '사용 가능한 아이디입니다.', 'text-success');
-                isUsernameAvailable = true; // 상태 업데이트
+                isUsernameAvailable = true;
+
+                // 입력란과 버튼 비활성화
+                usernameInput.disabled = true;
+                this.disabled = true;
             } else {
                 updateResult(resultDiv, '이미 사용 중인 아이디입니다.', 'text-danger');
-                isUsernameAvailable = false; // 상태 업데이트
+                isUsernameAvailable = false;
             }
         } catch (error) {
-            console.error('중복 체크 중 에러 발생:', error);
             updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
-            isUsernameAvailable = false; // 상태 초기화
+            isUsernameAvailable = false;
         }
     });
 
-    // 닉네임 중복체크
+    // 닉네임 중복 체크
     document.getElementById('checkNicknameBtn').addEventListener('click', async function () {
         const nicknameInput = document.getElementById('nickname');
         const resultDiv = document.getElementById('nicknameCheckResult');
@@ -100,31 +98,31 @@
 
         if (!nickname) {
             updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
-            isNicknameAvailable = false; // 상태 초기화
+            isNicknameAvailable = false;
             return;
         }
 
-
         try {
             const response = await fetch(`/users/register/nickCheck?nickname=${encodeURIComponent(nickname)}`);
-
             if (!response.ok) {
                 throw new Error('서버 요청에 실패했습니다.');
             }
 
             const nicknameIsFine = await response.json();
-
             if (nicknameIsFine) {
                 updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');
-                isNicknameAvailable = true; // 상태 업데이트
+                isNicknameAvailable = true;
+
+                // 입력란과 버튼 비활성화
+                nicknameInput.disabled = true;
+                this.disabled = true;
             } else {
                 updateResult(resultDiv, '이미 사용 중인 닉네임입니다.', 'text-danger');
-                isNicknameAvailable = false; // 상태 업데이트
+                isNicknameAvailable = false;
             }
         } catch (error) {
-            console.error('중복 체크 중 에러 발생:', error);
             updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
-            isNicknameAvailable = false; // 상태 초기화
+            isNicknameAvailable = false;
         }
     });
 
@@ -137,64 +135,54 @@
         const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
 
         if (!phonePattern.test(phoneNumber)) {
-            alert("올바른 휴대폰 번호를 입력해주세요. 예: 01012345678");
             updateResult(resultDiv, "올바른 휴대폰 번호를 입력해주세요.", "text-danger");
-            isPhoneNumberAvailable = false; // 상태 초기화
+            isPhoneNumberAvailable = false;
             return;
         }
 
         try {
             const response = await fetch(`/users/register/phoneCheck?phoneNumber=${encodeURIComponent(phoneNumber)}`);
-
             if (!response.ok) {
                 throw new Error('서버 요청에 실패했습니다.');
             }
 
             const isAvailable = await response.json();
-            console.log(`Phone check result: ${isAvailable}`);
-
             if (isAvailable) {
                 updateResult(resultDiv, "사용 가능한 휴대폰 번호입니다.", "text-success");
-                isPhoneNumberAvailable = true; // 상태 업데이트
+                isPhoneNumberAvailable = true;
+
+                // 입력란과 버튼 비활성화
+                phoneNumberInput.disabled = true;
+                this.disabled = true;
             } else {
                 updateResult(resultDiv, "이미 사용 중인 휴대폰 번호입니다.", "text-danger");
-                isPhoneNumberAvailable = false; // 상태 업데이트
+                isPhoneNumberAvailable = false;
             }
         } catch (error) {
-            console.error("중복 체크 중 에러 발생:", error);
             updateResult(resultDiv, "중복 체크에 실패했습니다. 다시 시도하세요.", "text-danger");
-            isPhoneNumberAvailable = false; // 상태 초기화
+            isPhoneNumberAvailable = false;
         }
     });
 
     // 폼 제출 시 중복 체크 확인
-    document.querySelector("form").addEventListener("submit", async function (event) {
-        const username = document.getElementById('username').value.trim();
-        const nickname = document.getElementById('nickname').value.trim();
-        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+    document.querySelector("form").addEventListener("submit", function (event) {
+        if (!isUsernameAvailable) {
+            alert("아이디 중복 체크를 완료하세요.");
+            document.getElementById('username').focus();
+            event.preventDefault();
+            return;
+        }
 
-        let usernameValid = false;
-        let nicknameValid = false;
-        let phoneNumberValid = false;
+        if (!isNicknameAvailable) {
+            alert("닉네임 중복 체크를 완료하세요.");
+            document.getElementById('nickname').focus();
+            event.preventDefault();
+            return;
+        }
 
-        try {
-            const usernameResponse = await fetch(`/users/register/idCheck?username=${encodeURIComponent(username)}`);
-            usernameValid = await usernameResponse.json();
-
-            const nicknameResponse = await fetch(`/users/register/nickCheck?nickname=${encodeURIComponent(nickname)}`);
-            nicknameValid = await nicknameResponse.json();
-
-            const phoneResponse = await fetch(`/users/register/phoneCheck?phoneNumber=${encodeURIComponent(phoneNumber)}`);
-            phoneNumberValid = await phoneResponse.json();
-
-            if (!usernameValid || !nicknameValid || !phoneNumberValid) {
-                alert("모든 중복 체크를 다시 확인하세요.");
-                event.preventDefault();
-                return;
-            }
-        } catch (error) {
-            console.error("최종 확인 중 오류 발생:", error);
-            alert("중복 체크 중 오류가 발생했습니다. 다시 시도해주세요.");
+        if (!isPhoneNumberAvailable) {
+            alert("휴대폰 번호 중복 체크를 완료하세요.");
+            document.getElementById('phoneNumber').focus();
             event.preventDefault();
             return;
         }
@@ -206,6 +194,7 @@
     function updateResult(element, message, className) {
         element.textContent = message;
         element.className = className;
+        element.style.display = 'block';
     }
 </script>
 </body>
