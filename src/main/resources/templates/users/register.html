@@ -25,7 +25,8 @@
         </div>
         <div class="mb-3">
             <label for="username" class="form-label">닉네임</label>
-            <input type="text" class="form-control" id="nickname" th:field="*{nickname}" placeholder="닉네임를 입력하세요" required>
+            <input type="text" class="form-control" id="nickname" th:field="*{nickname}"
+                   pattern="^[가-힣]+$" title="한글만 입력해주세요." placeholder="닉네임을 입력하세요" required>
             <button type="button" id="checkNicknameBtn" class="btn btn-secondary mt-2">중복 체크</button>
             <div id="nicknameCheckResult" class="mt-2"></div>
         </div>

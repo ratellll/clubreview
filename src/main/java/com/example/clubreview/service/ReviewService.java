@@ -1,6 +1,7 @@
 package com.example.clubreview.service;
 
 
+import com.example.clubreview.dto.ReviewDto;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
@@ -55,20 +56,47 @@ public class ReviewService {
         return reviewRepository.save(review);
     }
 
-    // 리뷰 수정
+    //유저 리뷰 권한확인
     @Transactional
-    public Review updateReview(Long reviewId, String comment, int rating) {
+    public void userReviewAccess(Long reviewId, String username) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않은 리뷰입니다"));
+        if (!review.getUser().getUsername().equals(username)) {
+            throw new SecurityException("본인의 리뷰만 수정 및 삭제가 가능합니다.");
+        }
+    }
+
+    //유저 리뷰 수정
+    public void updateReview(Long reviewId, ReviewDto reviewDto) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
+        review.setComment(reviewDto.getComment());
+        review.setRating(reviewDto.getRating());
+        review.setCreateTime(reviewDto.getUpdateTime());
+        reviewRepository.save(review);
+    }
+
+    //유저 리뷰 삭제
+    @Transactional
+    public void deleteReview(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
+        reviewRepository.delete(review);
+    }
+
+    // 어드민 리뷰 수정
+    @Transactional
+    public Review adminUpdateReview(Long reviewId, String comment, int rating) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("리뷰를 찾을 수 없습니다."));
         review.setComment(comment);
         review.setRating(rating);
-
         return reviewRepository.save(review);
     }
 
-    // 리뷰 삭제
+    // 어드민 리뷰 삭제
     @Transactional
-    public void deleteReview(Long reviewId) {
+    public void adminDeleteReview(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {
             throw new RuntimeException("리뷰를 찾을수없습니다.");
         }

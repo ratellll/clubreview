@@ -15,6 +15,9 @@ public class ReviewDto {
     private String comment;
     private int rating;
     private String userId;
+    private String clubId;
     private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+
 
 }

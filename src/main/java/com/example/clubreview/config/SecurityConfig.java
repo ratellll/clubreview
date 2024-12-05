@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/", "/users/register", "/h2-console/**", "/uploads/**","/users/register/**").permitAll() // 공개 경로
-                        .requestMatchers("/clubs/list", "/clubs/{id}", "/clubs/details/**").authenticated() // 클럽 리스트와 상세 페이지는 로그인 필요
+                        .requestMatchers("/clubs/list", "/clubs/{id}", "/clubs/details/**","reviews/user/**").authenticated() // 클럽 리스트와 상세 페이지는 로그인 필요
                         .requestMatchers("/clubs/admin/**", "/reviews/admin/**").hasRole("ADMIN") // ADMIN 권한 필요
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )

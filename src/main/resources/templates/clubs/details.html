@@ -44,6 +44,62 @@
                 </p>
                 <p th:text="${review.comment}">리뷰 내용</p>
                 <p class="text-muted" th:text="${#temporals.format(review.createTime, 'yyyy-MM-dd HH:mm')}">작성 날짜</p>
+
+                <!-- 사용자 리뷰 수정/삭제 -->
+                <div th:if="${#authentication.name == review.user.username}">
+                    <button class="btn btn-warning" onclick="toggleEditForm(this)">수정</button>
+                    <form th:action="@{/reviews/user/delete/{id}(id=${review.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">삭제</button>
+                    </form>
+                </div>
+
+                <!-- 관리자 수정/삭제 -->
+                <div sec:authorize="hasRole('ADMIN')">
+                    <button class="btn btn-primary ms-3" onclick="toggleAdminEditForm(this)">관리자 수정</button>
+                    <form th:action="@{/reviews/admin/delete/{id}(id=${review.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">관리자 삭제</button>
+                    </form>
+                </div>
+
+                <!-- 사용자 수정 폼 -->
+                <form th:action="@{/reviews/user/edit/{id}(id=${review.id})}" method="post" class="mt-3 d-none">
+                    <div class="mb-3">
+                        <label for="rating-${review.id}" class="form-label">평점</label>
+                        <select class="form-select" id="rating-${review.id}" name="rating" required>
+                            <option value="5" th:selected="${review.rating == 5}">★★★★★ (5점)</option>
+                            <option value="4" th:selected="${review.rating == 4}">★★★★☆ (4점)</option>
+                            <option value="3" th:selected="${review.rating == 3}">★★★☆☆ (3점)</option>
+                            <option value="2" th:selected="${review.rating == 2}">★★☆☆☆ (2점)</option>
+                            <option value="1" th:selected="${review.rating == 1}">★☆☆☆☆ (1점)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                <textarea class="form-control" name="comment" rows="3" required
+                          th:text="${review.comment}"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">수정 완료</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditForm(this)">취소</button>
+                </form>
+
+                <!-- 관리자 수정 폼 -->
+                <form th:action="@{/reviews/admin/edit/{id}(id=${review.id})}" method="post" class="mt-3 d-none">
+                    <div class="mb-3">
+                        <label for="admin-rating-${review.id}" class="form-label">평점</label>
+                        <select class="form-select" id="admin-rating-${review.id}" name="rating" required>
+                            <option value="5" th:selected="${review.rating == 5}">★★★★★ (5점)</option>
+                            <option value="4" th:selected="${review.rating == 4}">★★★★☆ (4점)</option>
+                            <option value="3" th:selected="${review.rating == 3}">★★★☆☆ (3점)</option>
+                            <option value="2" th:selected="${review.rating == 2}">★★☆☆☆ (2점)</option>
+                            <option value="1" th:selected="${review.rating == 1}">★☆☆☆☆ (1점)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                <textarea class="form-control" name="comment" rows="3" required
+                          th:text="${review.comment}"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">관리자 수정 완료</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAdminEditForm(this)">취소</button>
+                </form>
             </li>
         </ul>
     </div>
@@ -75,5 +131,19 @@
         <p class="text-danger">리뷰를 작성하려면 <a th:href="@{/login}">로그인</a>이 필요합니다.</p>
     </div>
 </div>
+<script>
+    function toggleEditForm(button) {
+        const form = button.closest('li').querySelector('form:not(.d-none)');
+        if (form) form.classList.add('d-none');
+
+        const userForm = button.closest('li').querySelector('form.d-none');
+        userForm.classList.toggle('d-none');
+    }
+
+    function toggleAdminEditForm(button) {
+        const form = button.closest('li').querySelector('form.d-none');
+        form.classList.toggle('d-none');
+    }
+</script>
 </body>
 </html>
