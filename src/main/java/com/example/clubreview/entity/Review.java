@@ -3,6 +3,8 @@ package com.example.clubreview.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -31,8 +33,12 @@ public class Review {
     private int rating;
 
     @Column(nullable = false)
-    private LocalDateTime createTime = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createTime;
 
+    @Column(nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime updateTime;
 
     //테스트용
     public Review(String comment, int rating, Club club, User user) {

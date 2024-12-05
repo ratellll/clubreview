@@ -59,7 +59,7 @@ public class ReviewController {
         reviewService.userReviewAccess(id, principal.getName());
 
         reviewService.updateReview(id, reviewDto);
-        return "redirect:/clubs/details/" + reviewDto.getClubId();
+        return "redirect:/clubs/list";
     }
 
     //유저 리뷰 삭제
@@ -72,7 +72,7 @@ public class ReviewController {
         reviewService.userReviewAccess(id, principal.getName());
 
         reviewService.deleteReview(id);
-        return "redirect:/clubs/details/" + reviewDto.getClubId();
+        return "redirect:/clubs/list";
     }
     // 리뷰 어드민 수정처리
     @PostMapping("/admin/edit/{id}")
