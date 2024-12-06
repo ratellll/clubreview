@@ -8,6 +8,7 @@ import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -78,13 +79,14 @@ public class ReviewController {
     @PostMapping("/admin/edit/{id}")
     public String editReview(@PathVariable Long id,
                              @RequestParam String comment,
-                             @RequestParam int rating) {
+                             @RequestParam int rating,
+                             @RequestParam Long clubId) {
         Review updatedReview = reviewService.adminUpdateReview(id, comment, rating);
-        return "redirect:/clubs/" + updatedReview.getClub().getId(); // 클럽으로 다시 이동
+        return "redirect:/clubs/" + clubId; // 클럽으로 다시 이동
     }
 
     //리뷰 삭제
-    @PostMapping("/admin/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteReview(@PathVariable Long id, @RequestParam Long clubId, RedirectAttributes redirectAttributes) {
         try {
             reviewService.adminDeleteReview(id);
@@ -92,7 +94,7 @@ public class ReviewController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "리뷰 삭제 중 오류가 발생했습니다.");
         }
-        return "redirect:/clubs/" + clubId;
+        return "redirect:/clubs/"+ clubId;
     }
 
 

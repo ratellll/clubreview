@@ -67,6 +67,7 @@ public class ReviewService {
     }
 
     //유저 리뷰 수정
+    @Transactional
     public void updateReview(Long reviewId, ReviewDto reviewDto) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
@@ -90,16 +91,16 @@ public class ReviewService {
                 .orElseThrow(() -> new RuntimeException("리뷰를 찾을 수 없습니다."));
         review.setComment(comment);
         review.setRating(rating);
+        review.setUpdateTime(LocalDateTime.now());
         return reviewRepository.save(review);
     }
 
     // 어드민 리뷰 삭제
     @Transactional
     public void adminDeleteReview(Long reviewId) {
-        if (!reviewRepository.existsById(reviewId)) {
-            throw new RuntimeException("리뷰를 찾을수없습니다.");
-        }
-        reviewRepository.deleteById(reviewId);
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
+        reviewRepository.delete(review);
     }
 }
 
