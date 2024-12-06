@@ -53,26 +53,26 @@ public class ReviewController {
     @PostMapping("/user/edit/{id}")
     public String editUserReview(@PathVariable Long id, @Valid ReviewDto reviewDto, BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
-            return "redirect:/clubs/details/" + reviewDto.getClubId();
+            return "redirect:/clubs/" + reviewDto.getClubId();
         }
         // 사용자 검증
         reviewService.userReviewAccess(id, principal.getName());
 
         reviewService.updateReview(id, reviewDto);
-        return "redirect:/clubs/list";
+        return "redirect:/clubs/" + reviewDto.getClubId();
     }
 
     //유저 리뷰 삭제
     @PostMapping("/user/delete/{id}")
     public String deleteUserReview(@PathVariable Long id, @Valid ReviewDto reviewDto, BindingResult bindingResult, Principal principal) {
         if (bindingResult.hasErrors()) {
-            return "redirect:/clubs/details/" + reviewDto.getClubId();
+            return "redirect:/clubs/" + reviewDto.getClubId();
         }
         // 사용자 검증
         reviewService.userReviewAccess(id, principal.getName());
 
         reviewService.deleteReview(id);
-        return "redirect:/clubs/list";
+        return "redirect:/clubs/" + reviewDto.getClubId();
     }
     // 리뷰 어드민 수정처리
     @PostMapping("/admin/edit/{id}")

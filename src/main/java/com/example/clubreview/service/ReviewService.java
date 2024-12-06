@@ -72,7 +72,6 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
         review.setComment(reviewDto.getComment());
         review.setRating(reviewDto.getRating());
-        review.setCreateTime(reviewDto.getUpdateTime());
         reviewRepository.save(review);
     }
 
