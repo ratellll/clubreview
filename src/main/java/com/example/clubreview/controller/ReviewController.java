@@ -86,7 +86,7 @@ public class ReviewController {
     }
 
     //리뷰 삭제
-    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/delete/{id}")
     public String deleteReview(@PathVariable Long id, @RequestParam Long clubId, RedirectAttributes redirectAttributes) {
         try {
             reviewService.adminDeleteReview(id);
