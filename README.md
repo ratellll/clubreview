@@ -14,7 +14,6 @@ securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 
  
 
 어드민
-리뷰삭제
 회원 삭제 및 정지
 
 일반
