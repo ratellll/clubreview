@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -29,4 +31,6 @@ public class UserDto {
     @Pattern(regexp = "^[가-힣]+$", message = "한글만 입력 가능합니다.")
     @Size(min = 2, max = 6, message = "닉네임은 2자 이상, 5자 이하로 입력해주세요")
     private String nickname;
+
+    private LocalDateTime createTime;
 }

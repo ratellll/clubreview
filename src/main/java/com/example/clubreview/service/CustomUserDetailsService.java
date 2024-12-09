@@ -1,10 +1,16 @@
 package com.example.clubreview.service;
 
+import com.example.clubreview.entity.User;
 import com.example.clubreview.repository.UserRepository;
+import com.example.clubreview.security.CustomUserDetails;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -17,7 +23,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() ->new UsernameNotFoundException("해당 아이디를 찾을 수 없습니다" + username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 아이디입니다."));
+
+        if (user.getBanEndTime() != null && user.getBanEndTime().isAfter(LocalDateTime.now())) {
+            throw new LockedException("해당 계정은 정지되었습니다. 만료일: " +
+                    user.getBanEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        }
+
+        return new CustomUserDetails(user);
     }
+
 }

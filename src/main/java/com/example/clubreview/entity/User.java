@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "users")
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,8 +31,10 @@ public class User implements UserDetails {
     private String nickname;
     @Column(nullable = false, unique = true, length = 11)
     private String phoneNumber;
-
-
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createTime;
+    @Column
+    private LocalDateTime banEndTime;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
@@ -39,6 +42,11 @@ public class User implements UserDetails {
 
     public enum Role{
         USER,ADMIN
+    }
+
+    @PrePersist // 엔티티가 처음 저장되기 전에 실행되는 메서드
+    protected void onCreate() {
+        this.createTime = LocalDateTime.now();
     }
 
     //테스트용 id없는 생성자
@@ -50,32 +58,5 @@ public class User implements UserDetails {
         this.nickname = nickname;
     }
 
-    //UserDetails 인터페이스 메서드 구현
-    /*
-     Collection 문법 확인하기
-     */
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> "ROLE_" + role.name()); // ROLE_USER 또는 ROLE_ADMIN반환하는것
-    }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;  // 계정 만료 상태를 관리하지 않는 경우 true 반환
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;  // 계정 잠금 상태를 관리하지 않는 경우 true 반환
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;  // 자격 증명 만료 상태를 관리하지 않는 경우 true 반환
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;  // 계정 활성화 상태를 관리하지 않는 경우 true 반환
-    }
 }

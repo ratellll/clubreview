@@ -3,10 +3,15 @@ package com.example.clubreview.service;
 import com.example.clubreview.dto.UserDto;
 import com.example.clubreview.entity.User;
 import com.example.clubreview.exception.DuplicateReviewException;
+import com.example.clubreview.exception.UserNotFoundException;
 import com.example.clubreview.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Null;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -43,6 +48,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    //유저 삭제메서드
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다. ID: " + id));
+        userRepository.delete(user);
+    }
+
     // 이름으로 user 조회
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -60,4 +71,26 @@ public class UserService {
     public boolean nickNameIsFine(String nickName) {
         return userRepository.findByNickname(nickName).isEmpty();
     }
+
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다"+ id) );
+    }
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    //회원정지
+    public void banUser(Long id, int days) {
+        User user = userRepository.findById(id).orElseThrow(() ->new UserNotFoundException("유저를 찾을 수 없습니다." + id));
+        user.setBanEndTime(LocalDateTime.now().plusDays(days));
+        userRepository.save(user);
+    }
+
+    //정지해제
+    public void unbanUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->new UserNotFoundException("유저를 찾을 수 없습니다." + id));
+        user.setBanEndTime(null);
+        userRepository.save(user);
+    }
+
 }

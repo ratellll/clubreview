@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
+
 <div th:fragment="header">
+  <div th:replace="fragments/alert :: alert"></div>
+
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand"
@@ -16,6 +19,7 @@
           <!-- 클럽 목록 -->
           <li class="nav-item">
             <a th:href="@{/clubs/list}" class="nav-link" onclick="return checkLogin()">클럽 목록</a>
+            <a th:href="@{/admin/users/list}" class="nav-link" sec:authorize="hasRole('ADMIN')">회원 목록</a>
           </li>
           <!-- 로그인 상태 확인 -->
           <li class="nav-item" sec:authorize="isAnonymous()">

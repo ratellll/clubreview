@@ -13,10 +13,6 @@
   <!-- 공통 헤더 -->
   <div th:replace="fragments/common-header :: header"></div>
 
-  <!-- 에러 메시지 -->
-  <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
-  <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
-
   <!-- 등록 폼 -->
   <form th:action="@{/clubs/admin/new}" th:object="${club}" method="post" enctype="multipart/form-data">
     <div class="mb-3">
