@@ -48,6 +48,11 @@
                     <button type="submit" class="btn btn-success btn-sm">정지 해제</button>
                 </form>
             </td>
+            <td>
+                <form th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm">유저 탈퇴</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>

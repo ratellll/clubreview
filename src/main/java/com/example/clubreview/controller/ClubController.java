@@ -5,6 +5,7 @@ import com.example.clubreview.entity.Club;
 import com.example.clubreview.service.ClubService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -193,6 +194,7 @@ public class ClubController {
 
     //클럽삭제
     @PostMapping("/admin/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteClub(@PathVariable Long id) {
         Club club = clubService.getClubById(id);
         clubService.deleteClub(id);
