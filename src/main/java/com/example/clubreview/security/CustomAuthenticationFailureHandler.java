@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,9 +26,12 @@ public class CustomAuthenticationFailureHandler extends SimpleUrlAuthenticationF
 
         String errorMessage = "아이디 또는 비밀번호가 잘못되었습니다."; // 기본 메시지
 
-        if (exception instanceof LockedException) {
+        if (exception instanceof InternalAuthenticationServiceException && exception.getCause() instanceof LockedException) {
             // LockedException - 계정 정지된 경우
-            errorMessage = exception.getMessage(); // 예외 메시지에 만료일이 포함되어 있습니다.
+            errorMessage = exception.getCause().getMessage(); // 예외 메시지에 만료일이 포함되어 있습니다.
+        } else if (exception instanceof LockedException) {
+            // LockedException - 계정 정지된 경우
+            errorMessage = exception.getMessage();
         } else if (exception instanceof BadCredentialsException) {
             // BadCredentialsException - 아이디 또는 비밀번호가 잘못된 경우
             errorMessage = "아이디 또는 비밀번호가 잘못되었습니다.";

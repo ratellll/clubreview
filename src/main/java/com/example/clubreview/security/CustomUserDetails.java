@@ -41,8 +41,10 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // 계정이 정지되었는지 확인하는 로직 추가
-        return user.getBanEndTime() == null || user.getBanEndTime().isBefore(LocalDateTime.now());
+        if (user.getBanEndTime() != null && user.getBanEndTime().isAfter(LocalDateTime.now())) {
+            return false; // 계정이 잠겨있음
+        }
+        return true; // 계정이 정지되지 않음
     }
     @Override
     public boolean isCredentialsNonExpired() {

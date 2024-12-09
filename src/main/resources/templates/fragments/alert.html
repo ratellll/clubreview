@@ -18,6 +18,10 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 
+    <div th:if="${session.errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <p th:text="${session.errorMessage}"></p>
+    </div>
+
 <!-- 부트스트랩 스크립트 추가 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </div>
