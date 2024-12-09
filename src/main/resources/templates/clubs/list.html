@@ -133,6 +133,11 @@
         <li class="list-group-item" th:each="club : ${clubs.content}">
             <a th:href="@{/clubs/{id}(id=${club.id})}" class="text-decoration-none" th:text="${club.name}">클럽 이름</a>
             <span class="ms-2 text-muted" th:text="'평점: ' + ${club.averageRating} + ' / 5'"></span>
+            <td>
+                <form  th:action="@{/clubs/admin/delete/{id}(id=${club.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-warning btn-sm" sec:authorize="hasRole('ADMIN')">클럽 삭제</button>
+                </form>
+            </td>
         </li>
     </ul>
 
