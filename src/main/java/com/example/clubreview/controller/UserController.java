@@ -54,15 +54,20 @@ public class UserController {
     }
     //회원가입 처리
     @PostMapping("/register")
-    public String registerUser(@Valid @ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes, BindingResult bindingResult) {
+    public String registerUser(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult ,RedirectAttributes redirectAttributes ) {
 
         if (bindingResult.hasErrors()) {
+            bindingResult.getAllErrors().forEach(error -> {
+                System.err.println("Error: " + error.getDefaultMessage());
+            });
+
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
             return "redirect:/users/register";
         } // 회원가입 형식체크 추가
 
         try {
             userService.registerUser(userDto);
+            System.out.println(userDto.toString());
             redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
             return "redirect:/login";
         } catch (DuplicateReviewException e) {

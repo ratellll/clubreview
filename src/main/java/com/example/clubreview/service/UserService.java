@@ -40,6 +40,7 @@ public class UserService {
         // User 엔티티 생성 및 저장
         User user = User.builder()
                 .username(userDto.getUsername())
+                .nickname(userDto.getNickname())
                 .password(encodedPassword)
                 .phoneNumber(userDto.getPhoneNumber().replaceAll("-","")) //하이픈제거하고넣기
                 .role(User.Role.USER)

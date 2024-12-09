@@ -14,7 +14,7 @@ securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 
  
 
 어드민
- 클럽삭제
+ 
 
 일반
 리뷰 모아보기
