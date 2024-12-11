@@ -47,6 +47,20 @@ public class UserService {
         userRepository.save(user);
     }
 
+    //회원 수정
+    @Transactional
+    public void updateUser(UserDto userDto) {
+        if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
+            throw new DuplicateReviewException("이미 존재하는 닉네임 입니다.");
+        }
+        String encodedPassword = passwordEncoder.encode(userDto.getPassword());
+        User user = User.builder()
+                .nickname(userDto.getNickname())
+                .password(encodedPassword)
+                .build();
+        userRepository.save(user);
+    }
+
     //유저 삭제메서드
     public void deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다. ID: " + id));

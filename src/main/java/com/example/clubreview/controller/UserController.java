@@ -69,7 +69,6 @@ public class UserController {
 
         try {
             userService.registerUser(userDto);
-            System.out.println(userDto.toString());
             redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
             return "redirect:/login";
         } catch (DuplicateReviewException e) {
