@@ -1,5 +1,6 @@
 package com.example.clubreview.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -12,13 +13,12 @@ import java.util.Map;
 
 
 @Controller
+@RequiredArgsConstructor
 public class CustomErrorController implements ErrorController {
 
     private final ErrorAttributes errorAttributes;
 
-    public CustomErrorController(ErrorAttributes errorAttributes) {
-        this.errorAttributes = errorAttributes;
-    }
+
 
     public String handleError(WebRequest webRequest, Model model) {
         //정보가져오기

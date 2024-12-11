@@ -5,6 +5,7 @@ import com.example.clubreview.entity.User;
 import com.example.clubreview.exception.UserNotFoundException;
 import com.example.clubreview.repository.UserRepository;
 import com.example.clubreview.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,15 +16,12 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin/users")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final UserService userService;
     private final UserRepository userRepository;
 
-    public AdminController(UserService userService, UserRepository userRepository) {
-        this.userService = userService;
-        this.userRepository = userRepository;
-    }
 
     //유저 목록
     @PreAuthorize("hasRole('ADMIN')")

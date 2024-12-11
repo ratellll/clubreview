@@ -4,6 +4,7 @@ import com.example.clubreview.dto.ClubDto;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.service.ClubService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -25,13 +26,12 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/clubs")
+@RequiredArgsConstructor
 public class ClubController {
 
     private final ClubService clubService;
 
-    public ClubController(ClubService clubService) {
-        this.clubService = clubService;
-    }
+
 
     // 클럽 목록 조회 (이름순 또는 별점순 정렬)
     @GetMapping("/list")

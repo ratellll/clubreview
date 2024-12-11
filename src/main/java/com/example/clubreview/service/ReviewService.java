@@ -10,6 +10,7 @@ import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import com.example.clubreview.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,14 +18,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ClubRepository clubRepository;
 
-    public ReviewService(ReviewRepository reviewRepository, ClubRepository clubRepository ) {
-        this.reviewRepository = reviewRepository;
-        this.clubRepository = clubRepository;
-    }
+
 
     // 특정 클럽의 모든 리뷰 조회
     public List<Review> getReviewsByClubId(Long clubId) {

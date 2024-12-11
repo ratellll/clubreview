@@ -8,6 +8,7 @@ import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -22,15 +23,12 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/reviews")
+@RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
     private final UserService userService;
 
-    public ReviewController(ReviewService reviewService, UserService userService) {
-        this.reviewService = reviewService;
-        this.userService = userService;
-    }
 
     // 리뷰 등록 처리
     @PostMapping("/add")
