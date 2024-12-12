@@ -41,26 +41,44 @@ public class MyPageController {
         return ResponseEntity.ok(nickNameIsFine);
     }
 
-    @PostMapping("/edit")
-    public String editMyStub(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
-
+    @PostMapping("/editNickname")
+    public String editNickname(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
         if (bindingResult.hasErrors()) {
             bindingResult.getAllErrors().forEach(error -> {
                 System.err.println("Error: " + error.getDefaultMessage());
             });
-
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
             return "redirect:/mypage";
-        } // 회원가입 형식체크 추가
-
+        }
         try {
-            userService.registerUser(userDto);
-            redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
+            String username = principal.getName();
+            myPageService.updateNickName(username, userDto.getNickname());
+            redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
             return "redirect:/mypage";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/mypage"; // 회원가입 페이지로 리다이렉트
         }
-
+        return "redirect:/mypage"; // 회원가입 페이지로 리다이렉트
     }
+
+    @PostMapping("/editPassword")
+    public String editPassword(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
+        if (bindingResult.hasErrors()) {
+            bindingResult.getAllErrors().forEach(error -> {
+                System.err.println("Error: " + error.getDefaultMessage());
+            });
+            redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
+            return "redirect:/mypage";
+        }
+        try {
+            String username = principal.getName();
+            myPageService.updatePassword(username, userDto.getNickname());
+            redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
+            return "redirect:/mypage";
+        } catch (DuplicateReviewException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/mypage"; // 회원가입 페이지로 리다이렉트
+    }
+
 }

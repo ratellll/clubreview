@@ -55,18 +55,23 @@ public class MyPageService {
     public void updateNickName(String username, String newNickname) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        user.setNickname(newNickname);
+
+        if (!user.getNickname().equals(newNickname)) {
+            if (userRepository.findByNickname(user.getUsername()).isPresent()) {
+                throw new IllegalArgumentException("이미 존재하는 닉네임 입니다.");
+            }
+            user.setNickname(newNickname);
+        }
         userRepository.save(user);
     }
     //비밀번호 수정
     public void updatePassword(String username, String newPassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        user.setPassword(passwordEncoder.encode(newPassword));
+        if (newPassword != null && !newPassword.isBlank()) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
         userRepository.save(user);
     }
-    //닉넴중복 회원가입꺼 끌어올수있는지체크
-    public boolean isNicknameAvailable(String username) {
-        return !userRepository.findByUsername(username).isPresent();
-    }
+
 }
