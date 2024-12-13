@@ -135,7 +135,9 @@ public class ClubController {
     public String editClubForm(@PathVariable Long id, Model model) {
         Club club = clubService.getClubById(id);
 
-        ClubDto clubDto = new ClubDto(club.getName(),
+        ClubDto clubDto = new ClubDto(
+                club.getId(),
+                club.getName(),
                 club.getLocation(),
                 club.getDescription(),
                 club.getCallNumber(),

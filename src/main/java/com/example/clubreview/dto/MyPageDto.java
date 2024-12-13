@@ -14,6 +14,6 @@ public class MyPageDto {
 
 
     private UserDto user;
-
+    private String clubName;
     private List<ReviewDto> reviews;
 }

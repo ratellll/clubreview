@@ -120,3 +120,12 @@ button:hover {
 .d-none {
     display: none !important;
 }
+
+.form-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.review-list {
+    max-width: 800px;
+    margin: 20px auto;
+}

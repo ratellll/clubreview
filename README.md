@@ -21,6 +21,10 @@ securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 
 마이페이지 (닉네임 , 비밀번호 수정 )  만들기
 
 
+기타
+Principal principal 
+ 컨트롤러쪽에 추가하여 안정성높이기
+
 
 
  

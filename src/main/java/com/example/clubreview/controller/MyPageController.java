@@ -25,14 +25,13 @@ public class MyPageController {
     private final MyPageService myPageService;
     private final UserService userService;
 
-    @GetMapping
+    @GetMapping("/list")
     public String getMyPage(Principal principal, Model model) {
         String username = principal.getName();
-
         MyPageDto myPageData = myPageService.getMyPageData(username);
         model.addAttribute("user", myPageData.getUser());
         model.addAttribute("reviews", myPageData.getReviews());
-        return "myPage";
+        return "mypage/list";
     }
 
     @GetMapping("/checkNickname")
@@ -48,7 +47,7 @@ public class MyPageController {
                 System.err.println("Error: " + error.getDefaultMessage());
             });
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
-            return "redirect:/mypage";
+            return "redirect:/mypage/list";
         }
         try {
             String username = principal.getName();
@@ -58,7 +57,7 @@ public class MyPageController {
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/mypage"; // 회원가입 페이지로 리다이렉트
+        return "redirect:/mypage/list"; // 회원가입 페이지로 리다이렉트
     }
 
     @PostMapping("/editPassword")
@@ -68,17 +67,17 @@ public class MyPageController {
                 System.err.println("Error: " + error.getDefaultMessage());
             });
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
-            return "redirect:/mypage";
+            return "redirect:/mypage/list";
         }
         try {
             String username = principal.getName();
-            myPageService.updatePassword(username, userDto.getNickname());
+            myPageService.updatePassword(username, userDto.getPassword());
             redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
-            return "redirect:/mypage";
+            return "redirect:/mypage/list";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/mypage"; // 회원가입 페이지로 리다이렉트
+        return "redirect:/mypage/list"; // 회원가입 페이지로 리다이렉트
     }
 
 }
