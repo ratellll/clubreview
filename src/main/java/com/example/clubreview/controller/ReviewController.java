@@ -5,6 +5,7 @@ import com.example.clubreview.dto.ReviewDto;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
 import com.example.clubreview.exception.DuplicateReviewException;
+import com.example.clubreview.security.CustomUserDetails;
 import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
 import jakarta.validation.Valid;
@@ -36,8 +37,9 @@ public class ReviewController {
                             @RequestParam int rating,
                             @RequestParam String comment,
                             RedirectAttributes redirectAttributes,
-                            @AuthenticationPrincipal User user) {
+                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
+            User user = userDetails.getUser();
             LocalDateTime createTime = LocalDateTime.now();
 
             reviewService.addReview(clubId, user, rating, comment,createTime);
