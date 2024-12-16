@@ -90,28 +90,42 @@
         }
     });
 
-    // 닉네임 중복 체크
-    const nicknameInput = document.getElementById('nickname');
-    const nicknameCheckResult = document.getElementById('nicknameCheckResult');
-
     document.getElementById('checkNicknameBtn').addEventListener('click', async function () {
+        const nicknameInput = document.getElementById('nickname');
+        const resultDiv = document.getElementById('nicknameCheckResult');
         const nickname = nicknameInput.value.trim();
 
-        if (nickname.length < 2 || nickname.length > 6) {
-            updateResult(nicknameCheckResult, '닉네임은 2자 이상, 6자 이하여야 합니다.', 'text-danger');
+        // 정규식 검사: 한글만 허용
+        const nicknameRegex = /^[가-힣]+$/;
+
+        if (!nickname) {
+            updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
+            return;
+        }
+        if (!nicknameRegex.test(nickname)) {
+            updateResult(resultDiv, '닉네임은 한글만 입력 가능합니다.', 'text-danger');
+            return;
+        }
+        if (nickname.length < 2 || nickname.length > 5) {
+            updateResult(resultDiv, '닉네임은 2자 이상, 5자 이하여야 합니다.', 'text-danger');
             return;
         }
 
+        // 중복 체크 요청
         try {
             const response = await fetch(`/mypage/checkNickname?nickname=${encodeURIComponent(nickname)}`);
-            const isAvailable = await response.json();
-            if (isAvailable) {
-                updateResult(nicknameCheckResult, '사용 가능한 닉네임입니다.', 'text-success');
+            if (!response.ok) {
+                throw new Error('서버 요청에 실패했습니다.');
+            }
+
+            const nicknameIsFine = await response.json();
+            if (nicknameIsFine) {
+                updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');
             } else {
-                updateResult(nicknameCheckResult, '이미 사용 중인 닉네임입니다.', 'text-danger');
+                updateResult(resultDiv, '이미 사용 중인 닉네임입니다.', 'text-danger');
             }
         } catch (error) {
-            updateResult(nicknameCheckResult, '중복 체크에 실패했습니다.', 'text-danger');
+            updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
         }
     });
 

@@ -36,6 +36,9 @@ public class MyPageController {
 
     @GetMapping("/checkNickname")
     public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
+        if (!nickname.matches("^[가-힣]{2,6}$")) {
+            throw new IllegalArgumentException("닉네임은 한글 2자 이상 5자 이하여야 합니다.");
+        }
         boolean nickNameIsFine = userService.nickNameIsFine(nickname);
         return ResponseEntity.ok(nickNameIsFine);
     }
