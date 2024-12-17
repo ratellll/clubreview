@@ -10,12 +10,15 @@
 <body>
 <!-- 헤더 -->
 <div th:replace="fragments/common-header :: header"></div>
+<div th:if="${errorMessage}" class="alert alert-danger text-center">
+    <p th:text="${errorMessage}"></p>
+</div>
 <div class="container mt-5">
     <!-- 마이페이지 헤더 -->
     <h2 class="mb-4 text-center">🌟 내 마이페이지 🌟</h2>
     <!-- 내 정보 -->
     <div class="form-container p-4 rounded bg-light shadow-sm mb-5">
-    <h3>👤 내 정보</h3>
+        <h3>👤 내 정보</h3>
         <div class="mb-3">
             <label><strong>아이디</strong></label>
             <input type="text" class="form-control" th:value="${user.username}" readonly>
@@ -29,7 +32,6 @@
             <input type="text" class="form-control" th:value="${user.phoneNumber}" readonly>
         </div>
     </div>
-
     <!-- 닉네임 수정 -->
     <div class="form-container p-4 rounded bg-light shadow-sm mb-5">
         <h3>✏️ 닉네임 수정</h3>
@@ -43,7 +45,6 @@
             <button type="submit" class="btn btn-primary w-100">닉네임 수정</button>
         </form>
     </div>
-
     <!-- 비밀번호 변경 -->
     <div class="form-container p-4 rounded bg-light shadow-sm mb-5">
         <h3>🔐 비밀번호 변경</h3>
@@ -56,13 +57,12 @@
             <button type="submit" class="btn btn-primary w-100">비밀번호 변경</button>
         </form>
     </div>
-
-    <!-- 내가 쓴 리뷰 -->
     <div class="review-list">
         <h3>📝 내가 쓴 리뷰</h3>
         <div th:if="${#lists.isEmpty(reviews)}" class="alert alert-warning text-center">
             <p>작성한 리뷰가 없습니다.</p>
         </div>
+
         <div th:each="review : ${reviews}" class="mb-4">
             <div class="card shadow-sm">
                 <div class="card-body">
@@ -71,69 +71,114 @@
                     <p class="card-text">
                         <small class="text-muted" th:text="'⭐ 평점: ' + ${review.rating} + ' / 5'"></small>
                     </p>
+
+                    <!-- 수정/삭제 버튼 -->
+                    <button class="btn btn-warning btn-sm mt-2"
+                            onclick="toggleEditForm(this)">✏️ 수정</button>
+                    <form th:action="@{/mypage/reviews/delete/{id}(id=${review.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️ 삭제</button>
+                    </form>
+
+                    <!-- 사용자 리뷰 수정 폼 -->
+                    <form th:action="@{/mypage/reviews/edit}" method="post" class="mt-3 edit-form d-none">
+                        <input type="hidden" name="id" th:value="${review.id}">
+                        <div class="mb-3">
+                            <label for="rating-${review.id}" class="form-label"><strong>평점</strong></label>
+                            <select class="form-select" id="rating-${review.id}" name="rating" required>
+                                <option value="5" th:selected="${review.rating == 5}">★★★★★ (5점)</option>
+                                <option value="4" th:selected="${review.rating == 4}">★★★★☆ (4점)</option>
+                                <option value="3" th:selected="${review.rating == 3}">★★★☆☆ (3점)</option>
+                                <option value="2" th:selected="${review.rating == 2}">★★☆☆☆ (2점)</option>
+                                <option value="1" th:selected="${review.rating == 1}">★☆☆☆☆ (1점)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="comment" rows="3" required th:text="${review.comment}"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">수정 완료</button>
+                        <!--<button type="button" class="btn btn-secondary btn-sm" onclick="toggleEditForm(this)">취소</button> -->
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-    // 비밀번호 유효성 검사
-    const passwordInput = document.getElementById('password');
-    const passwordCheckResult = document.getElementById('passwordCheckResult');
+    <script>
+        // 비밀번호 유효성 검사
+        const passwordInput = document.getElementById('password');
+        const passwordCheckResult = document.getElementById('passwordCheckResult');
 
-    passwordInput.addEventListener('input', function () {
-        const password = passwordInput.value.trim();
-        if (password.length < 8) {
-            updateResult(passwordCheckResult, '비밀번호는 최소 8자 이상이어야 합니다.', 'text-danger');
-        } else {
-            updateResult(passwordCheckResult, '사용 가능한 비밀번호입니다.', 'text-success');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                const password = passwordInput.value.trim();
+                if (password.length < 8) {
+                    updateResult(passwordCheckResult, '비밀번호는 최소 8자 이상이어야 합니다.', 'text-danger');
+                } else {
+                    updateResult(passwordCheckResult, '사용 가능한 비밀번호입니다.', 'text-success');
+                }
+            });
         }
-    });
-
-    document.getElementById('checkNicknameBtn').addEventListener('click', async function () {
         const nicknameInput = document.getElementById('nickname');
         const resultDiv = document.getElementById('nicknameCheckResult');
-        const nickname = nicknameInput.value.trim();
+        const checkNicknameBtn = document.getElementById('checkNicknameBtn');
 
-        // 정규식 검사: 한글만 허용
-        const nicknameRegex = /^[가-힣]+$/;
+        if (checkNicknameBtn) {
+            checkNicknameBtn.addEventListener('click', async function () {
+                const nickname = nicknameInput.value.trim();
+                const nicknameRegex = /^[가-힣]+$/;
 
-        if (!nickname) {
-            updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
-            return;
-        }
-        if (!nicknameRegex.test(nickname)) {
-            updateResult(resultDiv, '닉네임은 한글만 입력 가능합니다.', 'text-danger');
-            return;
-        }
-        if (nickname.length < 2 || nickname.length > 5) {
-            updateResult(resultDiv, '닉네임은 2자 이상, 5자 이하여야 합니다.', 'text-danger');
-            return;
-        }
+                if (!nickname) {
+                    updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
+                    return;
+                }
 
-        // 중복 체크 요청
-        try {
-            const response = await fetch(`/mypage/checkNickname?nickname=${encodeURIComponent(nickname)}`);
-            if (!response.ok) {
-                throw new Error('서버 요청에 실패했습니다.');
+                if (!nicknameRegex.test(nickname)) {
+                    updateResult(resultDiv, '닉네임은 한글만 입력 가능합니다.', 'text-danger');
+                    return;
+                }
+
+                if (nickname.length < 2 || nickname.length > 5) {
+                    updateResult(resultDiv, '닉네임은 2자 이상, 5자 이하여야 합니다.', 'text-danger');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/mypage/checkNickname?nickname=${encodeURIComponent(nickname)}`);
+                    if (!response.ok) {
+                        throw new Error('서버 요청에 실패했습니다.');
+                    }
+
+                    const nicknameIsFine = await response.json();
+                    if (nicknameIsFine) {
+                        updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');
+                    } else {
+                        updateResult(resultDiv, '이미 사용 중인 닉네임입니다.', 'text-danger');
+                    }
+                } catch (error) {
+                    updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
+                }
+            });
+        }
+        // 결과 메시지 업데이트 함수
+        function updateResult(element, message, className) {
+            element.textContent = message;
+            element.className = className;
+        }
+        function toggleEditForm(button) {
+            closeAllForms(); // 모든 폼 닫기
+            const reviewItem = button.closest('.card-body');
+            if (!reviewItem) return;
+
+            const editForm = reviewItem.querySelector('.edit-form');
+            if (editForm) {
+                editForm.classList.toggle('d-none'); // 클릭한 리뷰의 폼만 열기/닫기
             }
-
-            const nicknameIsFine = await response.json();
-            if (nicknameIsFine) {
-                updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');
-            } else {
-                updateResult(resultDiv, '이미 사용 중인 닉네임입니다.', 'text-danger');
-            }
-        } catch (error) {
-            updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
         }
-    });
 
-    // Helper 함수 (결과 메시지 업데이트)
-    function updateResult(element, message, className) {
-        element.textContent = message;
-        element.className = className;
-    }
-</script>
+        function closeAllForms() {
+            document.querySelectorAll('.edit-form').forEach(form => form.classList.add('d-none'));
+        }
+
+    </script>
 </body>
 </html>

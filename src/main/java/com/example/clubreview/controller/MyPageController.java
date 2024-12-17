@@ -2,9 +2,11 @@ package com.example.clubreview.controller;
 
 
 import com.example.clubreview.dto.MyPageDto;
+import com.example.clubreview.dto.ReviewDto;
 import com.example.clubreview.dto.UserDto;
 import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.service.MyPageService;
+import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class MyPageController {
 
     private final MyPageService myPageService;
     private final UserService userService;
+    private final ReviewService reviewService;
 
     @GetMapping("/list")
     public String getMyPage(Principal principal, Model model) {
@@ -77,4 +80,29 @@ public class MyPageController {
         return "redirect:/mypage/list"; // 회원가입 페이지로 리다이렉트
     }
 
+    @PostMapping("/reviews/edit")
+    public String editReview(@Valid ReviewDto reviewDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "리뷰 수정에 실패했습니다. 입력값을 확인해주세요.");
+            return "redirect:/mypage/list";
+        }
+        try {
+            reviewService.updateReview(reviewDto.getId(), reviewDto);
+            redirectAttributes.addFlashAttribute("message", "리뷰가 수정되었습니다.");
+        }catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/mypage/list";
+    }
+    @PostMapping("/reviews/delete/{id}")
+    public String deleteUserReview(@PathVariable Long id, @Valid ReviewDto reviewDto, BindingResult bindingResult,RedirectAttributes redirectAttributes, Principal principal) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "리뷰 삭제에 실패했습니다. 입력값을 확인해주세요.");
+            return "redirect:/mypage/list";
+        }
+        // 사용자 검증
+
+        reviewService.deleteReview(id);
+        return "redirect:/mypage/list";
+    }
 }
