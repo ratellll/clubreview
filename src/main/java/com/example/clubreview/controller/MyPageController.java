@@ -45,18 +45,15 @@ public class MyPageController {
 
     @PostMapping("/editNickname")
     public String editNickname(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
-        if (bindingResult.hasErrors()) {
-            bindingResult.getAllErrors().forEach(error -> {
-                System.err.println("Error: " + error.getDefaultMessage());
-            });
-            redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
+        if (!userDto.getNickname().matches("^[가-힣]+$") || userDto.getNickname().length() < 2 || userDto.getNickname().length() > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "닉네임은 2자 이상 5자 이하의 한글이어야 합니다.");
             return "redirect:/mypage/list";
         }
         try {
             String username = principal.getName();
             myPageService.updateNickName(username, userDto.getNickname());
             redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
-            return "redirect:/mypage";
+            return "redirect:/mypage/list";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -65,11 +62,8 @@ public class MyPageController {
 
     @PostMapping("/editPassword")
     public String editPassword(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
-        if (bindingResult.hasErrors()) {
-            bindingResult.getAllErrors().forEach(error -> {
-                System.err.println("Error: " + error.getDefaultMessage());
-            });
-            redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
+        if (userDto.getPassword().length() < 8) {
+            redirectAttributes.addFlashAttribute("errorMessage", "비밀번호는 최소 8자 이상이어야 합니다.");
             return "redirect:/mypage/list";
         }
         try {
