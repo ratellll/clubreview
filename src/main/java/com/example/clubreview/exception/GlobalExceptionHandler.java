@@ -14,4 +14,10 @@ public class GlobalExceptionHandler {
         model.addAttribute("errorMessage", "파일 크기가 너무 큽니다. 10MB이하로 등록해주십쇼");
         return "clubs/create";
     }
+
+    @ExceptionHandler(ClubNotFoundException.class)
+    public String handlerClubNotFoundException(ClubNotFoundException ex, Model model) {
+        model.addAttribute("errorMessage", ex.getMessage());
+        return "clubs/list";
+    }
 }

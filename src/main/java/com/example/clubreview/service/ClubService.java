@@ -25,9 +25,9 @@ public class ClubService {
     }
 
     // 특정 클럽 조회
-    public Club getClubById(Long id) {
-        return clubRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Club not found"));
+    public Optional<Club> getClubById(Long id) {
+        return clubRepository.findById(id);
+
     }
 
     // 이름 오름차순으로 정렬된 클럽 목록 (페이징)

@@ -2,7 +2,9 @@ package com.example.clubreview.controller;
 
 import com.example.clubreview.dto.ClubDto;
 import com.example.clubreview.entity.Club;
+import com.example.clubreview.exception.ClubNotFoundException;
 import com.example.clubreview.service.ClubService;
+import com.example.clubreview.utils.FileUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -66,13 +68,14 @@ public class ClubController {
     // 클럽 상세 정보 조회
     @GetMapping("/{id}")
     public String getClubDetail(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubById(id);
+        Club club = findClubOrThrow(id);
         model.addAttribute("club", club);
         model.addAttribute("reviews", club.getReviews());
         return "clubs/details";  // 클럽 상세 페이지 렌더링
     }
 
     // 클럽 생성폼(어드민전용)
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/new")
     public String createClubForm(Model model) {
         model.addAttribute("club", new ClubDto());
@@ -80,6 +83,7 @@ public class ClubController {
     }
 
     //클럽 생성처리
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/new")
     public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto,
                              BindingResult bindingResult,
@@ -92,48 +96,24 @@ public class ClubController {
         try {
             // 파일 저장 처리
             if (!file.isEmpty()) {
-                String uploadDir = System.getProperty("user.home") + "/uploads/"; // 사용자 디렉토리 내 uploads 폴더
-                String originalFileName = file.getOriginalFilename();
-                String fileExtension = ""; // 확장자
-
-                // 확장자 추출
-                if (originalFileName != null && originalFileName.contains(".")) {
-                    fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-                }
-
-                // UUID로 고유한 파일 이름 생성
-                String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-
-                Path filePath = Paths.get(uploadDir + uniqueFileName);
-
-                // 디렉토리 생성
-                Files.createDirectories(filePath.getParent());
-
-                // 파일 저장
-                file.transferTo(filePath.toFile());
-
-                // DTO에 파일 경로 설정
-                clubDto.setPhotoUrl("/uploads/" + uniqueFileName);
+                String photoUrl = FileUtil.saveFile(file);
+                clubDto.setPhotoUrl(photoUrl);
             }
+            clubService.addClub(clubDto); // 서비스로 전달하여 클럽 저장
+            redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
+            return "redirect:/clubs/list"; // 등록 성공 시 리스트 페이지로 이동
         } catch (IOException e) {
             e.printStackTrace();
             bindingResult.reject("fileUploadError", "파일 업로드 중 오류가 발생했습니다.");
             return "clubs/create"; // 파일 업로드 오류 시 다시 등록 페이지로 이동
         }
 
-        clubService.addClub(clubDto); // 서비스로 전달하여 클럽 저장
-        redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
-        return "redirect:/clubs/list"; // 등록 성공 시 리스트 페이지로 이동
     }
-
-
-
-
-
     //클럽 수정폼
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/edit/{id}")
     public String editClubForm(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubById(id);
+        Club club = findClubOrThrow(id);
 
         ClubDto clubDto = new ClubDto(
                 club.getId(),
@@ -151,6 +131,7 @@ public class ClubController {
     }
 
     //클럽 수정처리
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/edit/{id}")
     public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto,
                               @RequestParam("file") MultipartFile file,
@@ -158,27 +139,11 @@ public class ClubController {
         try {
             //파일처리 - 새로운파일업로드시
             if (!file.isEmpty()) {
-                String uploadDir = System.getProperty("user.home") + "/uploads/";
-                String originalFileName = file.getOriginalFilename();
-                String fileExtension = "";
-
-                //확장자추출
-                if (originalFileName != null && originalFileName.contains(".")) {
-                    fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-                }
-
-                //UUID로 파일이름 다시짓기
-                String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-                Path filePath = Paths.get(uploadDir + uniqueFileName);
-
-                Files.createDirectories(filePath.getParent());
-                file.transferTo(filePath.toFile());
-
-                //새로저장되는거 dto로 다시넣기
-                clubDto.setPhotoUrl("/uploads/" + uniqueFileName);
+                String photoUrl = FileUtil.saveFile(file);
+                clubDto.setPhotoUrl(photoUrl);
             } else {
                 //파일 수정안할대
-                Club existingClub = clubService.getClubById(id);
+                Club existingClub = findClubOrThrow(id);
                 clubDto.setPhotoUrl(existingClub.getPhotoUrl());
             }
 
@@ -198,10 +163,13 @@ public class ClubController {
     @PostMapping("/admin/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public String deleteClub(@PathVariable Long id) {
-        Club club = clubService.getClubById(id);
+        Club club = findClubOrThrow(id);
         clubService.deleteClub(id);
         return "redirect:/clubs/list";
     }
 
-
+    //클럽 id조회 메서드로 추출
+    private Club findClubOrThrow(Long id) {
+        return clubService.getClubById(id).orElseThrow(() -> new ClubNotFoundException("존재하지 않은 클럽입니다."));
+    }
 }
