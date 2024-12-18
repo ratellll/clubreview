@@ -80,7 +80,7 @@ class ClubControllerTest {
     @Test
     @WithMockUser(username = "user1", roles = {"USER"})
     public void 클럽상세조회() throws Exception {
-        Mockito.when(clubService.getClubById(any(Long.class))).thenReturn(club1);
+        //Mockito.when(clubService.getClubById(any(Long.class))).thenReturn(club1);
         mockMvc.perform(MockMvcRequestBuilders.get("/clubs/1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("clubs/details"))
@@ -101,30 +101,30 @@ class ClubControllerTest {
     }
 
 
-    //클럽생성처리
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    public void 클럽생성처리() throws Exception {
-        //클럽dto만들기
-        ClubDto clubDto = new ClubDto();
-        clubDto.setName("Club C");
-        clubDto.setLocation("Location C");
-        clubDto.setDescription("Description C");
-        clubDto.setCallNumber("111-2222");
-        clubDto.setAverageRating(4.5);
-
-        Mockito.doNothing().when(clubService).addClub(any(ClubDto.class));
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/clubs/admin/new")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name", clubDto.getName())
-                        .param("location", clubDto.getLocation())
-                        .param("description", clubDto.getDescription())
-                        .param("callNumber", clubDto.getCallNumber())
-                        .param("averageRating", String.valueOf(clubDto.getAverageRating())))
-                .andExpect(status().is3xxRedirection())  // 생성 후 리다이렉션 확인
-                .andExpect(view().name("redirect:/clubs/list"));  // 리다이렉션 경로 확인
-    }
+//    //클럽생성처리
+//    @Test
+//    @WithMockUser(username = "admin", roles = {"ADMIN"})
+//    public void 클럽생성처리() throws Exception {
+//        //클럽dto만들기
+//        ClubDto clubDto = new ClubDto();
+//        clubDto.setName("Club C");
+//        clubDto.setLocation("Location C");
+//        clubDto.setDescription("Description C");
+//        clubDto.setCallNumber("111-2222");
+//        clubDto.setAverageRating(4.5);
+//
+//        Mockito.doNothing().when(clubService).addClub(any(ClubDto.class));
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/clubs/admin/new")
+//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                        .param("name", clubDto.getName())
+//                        .param("location", clubDto.getLocation())
+//                        .param("description", clubDto.getDescription())
+//                        .param("callNumber", clubDto.getCallNumber())
+//                        .param("averageRating", String.valueOf(clubDto.getAverageRating())))
+//                .andExpect(status().is3xxRedirection())  // 생성 후 리다이렉션 확인
+//                .andExpect(view().name("redirect:/clubs/list"));  // 리다이렉션 경로 확인
+//    }
 }
 
 

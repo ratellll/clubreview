@@ -68,14 +68,14 @@ public class ClubController {
     // 클럽 상세 정보 조회
     @GetMapping("/{id}")
     public String getClubDetail(@PathVariable Long id, Model model) {
-        Club club = findClubOrThrow(id);
+        Club club = clubService.getClubByIdOrThrow(id);
         model.addAttribute("club", club);
         model.addAttribute("reviews", club.getReviews());
         return "clubs/details";  // 클럽 상세 페이지 렌더링
     }
 
     // 클럽 생성폼(어드민전용)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/admin/new")
     public String createClubForm(Model model) {
         model.addAttribute("club", new ClubDto());
@@ -83,7 +83,7 @@ public class ClubController {
     }
 
     //클럽 생성처리
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/admin/new")
     public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto,
                              BindingResult bindingResult,
@@ -110,10 +110,10 @@ public class ClubController {
 
     }
     //클럽 수정폼
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/admin/edit/{id}")
     public String editClubForm(@PathVariable Long id, Model model) {
-        Club club = findClubOrThrow(id);
+        Club club = clubService.getClubByIdOrThrow(id);
 
         ClubDto clubDto = new ClubDto(
                 club.getId(),
@@ -131,7 +131,7 @@ public class ClubController {
     }
 
     //클럽 수정처리
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/admin/edit/{id}")
     public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto,
                               @RequestParam("file") MultipartFile file,
@@ -143,7 +143,7 @@ public class ClubController {
                 clubDto.setPhotoUrl(photoUrl);
             } else {
                 //파일 수정안할대
-                Club existingClub = findClubOrThrow(id);
+                Club existingClub =clubService.getClubByIdOrThrow(id);
                 clubDto.setPhotoUrl(existingClub.getPhotoUrl());
             }
 
@@ -155,21 +155,16 @@ public class ClubController {
             redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드 중 오류가 발생했습니다.");
             return "redirect:/clubs/admin/edit/" + id;
         }
-
         return "redirect:/clubs/list";
     }
 
     //클럽삭제
     @PostMapping("/admin/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public String deleteClub(@PathVariable Long id) {
-        Club club = findClubOrThrow(id);
         clubService.deleteClub(id);
         return "redirect:/clubs/list";
     }
 
-    //클럽 id조회 메서드로 추출
-    private Club findClubOrThrow(Long id) {
-        return clubService.getClubById(id).orElseThrow(() -> new ClubNotFoundException("존재하지 않은 클럽입니다."));
-    }
+
 }

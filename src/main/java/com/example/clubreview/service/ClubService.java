@@ -3,6 +3,7 @@ package com.example.clubreview.service;
 
 import com.example.clubreview.dto.ClubDto;
 import com.example.clubreview.entity.Club;
+import com.example.clubreview.exception.ClubNotFoundException;
 import com.example.clubreview.repository.ClubRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,9 +26,14 @@ public class ClubService {
     }
 
     // 특정 클럽 조회
-    public Optional<Club> getClubById(Long id) {
+    public  Optional<Club> getClubById(Long id) {
         return clubRepository.findById(id);
 
+    }
+    //클럽 id조회 메서드로 추출
+    public Club getClubByIdOrThrow(Long id) {
+        return clubRepository.findById(id)
+                .orElseThrow(() -> new ClubNotFoundException("존재하지 않는 클럽입니다. 클럽 ID: " + id));
     }
 
     // 이름 오름차순으로 정렬된 클럽 목록 (페이징)
@@ -49,8 +55,7 @@ public class ClubService {
 
     // 클럽 삭제
     public void deleteClub(Long id) {
-        Club club = clubRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 클럽을 찾을 수 없습니다. ID: " + id));
+        Club club = getClubByIdOrThrow(id);
         clubRepository.delete(club);
     }
 
@@ -70,7 +75,7 @@ public class ClubService {
 
     // 클럽 수정
     public void updateClub(Long id, ClubDto clubDto) {
-        Club club = getClubById(id);
+        Club club = getClubByIdOrThrow(id);
         club.setName(clubDto.getName());
         club.setLocation(clubDto.getLocation());
         club.setDescription(clubDto.getDescription());
