@@ -146,7 +146,6 @@ public class ClubController {
                 Club existingClub =clubService.getClubByIdOrThrow(id);
                 clubDto.setPhotoUrl(existingClub.getPhotoUrl());
             }
-
             // Dto 엔티티 변환하고 서비스로 전달
             clubService.updateClub(id, clubDto);
             redirectAttributes.addFlashAttribute("message", "클럽 정보가 성공적으로 수정되었습니다!");

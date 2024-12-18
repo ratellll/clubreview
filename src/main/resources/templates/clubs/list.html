@@ -137,6 +137,7 @@
                 <form  th:action="@{/clubs/admin/delete/{id}(id=${club.id})}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-warning btn-sm" sec:authorize="hasRole('ADMIN')">클럽 삭제</button>
                 </form>
+                <a th:href="@{/clubs/admin/edit/{id}(id=${club.id})}" class="btn btn-info btn-sm ms-1" sec:authorize="hasRole('ADMIN')">클럽 수정</a>
             </td>
         </li>
     </ul>
