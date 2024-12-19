@@ -6,6 +6,7 @@ import com.example.clubreview.entity.Club;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
 import com.example.clubreview.exception.DuplicateReviewException;
+import com.example.clubreview.exception.ReviewNotFoundException;
 import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import com.example.clubreview.repository.UserRepository;
@@ -67,9 +68,11 @@ public class ReviewService {
 
     //유저 리뷰 수정
     @Transactional
-    public void updateReview(Long reviewId, ReviewDto reviewDto) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
+    public void updateReview(Long reviewId, ReviewDto reviewDto,String currentUser) {
+        Review review = findReviewOrThrow(reviewId);
+        if (!review.getUser().getUsername().equals(currentUser)) {
+            throw new SecurityException("본인의 리뷰만 수정 및 삭제가 가능합니다");
+        }
         review.setComment(reviewDto.getComment());
         review.setRating(reviewDto.getRating());
         reviewRepository.save(review);
@@ -100,6 +103,10 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
         reviewRepository.delete(review);
+    }
+
+    private Review findReviewOrThrow(Long id) {
+        return reviewRepository.findById(id).orElseThrow(() -> new ReviewNotFoundException("리뷰를 찾을 수 없습니다."));
     }
 }
 

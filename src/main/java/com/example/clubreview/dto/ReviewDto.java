@@ -15,8 +15,8 @@ public class ReviewDto {
     private Long id;
     private String comment;
     private int rating;
-    private String userId;
-    private String clubId;
+    private Long userId;
+    private Long clubId;
     private String clubName;
 
 

@@ -34,8 +34,8 @@ public class MyPageService {
                         .id(review.getId())
                         .comment(review.getComment())
                         .rating(review.getRating())
-                        .clubId(review.getClub().getId().toString())
-                        .userId(user.getId().toString())
+                        .clubId(review.getClub().getId())
+                        .userId(user.getId())
                         .clubName(review.getClub().getName())
                         .build())
                 .collect(Collectors.toList());

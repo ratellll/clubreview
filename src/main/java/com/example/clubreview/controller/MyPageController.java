@@ -87,7 +87,7 @@ public class MyPageController {
             return "redirect:/mypage/list";
         }
         try {
-            reviewService.updateReview(reviewDto.getId(), reviewDto);
+            reviewService.updateReview(reviewDto.getId(), reviewDto,principal.getName());
             redirectAttributes.addFlashAttribute("message", "리뷰가 수정되었습니다.");
         }catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
