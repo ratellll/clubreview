@@ -22,6 +22,8 @@ securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 
 기타
 Principal principal 
  컨트롤러쪽에 추가하여 안정성높이기
+-clubController는 log추가할떄 principal 사용해서 추가하기
+
 
 
 

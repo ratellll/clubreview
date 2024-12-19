@@ -28,31 +28,27 @@ public class UserController {
         return "/users/register";
     }
 
-    //아이디 중복체크
-    @GetMapping("/register/idCheck")
-    public ResponseEntity<Boolean> registerId(@RequestParam String username) {
-        System.out.println("Checking username: " + username);
-        boolean idIsFine = userService.idIsFine(username);
-        System.out.println("ID is fine: " + idIsFine);
-        return ResponseEntity.ok(idIsFine);
-
+    // 통합 중복체크
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkDuplicate(@RequestParam String type, @RequestParam String value) {
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(false);
+            }
+            Boolean isAvailable = switch (type) {
+                case "username" -> userService.idIsFine(value);
+                case "phoneNumber" -> userService.phoneIsFine(value);
+                case "nickname" -> userService.nickNameIsFine(value);
+                default -> throw new IllegalArgumentException("유효하지 않은 타입입니다.");
+            };
+            return ResponseEntity.ok(isAvailable);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(false);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(false);
+        }
     }
 
-    //핸드폰번호 중복체크
-    @GetMapping("/register/phoneCheck")
-    public ResponseEntity<Boolean> registerPhone(@RequestParam String phoneNumber) {
-        boolean phoneIsFine = userService.phoneIsFine(phoneNumber);
-        return ResponseEntity.ok(phoneIsFine);
-
-    }
-
-    //닉네임 중복체크
-    @GetMapping("/register/nickCheck")
-    public ResponseEntity<Boolean> registerNickName(@RequestParam String nickname) {
-        boolean nickNameIsFine = userService.nickNameIsFine(nickname);
-        return ResponseEntity.ok(nickNameIsFine);
-
-    }
 
     //회원가입 처리
     @PostMapping("/register")
@@ -66,15 +62,14 @@ public class UserController {
             redirectAttributes.addFlashAttribute("errorMessage", "입력값을 확인해주세요.");
             return "redirect:/users/register";
         } // 회원가입 형식체크 추가
-
         try {
             userService.registerUser(userDto);
             redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
-            return "redirect:/login";
+            return "redirect:/";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/users/register"; // 회원가입 페이지로 리다이렉트
         }
     }
+    }
 
-}

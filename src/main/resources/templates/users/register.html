@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/common-header :: header" th:with="pageTitle='회원가입'"></head>
+<head th:replace="fragments/common-header :: header"></head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4">회원가입</h2>
@@ -12,225 +12,149 @@
         <div class="mb-3">
             <label for="username" class="form-label">아이디</label>
             <input type="text" class="form-control" id="username" th:field="*{username}" placeholder="아이디를 입력하세요" required>
-            <button type="button" id="checkUsernameBtn" class="btn btn-secondary mt-2">중복 체크</button>
+            <button type="button" data-type="username" class="btn btn-secondary mt-2 check-btn">중복 체크</button>
             <div id="usernameCheckResult" class="mt-2"></div>
         </div>
-                <div class="mb-3">
+
+        <div class="mb-3">
             <label for="password" class="form-label">비밀번호</label>
             <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="비밀번호를 입력하세요" required>
             <div id="passwordCheckResult" class="mt-2 text-danger"></div>
         </div>
+
         <div class="mb-3">
             <label for="nickname" class="form-label">닉네임</label>
-            <input type="text" class="form-control" id="nickname" th:field="*{nickname}"
-                   pattern="^[가-힣]+$" title="한글만 입력해주세요." placeholder="닉네임을 입력하세요" required>
-            <button type="button" id="checkNicknameBtn" class="btn btn-secondary mt-2">중복 체크</button>
+            <input type="text" class="form-control" id="nickname" th:field="*{nickname}" pattern="^[가-힣]+$" placeholder="닉네임을 입력하세요" required>
+            <button type="button" data-type="nickname" class="btn btn-secondary mt-2 check-btn">중복 체크</button>
             <div id="nicknameCheckResult" class="mt-2"></div>
         </div>
+
         <div class="mb-3">
             <label for="phoneNumber" class="form-label">휴대폰 번호</label>
-            <input
-                    type="tel"
-                    class="form-control"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    placeholder="01012345678 또는 010-1234-5678"
-                    pattern="[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}"
-                    required
-            >
-            <button type="button" id="checkPhoneNumberBtn" class="btn btn-secondary mt-2">중복 체크</button>
+            <input type="tel" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required>
+            <button type="button" data-type="phoneNumber" class="btn btn-secondary mt-2 check-btn">중복 체크</button>
             <div id="phoneNumberCheckResult" class="mt-2"></div>
-            <div class="form-text">숫자 11자리를 입력해주세요. 예: 01012345678 또는 010-1234-5678</div>
         </div>
+
         <button type="submit" class="btn btn-primary w-100">회원가입</button>
     </form>
 </div>
 
 <script>
-    // 중복 체크 상태 변수
+    // 중복 체크 상태 변수 (중복 체크가 완료되었는지를 확인)
     let isUsernameAvailable = false;
     let isPhoneNumberAvailable = false;
     let isNicknameAvailable = false;
-    let isPasswordValid = false;
 
-    // 비밀번호 유효성 체크 로직
+    // 비밀번호 유효성 검사
     const passwordInput = document.getElementById('password');
     const passwordCheckResult = document.getElementById('passwordCheckResult');
 
     passwordInput.addEventListener('input', function () {
         const password = passwordInput.value.trim();
-        if (password.length < 8) {
-            passwordCheckResult.textContent = '비밀번호는 최소 8자 이상이어야 합니다.';
-            passwordCheckResult.classList.add('text-danger');
-            passwordCheckResult.classList.remove('text-success');
-            isPasswordValid = false;
+        if (password.length >= 8) {
+            updateResult(passwordCheckResult, '사용 가능한 비밀번호입니다.', 'text-success');
         } else {
-            passwordCheckResult.textContent = '사용 가능한 비밀번호입니다.';
-            passwordCheckResult.classList.add('text-success');
-            passwordCheckResult.classList.remove('text-danger');
-            isPasswordValid = true;
-        }
-    });
-    // 아이디 중복 체크
-    document.getElementById('checkUsernameBtn').addEventListener('click', async function () {
-        const usernameInput = document.getElementById('username');
-        const resultDiv = document.getElementById('usernameCheckResult');
-        const username = usernameInput.value.trim();
-
-        if (!username) {
-            updateResult(resultDiv, '아이디를 입력하세요.', 'text-danger');
-            isUsernameAvailable = false;
-            return;
-        }
-
-        try {
-            const response = await fetch(`/users/register/idCheck?username=${encodeURIComponent(username)}`);
-            if (!response.ok) {
-                throw new Error('서버 요청에 실패했습니다.');
-            }
-
-            const idIsFine = await response.json();
-            if (idIsFine) {
-                updateResult(resultDiv, '사용 가능한 아이디입니다.', 'text-success');
-                isUsernameAvailable = true;
-
-                // 입력란과 버튼 비활성화
-                usernameInput.readonly = true;
-                this.readonly = true;
-            } else {
-                updateResult(resultDiv, '이미 사용 중인 아이디입니다.', 'text-danger');
-                isUsernameAvailable = false;
-            }
-        } catch (error) {
-            updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
-            isUsernameAvailable = false;
+            updateResult(passwordCheckResult, '비밀번호는 최소 8자 이상이어야 합니다.', 'text-danger');
         }
     });
 
-    // 닉네임 중복 체크
-    document.getElementById('checkNicknameBtn').addEventListener('click', async function () {
-        const nicknameInput = document.getElementById('nickname');
-        const resultDiv = document.getElementById('nicknameCheckResult');
-        const nickname = nicknameInput.value.trim();
+    // 핸드폰 번호 유효성 검사
+    const phoneNumberInput = document.getElementById('phoneNumber');
+    const phoneNumberCheckResult = document.getElementById('phoneNumberCheckResult');
 
-        if (!nickname) {
-            updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
-            isNicknameAvailable = false;
-            return;
-        }
-
-        try {
-            const response = await fetch(`/users/register/nickCheck?nickname=${encodeURIComponent(nickname)}`);
-            if (!response.ok) {
-                throw new Error('서버 요청에 실패했습니다.');
-            }
-
-            const nicknameIsFine = await response.json();
-            if (nicknameIsFine) {
-                updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');
-                isNicknameAvailable = true;
-
-                // 입력란과 버튼 비활성화
-                nicknameInput.readonly = true;
-                this.readonly = true;
-            } else {
-                updateResult(resultDiv, '이미 사용 중인 닉네임입니다.', 'text-danger');
-                isNicknameAvailable = false;
-            }
-        } catch (error) {
-            updateResult(resultDiv, '중복 체크에 실패했습니다. 다시 시도하세요.', 'text-danger');
-            isNicknameAvailable = false;
-        }
-    });
-
-    //핸드폰유ㅅ효성검사
-    const phoneNumberInput = document.getElementById("phoneNumber");
-    const phoneNumberCheckResult = document.getElementById("phoneNumberCheckResult");
-
-    phoneNumberInput.addEventListener("input", function () {
-        const phoneNumber = this.value.replace(/[^0-9]/g, ''); // 입력된 값에서 숫자만 남김
-        const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
-
-        // 핸드폰 유효성 검사
-        if (!phonePattern.test(phoneNumber)) {
-            phoneNumberCheckResult.textContent = '올바른 핸드폰 번호 형식이 아닙니다.';
-            phoneNumberCheckResult.classList.add('text-danger');
-            phoneNumberCheckResult.classList.remove('text-success');
+    phoneNumberInput.addEventListener('input', function () {
+        const phoneNumber = phoneNumberInput.value.replace(/[^0-9]/g, ''); // 숫자 이외의 문자를 제거
+        phoneNumberInput.value = phoneNumber; // 입력값을 숫자로만 교체
+        if (phoneNumber.length === 11) {
+            updateResult(phoneNumberCheckResult, '유효한 휴대폰 번호입니다.', 'text-success');
         } else {
-            phoneNumberCheckResult.textContent = '유효한 핸드폰 번호입니다.';
-            phoneNumberCheckResult.classList.add('text-success');
-            phoneNumberCheckResult.classList.remove('text-danger');
+            updateResult(phoneNumberCheckResult, '휴대폰 번호는 숫자 11자여야 합니다.', 'text-danger');
         }
     });
-    // 휴대폰 번호 중복 체크
-    document.getElementById("checkPhoneNumberBtn").addEventListener("click", async function () {
-        const phoneNumberInput = document.getElementById("phoneNumber");
-        const resultDiv = document.getElementById("phoneNumberCheckResult");
-        const phoneNumber = phoneNumberInput.value.trim();
 
-        const phonePattern = /^[0-9]{3}-?[0-9]{3,4}-?[0-9]{4}$/;
+    // 통합 중복 체크
+    document.querySelectorAll('.check-btn').forEach(button => {
+        button.addEventListener('click', async function () {
+            const type = button.dataset.type; // 아이디, 닉네임, 핸드폰 번호 등 체크 타입
+            const inputField = document.getElementById(type); // 해당 input 필드 가져오기
+            const resultDiv = document.getElementById(`${type}CheckResult`); // 중복 체크 결과 표시할 div
+            const value = inputField.value.trim(); // 입력값
 
-        if (!phonePattern.test(phoneNumber)) {
-            updateResult(resultDiv, "올바른 휴대폰 번호를 입력해주세요.", "text-danger");
-            isPhoneNumberAvailable = false;
-            return;
-        }
-
-        try {
-            const response = await fetch(`/users/register/phoneCheck?phoneNumber=${encodeURIComponent(phoneNumber)}`);
-            if (!response.ok) {
-                throw new Error('서버 요청에 실패했습니다.');
+            // 입력값이 없는 경우, 에러 메시지 표시
+            if (!value) {
+                updateResult(resultDiv, `${getDisplayName(type)}을(를) 입력해주세요.`, 'text-danger');
+                return;
             }
 
-            const isAvailable = await response.json();
-            if (isAvailable) {
-                updateResult(resultDiv, "사용 가능한 휴대폰 번호입니다.", "text-success");
-                isPhoneNumberAvailable = true;
-
-                // 입력란과 버튼 비활성화
-                phoneNumberInput.readonly = true;
-                this.readonly = true;
-            } else {
-                updateResult(resultDiv, "이미 사용 중인 휴대폰 번호입니다.", "text-danger");
-                isPhoneNumberAvailable = false;
+            // 유효성 검사 조건 추가
+            if (type === 'phoneNumber' && !/^\d{11}$/.test(value)) {
+                updateResult(resultDiv, `휴대폰 번호는 하이픈 없이 11자리를 입력해주세요.`, 'text-danger');
+                return;
             }
-        } catch (error) {
-            updateResult(resultDiv, "중복 체크에 실패했습니다. 다시 시도하세요.", "text-danger");
-            isPhoneNumberAvailable = false;
-        }
+            if (type === 'nickname' && !/^[가-힣]+$/.test(value)) {
+                updateResult(resultDiv, `닉네임은 한글만 입력 가능합니다.`, 'text-danger');
+                return;
+            }
+            if (type === 'username' && value.length < 4) {
+                updateResult(resultDiv, `아이디는 최소 4자 이상이어야 합니다.`, 'text-danger');
+                return;
+            }
+
+            try {
+                // 서버에 중복 체크 요청
+                const response = await fetch(`/users/check?type=${type}&value=${encodeURIComponent(value)}`);
+                if (!response.ok) throw new Error('서버 요청에 실패했습니다.');
+
+                const isAvailable = await response.json();
+                const displayName = getDisplayName(type); // '아이디', '닉네임', '핸드폰 번호' 등 한글 이름으로 표시
+
+                if (isAvailable) {
+                    updateResult(resultDiv, `사용 가능한 ${displayName}입니다.`, 'text-success');
+                    inputField.setAttribute('readonly', true); // 입력 필드 비활성화
+                    button.setAttribute('disabled', true); // 중복 체크 버튼 비활성화
+
+                    // 🚀 상태 변수 업데이트
+                    if (type === 'username') isUsernameAvailable = true;
+                    if (type === 'nickname') isNicknameAvailable = true;
+                    if (type === 'phoneNumber') isPhoneNumberAvailable = true;
+                } else {
+                    updateResult(resultDiv, `이미 사용 중인 ${displayName}입니다.`, 'text-danger');
+                }
+            } catch (error) {
+                updateResult(resultDiv, `중복 체크에 실패했습니다. 다시 시도하세요.`, 'text-danger');
+            }
+        });
     });
 
     // 폼 제출 시 중복 체크 확인
     document.querySelector("form").addEventListener("submit", function (event) {
         if (!isUsernameAvailable) {
             alert("아이디 중복 체크를 완료하세요.");
-            document.getElementById('username').focus();
             event.preventDefault();
             return;
         }
-
         if (!isNicknameAvailable) {
             alert("닉네임 중복 체크를 완료하세요.");
-            document.getElementById('nickname').focus();
             event.preventDefault();
             return;
         }
-
         if (!isPhoneNumberAvailable) {
-            alert("휴대폰 번호 중복 체크를 완료하세요.");
-            document.getElementById('phoneNumber').focus();
+            alert("핸드폰 번호 중복 체크를 완료하세요.");
             event.preventDefault();
             return;
         }
-        if (!isPasswordValid) {
-            alert("비밀번호는 최소 8자 이상이어야 합니다.");
-            passwordInput.focus();
-            event.preventDefault();
-            return;
-        }
-
-        alert("회원가입을 진행합니다.");
     });
+
+    // Helper 함수: 타입에 따라 한글 이름을 반환 (아이디, 닉네임, 핸드폰 번호)
+    function getDisplayName(type) {
+        switch (type) {
+            case 'username': return '아이디';
+            case 'nickname': return '닉네임';
+            case 'phoneNumber': return '휴대폰 번호';
+            default: return '항목';
+        }
+    }
 
     // 결과 메시지를 업데이트하는 헬퍼 함수
     function updateResult(element, message, className) {
@@ -239,5 +163,6 @@
         element.style.display = 'block';
     }
 </script>
+
 </body>
 </html>

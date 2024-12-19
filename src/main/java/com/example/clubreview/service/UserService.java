@@ -25,12 +25,14 @@ public class UserService {
     @Transactional
     public void registerUser(UserDto userDto) {
 
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new DuplicateReviewException("이미 존재하는 아이디 입니다.");
+        if (!idIsFine(userDto.getUsername())) {
+            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
         }
-
-        if (userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()) {
-            throw new DuplicateReviewException("이미 존재하는 핸드폰번호 입니다.");
+        if (!phoneIsFine(userDto.getPhoneNumber())) {
+            throw new IllegalArgumentException("이미 존재하는 전화번호입니다.");
+        }
+        if (!nickNameIsFine(userDto.getNickname())) {
+            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
         }
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
@@ -49,15 +51,19 @@ public class UserService {
 
     //회원 수정
     @Transactional
-    public void updateUser(UserDto userDto) {
-        if (userRepository.findByNickname(userDto.getNickname()).isPresent()) {
+    public void updateUser(Long id,UserDto userDto) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("존재하지 않은 유저입니다. id: " + id));
+
+
+        if (!user.getNickname().equals(userDto.getNickname()) &&
+                userRepository.findByNickname(userDto.getNickname()).isPresent()) {
             throw new DuplicateReviewException("이미 존재하는 닉네임 입니다.");
         }
-        String encodedPassword = passwordEncoder.encode(userDto.getPassword());
-        User user = User.builder()
-                .nickname(userDto.getNickname())
-                .password(encodedPassword)
-                .build();
+        if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
+            String encodedPassword = passwordEncoder.encode(userDto.getPassword());
+            user.setPassword(encodedPassword);
+        }
+        user.setNickname(userDto.getNickname());
         userRepository.save(user);
     }
 
@@ -75,14 +81,24 @@ public class UserService {
 
     //회원가입 아이디중복체크
     public boolean idIsFine(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("아이디는 비어 있을 수 없습니다.");
+        }
         return userRepository.findByUsername(username).isEmpty();
     }
 
     public boolean phoneIsFine(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("전화번호는 비어 있을 수 없습니다.");
+        }
         return userRepository.findByPhoneNumber(phoneNumber).isEmpty();
     }
-    public boolean nickNameIsFine(String nickName) {
-        return userRepository.findByNickname(nickName).isEmpty();
+
+    public boolean nickNameIsFine(String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임은 비어 있을 수 없습니다.");
+        }
+        return userRepository.findByNickname(nickname).isEmpty();
     }
 
     public User findById(Long id) {
