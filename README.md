@@ -28,5 +28,15 @@ Principal principal
 
 
 
+@GetMapping("/list")
+public String getMyPage(Principal principal, Model model) {
+MyPageDto myPageData = myPageService.getMyPageData(principal.getName());
+model.addAttribute("user", myPageData.getUser());
+model.addAttribute("reviews", myPageData.getReviews());
+return "mypage/list";
+} 왜 객체로빼서 username을 넣지않고 principal로 바로 받는지 
+
+
+
  
 

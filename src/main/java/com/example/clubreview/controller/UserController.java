@@ -35,12 +35,7 @@ public class UserController {
             if (value == null || value.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(false);
             }
-            Boolean isAvailable = switch (type) {
-                case "username" -> userService.idIsFine(value);
-                case "phoneNumber" -> userService.phoneIsFine(value);
-                case "nickname" -> userService.nickNameIsFine(value);
-                default -> throw new IllegalArgumentException("유효하지 않은 타입입니다.");
-            };
+            boolean isAvailable = userService.checkDuplicate(type, value);
             return ResponseEntity.ok(isAvailable);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(false);

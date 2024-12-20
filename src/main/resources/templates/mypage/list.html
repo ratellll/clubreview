@@ -38,7 +38,7 @@
         <form th:action="@{/mypage/editNickname}" method="post">
             <div class="mb-3">
                 <label for="nickname" class="form-label"><strong>새로운 닉네임</strong></label>
-                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새 닉네임을 입력하세요" required>
+                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새 닉네임을 입력하세요" pattern="^[가-힣]{2,5}$" title="2자 이상 5자 이하의 한글로 입력하세요" required>
                 <button type="button" id="checkNicknameBtn" class="btn btn-secondary mt-2">중복 체크</button>
                 <div id="nicknameCheckResult" class="mt-2"></div>
             </div>

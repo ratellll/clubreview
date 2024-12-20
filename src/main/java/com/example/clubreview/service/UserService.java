@@ -23,7 +23,20 @@ public class UserService {
 
 
     @Transactional
+    public boolean checkDuplicate(String type, String value) {
+        return switch (type) {
+            case "username" -> userRepository.findByUsername(value).isEmpty();
+            case "phoneNumber" -> userRepository.findByPhoneNumber(value).isEmpty();
+            case "nickname" -> userRepository.findByNickname(value).isEmpty();
+            default -> throw new IllegalArgumentException("유효하지 않은 타입입니다.");
+        };
+    }
+
+    @Transactional
     public void registerUser(UserDto userDto) {
+
+        validateNickname(userDto.getNickname());
+        validatePassword(userDto.getPassword());
 
         if (!idIsFine(userDto.getUsername())) {
             throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
@@ -49,6 +62,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+
     //회원 수정
     @Transactional
     public void updateUser(Long id,UserDto userDto) {
@@ -57,9 +71,11 @@ public class UserService {
 
         if (!user.getNickname().equals(userDto.getNickname()) &&
                 userRepository.findByNickname(userDto.getNickname()).isPresent()) {
+            validateNickname(userDto.getNickname());
             throw new DuplicateReviewException("이미 존재하는 닉네임 입니다.");
         }
         if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
+            validatePassword(userDto.getPassword());
             String encodedPassword = passwordEncoder.encode(userDto.getPassword());
             user.setPassword(encodedPassword);
         }
@@ -99,6 +115,17 @@ public class UserService {
             throw new IllegalArgumentException("닉네임은 비어 있을 수 없습니다.");
         }
         return userRepository.findByNickname(nickname).isEmpty();
+    }
+
+    public void validateNickname(String nickname) {
+        if (!nickname.matches("^[가-힣]{2,5}$")) {
+            throw new IllegalArgumentException("닉네임은 2자 이상 5자 이하의 한글이어야 합니다.");
+        }
+    }
+    public void validatePassword(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("비밀번호는 최소 8자 이상이 되어야합니다.");
+        }
     }
 
     public User findById(Long id) {

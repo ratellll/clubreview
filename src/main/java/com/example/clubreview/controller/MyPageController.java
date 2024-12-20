@@ -30,48 +30,29 @@ public class MyPageController {
 
     @GetMapping("/list")
     public String getMyPage(Principal principal, Model model) {
-        String username = principal.getName();
-        MyPageDto myPageData = myPageService.getMyPageData(username);
+        MyPageDto myPageData = myPageService.getMyPageData(principal.getName());
         model.addAttribute("user", myPageData.getUser());
         model.addAttribute("reviews", myPageData.getReviews());
         return "mypage/list";
     }
 
-    @GetMapping("/checkNickname")
-    public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
-        if (!nickname.matches("^[가-힣]{2,6}$")) {
-            throw new IllegalArgumentException("닉네임은 한글 2자 이상 5자 이하여야 합니다.");
-        }
-        boolean nickNameIsFine = userService.nickNameIsFine(nickname);
-        return ResponseEntity.ok(nickNameIsFine);
-    }
-
     @PostMapping("/editNickname")
-    public String editNickname(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
-        if (!userDto.getNickname().matches("^[가-힣]+$") || userDto.getNickname().length() < 2 || userDto.getNickname().length() > 5) {
-            redirectAttributes.addFlashAttribute("errorMessage", "닉네임은 2자 이상 5자 이하의 한글이어야 합니다.");
-            return "redirect:/mypage/list";
-        }
+    public String editNickname(@Valid @ModelAttribute("user") UserDto userDto,  RedirectAttributes redirectAttributes, Principal principal) {
         try {
-            String username = principal.getName();
-            myPageService.updateNickName(username, userDto.getNickname());
+            userService.validateNickname(userDto.getNickname());
+            myPageService.updateNickName(principal.getName(), userDto.getNickname());
             redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
             return "redirect:/mypage/list";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/mypage/list"; // 회원가입 페이지로 리다이렉트
+        return "redirect:/mypage/list";
     }
 
     @PostMapping("/editPassword")
     public String editPassword(@Valid @ModelAttribute("user") UserDto userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes, Principal principal) {
-        if (userDto.getPassword().length() < 8) {
-            redirectAttributes.addFlashAttribute("errorMessage", "비밀번호는 최소 8자 이상이어야 합니다.");
-            return "redirect:/mypage/list";
-        }
         try {
-            String username = principal.getName();
-            myPageService.updatePassword(username, userDto.getPassword());
+            myPageService.updatePassword(principal.getName(), userDto.getPassword());
             redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
             return "redirect:/mypage/list";
         } catch (DuplicateReviewException e) {
