@@ -33,6 +33,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getUsername();
     }
 
+    public String getNickname() {
+        return user.getNickname();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         // 계정 만료 상태를 관리하지 않는 경우 true 반환

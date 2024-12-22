@@ -18,7 +18,7 @@
 
     <!-- 로그인 정보 -->
     <div class="mb-3 text-end">
-        <span th:text="'안녕하세요, ' + ${#authentication.name} + '님!'"></span>
+        <span th:text="'안녕하세요, ' + ${#authentication.principal.nickname} + '님!'"></span>
     </div>
 
     <!-- 지도 -->
