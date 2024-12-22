@@ -38,7 +38,11 @@
         <form th:action="@{/mypage/editNickname}" method="post">
             <div class="mb-3">
                 <label for="nickname" class="form-label"><strong>새로운 닉네임</strong></label>
-                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새 닉네임을 입력하세요" pattern="^[가-힣]{2,5}$" title="2자 이상 5자 이하의 한글로 입력하세요" required>
+                <input type="text" class="form-control" id="nickname" name="nickname"
+                       placeholder="새 닉네임을 입력하세요"
+                       pattern="^[가-힣]{2,5}$"
+                       title="2자 이상 5자 이하의 한글로 입력하세요"
+                       required>
                 <button type="button" id="checkNicknameBtn" class="btn btn-secondary mt-2">중복 체크</button>
                 <div id="nicknameCheckResult" class="mt-2"></div>
             </div>
@@ -126,28 +130,23 @@
             checkNicknameBtn.addEventListener('click', async function () {
                 const nickname = nicknameInput.value.trim();
                 const nicknameRegex = /^[가-힣]+$/;
-
                 if (!nickname) {
                     updateResult(resultDiv, '닉네임을 입력하세요.', 'text-danger');
                     return;
                 }
-
                 if (!nicknameRegex.test(nickname)) {
                     updateResult(resultDiv, '닉네임은 한글만 입력 가능합니다.', 'text-danger');
                     return;
                 }
-
                 if (nickname.length < 2 || nickname.length > 5) {
                     updateResult(resultDiv, '닉네임은 2자 이상, 5자 이하여야 합니다.', 'text-danger');
                     return;
                 }
-
                 try {
-                    const response = await fetch(`/mypage/checkNickname?nickname=${encodeURIComponent(nickname)}`);
+                    const response = await fetch(`/users/check?type=nickname&value=${encodeURIComponent(nickname)}`);
                     if (!response.ok) {
                         throw new Error('서버 요청에 실패했습니다.');
                     }
-
                     const nicknameIsFine = await response.json();
                     if (nicknameIsFine) {
                         updateResult(resultDiv, '사용 가능한 닉네임입니다.', 'text-success');

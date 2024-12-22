@@ -24,11 +24,17 @@ public class UserService {
 
     @Transactional
     public boolean checkDuplicate(String type, String value) {
+
+        List<String> allowedTypes = List.of("username", "phoneNumber", "nickname");
+
+        if (!allowedTypes.contains(type)) {
+            throw new IllegalArgumentException("유효하지 않은 타입입니다.");
+        }
         return switch (type) {
             case "username" -> userRepository.findByUsername(value).isEmpty();
             case "phoneNumber" -> userRepository.findByPhoneNumber(value).isEmpty();
             case "nickname" -> userRepository.findByNickname(value).isEmpty();
-            default -> throw new IllegalArgumentException("유효하지 않은 타입입니다.");
+            default -> false;
         };
     }
 

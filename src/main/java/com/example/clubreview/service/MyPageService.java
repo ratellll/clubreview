@@ -58,12 +58,10 @@ public class MyPageService {
         userService.validateNickname(newNickname);
         User user = userService.findByUsername(username);
 
-        if (!user.getNickname().equals(newNickname)) {
-            if (userRepository.findByNickname(newNickname).isPresent()) {
-                throw new NicknameAlreadyExistsException("이미 존재하는 닉네임 입니다.");
-            }
-            user.setNickname(newNickname);
+        if (!user.getNickname().equals(newNickname) && userRepository.findByNickname(newNickname).isPresent()) {
+            throw new NicknameAlreadyExistsException("이미 사용 중인 닉네임입니다.");
         }
+        user.setNickname(newNickname);
         userRepository.save(user);
     }
     //비밀번호 수정

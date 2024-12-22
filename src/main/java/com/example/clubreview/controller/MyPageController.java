@@ -37,10 +37,10 @@ public class MyPageController {
     }
 
     @PostMapping("/editNickname")
-    public String editNickname(@Valid @ModelAttribute("user") UserDto userDto,  RedirectAttributes redirectAttributes, Principal principal) {
+    public String editNickname(@RequestParam String nickname,  RedirectAttributes redirectAttributes, Principal principal) {
         try {
-            userService.validateNickname(userDto.getNickname());
-            myPageService.updateNickName(principal.getName(), userDto.getNickname());
+            userService.validateNickname(nickname);
+            myPageService.updateNickName(principal.getName(), nickname);
             redirectAttributes.addFlashAttribute("message", "수정이 완료되었습니다.");
             return "redirect:/mypage/list";
         } catch (DuplicateReviewException e) {
