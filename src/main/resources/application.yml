@@ -1,41 +1,58 @@
 spring:
+  profiles:
+    active: dev # 기본 프로파일 설정
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev # 개발 모드 (H2 사용)
   datasource:
-    url: jdbc:h2:mem:testdb # H2 메모리 데이터베이스 URL
-    driverClassName: org.h2.Driver # H2 데이터베이스 드라이버 클래스 이름
-    username: sa # 데이터베이스 사용자 이름
-    password: # 데이터베이스 비밀번호 (H2는 기본적으로 빈 문자열)
-  h2:
-    console:
-      enabled: true # H2 콘솔 활성화 (기본적으로 비활성화)
-      path: /h2-console # H2 콘솔에 접근할 수 있는 URL 경로
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
   jpa:
     hibernate:
-      ddl-auto: update # 데이터베이스 스키마 자동 업데이트 설정
-      # 가능 값: none, validate, update, create, create-drop
-    show-sql: true # 실행된 SQL 쿼리를 콘솔에 출력
-  sql:
-    init:
-      mode: never # SQL 초기화 비활성화
-      # 가능 값: always, embedded, never
-  servlet:
-    multipart:
-      max-file-size: 10MB # 업로드 가능한 단일 파일의 최대 크기
-      max-request-size: 10MB # 업로드 요청의 최대 크기 (모든 파일 포함)
-    web:
-      resources:
-        static-locations: file:${user.home}/uploads/ # 정적 리소스 파일 위치를 사용자 홈 디렉토리의 uploads 폴더로 설정
-thymeleaf:
-  cache: false # Thymeleaf 템플릿 캐싱 비활성화 (개발 환경에서 실시간 변경 확인 가능)
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
-logging:
-  level:
-    org.springframework.security: DEBUG # Spring Security 관련 디버그 로그 활성화
+---
 
-server:
-  error:
-    whitelabel:
-      enabled: false # Spring 기본 Whitelabel 에러 페이지 비활성화
-    include-message: always # 에러 메시지를 항상 포함
-    include-binding-errors: always # 바인딩 에러를 항상 포함
-    include-stacktrace: on-param # 쿼리 파라미터로 스택 트레이스 포함 여부 결정 (예: ?trace=true)
-    path: /error # 에러 페이지 경로 (기본값: /error)
+spring:
+  config:
+    activate:
+      on-profile: prod # 운영 모드 (AWS RDS 사용)
+  datasource:
+    url: jdbc:mysql://clubreview-db.cvqec6guwwhq.us-east-1.rds.amazonaws.com:3306/clubreview-db
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: homertla1!
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local # 로컬 MySQL 모드
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_clubreview
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+#-Dspring.profiles.active=local
+#-Dspring.profiles.active=prod

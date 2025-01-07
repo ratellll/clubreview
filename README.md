@@ -11,6 +11,8 @@ securiryConfig의 접근설정을 편히 하려면 users/register 로 나눠진 
 * 왜냐하면 api가 추가될떄마다 접근설정을 다시해야할지도모름 복잡해짐
 메서드 이름은 꼭 통일하자
  <Optional>
+aws에 소스 업데이트방법
+
  
 
 어드민
@@ -24,7 +26,7 @@ Principal principal
  컨트롤러쪽에 추가하여 안정성높이기
 -clubController는 log추가할떄 principal 사용해서 추가하기
 -adminController는 log추가할떄 principal 사용해서 추가하기
-클럽-어드민-유저-리뷰 컨트롤러
+클럽-어드민-유저-리뷰-마이페이지 컨트롤러
 
 
 
