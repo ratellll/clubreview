@@ -29,10 +29,10 @@ spring:
     activate:
       on-profile: prod # 운영 모드 (AWS RDS 사용)
   datasource:
-    url: jdbc:mysql://clubreview-db.cvqec6guwwhq.us-east-1.rds.amazonaws.com:3306/clubreview-db
+    url: jdbc:mysql:// :3306/db_clubreview
     driverClassName: com.mysql.cj.jdbc.Driver
-    username: admin
-    password: homertla1!
+    username: root
+    password: homertla1!Q
   jpa:
     hibernate:
       ddl-auto: update
