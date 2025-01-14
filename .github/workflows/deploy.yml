@@ -13,14 +13,6 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2  # 코드 체크아웃
 
-      - name: Print Environment Variables for Debugging
-        run: |
-          echo "==== Debugging GitHub Secrets ===="
-          echo "EC2_HOST: ${{ secrets.EC2_HOST }}"
-          echo "EC2_USER: ${{ secrets.EC2_USER }}"
-          echo "APP_DIR: ${{ secrets.APP_DIR }}"
-          echo "PRIVATE_KEY length: ${#secrets.PRIVATE_KEY}"
-
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -28,22 +20,28 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           APP_DIR: ${{ secrets.APP_DIR }}
         run: |
+          set -e  # 오류 발생 시 스크립트 종료
+          set -x  # 실행되는 모든 명령어 출력
+
           echo "==== SSH Key Setup ===="
           mkdir -p ~/.ssh
           echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_ed25519  # 개인 키 저장
           chmod 600 ~/.ssh/id_ed25519  # 권한 설정
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts  # known_hosts에 호스트 추가
 
+          echo "==== Test SSH Connection ===="
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH 연결 성공'" || echo "SSH 연결 실패!"
+
           echo "==== Create Remote Directory ===="
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "mkdir -p ${{ secrets.APP_DIR }}"
+            "mkdir -p ${{ secrets.APP_DIR }} && echo '디렉토리 생성 성공' || echo '디렉토리 생성 실패'"
 
           echo "==== Upload Files to EC2 ===="
           scp -i ~/.ssh/id_ed25519 -r * \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.APP_DIR }}
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.APP_DIR }} || echo "파일 업로드 실패!"
 
           echo "==== Restart Application ===="
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
           sudo systemctl daemon-reload
-          sudo systemctl restart clubreview.service
+          sudo systemctl restart clubreview.service && echo "서비스 재시작 성공" || echo "서비스 재시작 실패"
           EOF
