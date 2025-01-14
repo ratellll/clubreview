@@ -13,6 +13,14 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2  # 코드 체크아웃
 
+      - name: Print Environment Variables for Debugging
+        run: |
+          echo "==== Debugging GitHub Secrets ===="
+          echo "EC2_HOST: ${{ secrets.EC2_HOST }}"
+          echo "EC2_USER: ${{ secrets.EC2_USER }}"
+          echo "APP_DIR: ${{ secrets.APP_DIR }}"
+          echo "PRIVATE_KEY length: ${#secrets.PRIVATE_KEY}"
+
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -28,11 +36,11 @@ jobs:
 
           echo "==== Create Remote Directory ===="
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "mkdir -p ${{ secrets.APP_DIR }}"  # EC2 인스턴스에 디렉토리 생성
+            "mkdir -p ${{ secrets.APP_DIR }}"
 
           echo "==== Upload Files to EC2 ===="
           scp -i ~/.ssh/id_ed25519 -r * \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.APP_DIR }}  # 파일 업로드
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.APP_DIR }}
 
           echo "==== Restart Application ===="
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
