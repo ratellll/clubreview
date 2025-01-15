@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev # 기본 프로파일 설정
+    active: prod # 기본 프로파일 설정
 
 ---
 
@@ -29,7 +29,7 @@ spring:
     activate:
       on-profile: prod # 운영 모드 (AWS RDS 사용)
   datasource:
-    url: jdbc:mysql:// :3306/db_clubreview
+    url: jdbc:mysql://localhost:3306/db_clubreview
     driverClassName: com.mysql.cj.jdbc.Driver
     username: root
     password: homertla1!Q
