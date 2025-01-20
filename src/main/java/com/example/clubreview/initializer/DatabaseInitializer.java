@@ -34,9 +34,9 @@ public class DatabaseInitializer {
     CommandLineRunner initDatabase() {
         return args -> {
             // 유저 생성
-            User user2 = new User("유저2", passwordEncoder.encode("123"),"01012341235", User.Role.USER,"안녕1");
-            User user3 = new User("유저3", passwordEncoder.encode("123"),"01012341236", User.Role.USER,"안녕2");
-            User user1 = new User("유저1", passwordEncoder.encode("123"),"01012341234", User.Role.USER,"안녕3");
+            User user2 = new User("유저2", passwordEncoder.encode("123"),"01012341235", User.Role.USER,"안녕일");
+            User user3 = new User("유저3", passwordEncoder.encode("123"),"01012341236", User.Role.USER,"안녕이");
+            User user1 = new User("유저1", passwordEncoder.encode("123"),"01012341234", User.Role.USER,"안녕삼");
             User user4 = new User("123", passwordEncoder.encode("123"),"01012341237", User.Role.ADMIN,"안녕마스터");
             User user5 = new User("1234", passwordEncoder.encode("123"),"01012341267", User.Role.USER,"안녕친구");
             userRepository.saveAll(List.of(user1, user2, user3,user4,user5));
