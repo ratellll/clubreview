@@ -27,7 +27,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: prod # 운영 모드 (AWS RDS 사용)
+      on-profile: prod # 운영 모드
   datasource:
     url: jdbc:mysql://localhost:3306/db_clubreview
     driverClassName: com.mysql.cj.jdbc.Driver
