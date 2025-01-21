@@ -27,7 +27,7 @@ public class UserDto {
     private String password;
 
     @NotBlank(message = "핸드폰 번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "^\\d{3}-?\\d{3,4}-?\\d{4}$", message = "핸드폰 번호 형식이 잘못되었습니다.")
+    @Pattern(regexp = "^\\d{10,11}$", message = "핸드폰 번호 형식이 잘못되었습니다.")
     private String phoneNumber;
 
     @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
