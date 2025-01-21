@@ -33,6 +33,8 @@ public class DatabaseInitializer {
     @Bean
     CommandLineRunner initDatabase() {
         return args -> {
+
+            userRepository.deleteAll();
             // 유저 생성
             User user2 = new User("유저2123", passwordEncoder.encode("123"),"01012341235", User.Role.USER,"안녕일");
             User user3 = new User("유저3123", passwordEncoder.encode("123"),"01095743212", User.Role.USER,"안녕이");
