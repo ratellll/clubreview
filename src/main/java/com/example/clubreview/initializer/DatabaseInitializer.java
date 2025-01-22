@@ -39,6 +39,8 @@ public class DatabaseInitializer {
     public void initDatabaseTransactional() {
         // 유저 삭제
         userRepository.deleteAll();
+        clubRepository.deleteAll();
+        reviewRepository.deleteAll();
 
         // 유저 생성
         User user2 = new User("유저2123", passwordEncoder.encode("123"), "01012341235", User.Role.USER, "안녕일");
