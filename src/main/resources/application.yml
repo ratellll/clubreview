@@ -37,11 +37,16 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+  thymeleaf:
+    prefix: classpath:/templates/ # 템플릿 기본 경로
+    suffix: .html                 # 템플릿 파일 확장자
+    cache: false                  # 개발 시 캐시 비활성화
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
+
 
 
 ---
