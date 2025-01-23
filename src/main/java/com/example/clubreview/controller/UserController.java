@@ -25,7 +25,7 @@ public class UserController {
     @GetMapping("/register")
     public String registrationForm(Model model) {
         model.addAttribute("user", new UserDto());
-        return "/users/register";
+        return "users/register";
     }
 
     // 통합 중복체크
@@ -63,7 +63,7 @@ public class UserController {
             return "redirect:/";
         } catch (DuplicateReviewException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/users/register"; // 회원가입 페이지로 리다이렉트
+            return "redirect:users/register"; // 회원가입 페이지로 리다이렉트
         }
     }
     }
