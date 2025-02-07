@@ -1,26 +1,26 @@
 spring:
   profiles:
-    active: prod # 기본 프로파일 설정
+    active: local # 기본 프로파일 설정
 
 ---
 
-spring:
-  config:
-    activate:
-      on-profile: dev # 개발 모드 (H2 사용)
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+#spring:
+#  config:
+#    activate:
+#      on-profile: dev # 개발 모드 (H2 사용)
+#  datasource:
+#    url: jdbc:h2:mem:testdb
+#    driverClassName: org.h2.Driver
+#    username: sa
+#    password:
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: true
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
 
 ---
 
