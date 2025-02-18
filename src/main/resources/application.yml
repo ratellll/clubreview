@@ -35,7 +35,7 @@ spring:
     password: homertla1!Q
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
   thymeleaf:
     prefix: classpath:/templates/ # 템플릿 기본 경로
