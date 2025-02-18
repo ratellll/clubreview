@@ -43,11 +43,11 @@ public class DatabaseInitializer {
         reviewRepository.deleteAll();
 
         // 유저 생성
-        User user2 = new User("유저2123", passwordEncoder.encode("123"), "01012341235", User.Role.USER, "안녕일");
-        User user3 = new User("유저3123", passwordEncoder.encode("123"), "01095743212", User.Role.USER, "안녕이");
-        User user1 = new User("유저1123", passwordEncoder.encode("123"), "01098871623", User.Role.USER, "안녕삼");
-        User user4 = new User("1234123", passwordEncoder.encode("123"), "01073751673", User.Role.ADMIN, "안녕마스터");
-        User user5 = new User("123123", passwordEncoder.encode("123"), "01056234312", User.Role.USER, "안녕친구");
+        User user2 = new User("user1", passwordEncoder.encode("123"), "01012341235", User.Role.USER, "홍길동");
+        User user3 = new User("user2", passwordEncoder.encode("123"), "01095743212", User.Role.USER, "바둑이");
+        User user1 = new User("user3", passwordEncoder.encode("123"), "01098871623", User.Role.USER, "이방인");
+        User user4 = new User("admin", passwordEncoder.encode("admin1"), "01073751673", User.Role.ADMIN, "어드민");
+        User user5 = new User("user4", passwordEncoder.encode("123"), "01056234312", User.Role.USER, "김친구");
         userRepository.saveAll(List.of(user1, user2, user3, user4, user5));
 
         // 클럽 데이터 생성
