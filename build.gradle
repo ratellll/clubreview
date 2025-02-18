@@ -4,6 +4,15 @@ plugins {
     id 'java'
 }
 
+bootJar {  // 실행 가능한 JAR 파일 생성
+    archiveFileName = "clubreview-0.0.1-SNAPSHOT.jar"
+}
+
+jar {
+    enabled = false  // 기본 JAR 생성 방지
+}
+
+
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 java {
