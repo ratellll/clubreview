@@ -41,7 +41,10 @@ spring:
     prefix: classpath:/templates/ # 템플릿 기본 경로
     suffix: .html                 # 템플릿 파일 확장자
     cache: false                  # 개발 시 캐시 비활성화
-
+  spring:
+    web:
+      resources:
+        static-locations: classpath:/static/
 logging:
   level:
     org.hibernate.SQL: DEBUG
