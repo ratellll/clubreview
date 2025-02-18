@@ -81,6 +81,4 @@ POST | /user/delete/{id} | 리뷰삭제처리
 POST | /admin/edit/{id} | 어드민 리뷰수정처리
 POST | /admin/delete/{id} |어드민 리뷰삭제처리
 
-
-
-
+ 
