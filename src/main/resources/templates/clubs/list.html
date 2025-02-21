@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle}">클럽 목록</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+
 <!-- 헤더 -->
 <div th:replace="fragments/common-header :: header"></div>
 
@@ -16,82 +17,81 @@
 <div class="container mt-5">
     <h1 class="mb-4">클럽 목록</h1>
 
-    <!-- 로그인 정보 -->
-    <div class="mb-3 text-end">
-        <span th:text="'안녕하세요, ' + ${#authentication.principal.nickname} + '님!'"></span>
-    </div>
-
     <!-- 지도 -->
     <div id="map" style="width:100%;height:500px;"></div>
-    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9"></script>
+
+    <!-- Kakao 지도 API -->
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false"></script>
+
     <script th:inline="javascript">
-        const clubs = /*[[${clubLocations}]]*/ []; // 클럽 위치 데이터
-        const container = document.getElementById('map'); // 지도 컨테이너
-        const options = {
-            center: new kakao.maps.LatLng(37.5665, 126.9780), // 지도 중심
-            level: 8 // 지도 줌 레벨
-        };
-
-        const map = new kakao.maps.Map(container, options);
-
-        let currentInfoWindow = null; // 현재 열려 있는 정보창
-        let currentModal = null; // 현재 활성 모달을 추적
-        // 클럽 데이터를 기반으로 마커와 정보창 생성
-        clubs.forEach(club => {
-            const marker = new kakao.maps.Marker({
-                position: new kakao.maps.LatLng(club.latitude, club.longitude),
-                map: map
-            });
-
-            const infoWindowContent = `
-        <div class="info-window">
-           <h4><a href="/clubs/${club.id}" class="text-decoration-none">${club.name}</a></h4>
-            <p>위치: ${club.location}</p>
-            <p>전화번호: ${club.callNumber}</p>
-            <p>정보: ${club.description}</p>
-            <p>평점: ${club.averageRating} / 5</p>
-            <img src="${club.photoUrl}" alt="클럽 사진" onclick="showPhotoModal('${club.photoUrl}')">
-        </div>
-    `;
-
-            const infoWindow = new kakao.maps.InfoWindow({
-                content: infoWindowContent
-            });
-
-            // 마커 클릭 이벤트
-            kakao.maps.event.addListener(marker, 'click', () => {
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
-                }
-                infoWindow.open(map, marker);
-                currentInfoWindow = infoWindow;
-            });
-
-            // 지도 클릭 시 정보창 닫기
-            kakao.maps.event.addListener(map, 'click', () => {
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
-                    currentInfoWindow = null;
-                }
-            });
+        document.addEventListener("DOMContentLoaded", function () {
+            kakao.maps.load(initMap);
         });
+
+        function initMap() {
+            console.log("✅ Kakao API 로드 완료!");
+            const clubs = /*[[${clubLocations}]]*/ []; // 클럽 위치 데이터
+
+            const container = document.getElementById('map'); // 지도 컨테이너
+            const options = {
+                center: new kakao.maps.LatLng(37.5665, 126.9780), // 지도 중심
+                level: 8 // 지도 줌 레벨
+            };
+
+            const map = new kakao.maps.Map(container, options);
+
+            let currentInfoWindow = null; // 현재 열려 있는 정보창
+            let currentModal = null; // 현재 활성 모달 추적
+
+            // 클럽 데이터를 기반으로 마커와 정보창 생성
+            clubs.forEach(club => {
+                const marker = new kakao.maps.Marker({
+                    position: new kakao.maps.LatLng(club.latitude, club.longitude),
+                    map: map
+                });
+
+                const infoWindowContent = `
+                    <div class="info-window">
+                        <h4><a href="/clubs/${club.id}" class="text-decoration-none">${club.name}</a></h4>
+                        <p>위치: ${club.location}</p>
+                        <p>전화번호: ${club.callNumber}</p>
+                        <p>정보: ${club.description}</p>
+                        <p>평점: ${club.averageRating} / 5</p>
+                        <img src="${club.photoUrl}" alt="클럽 사진" onclick="showPhotoModal('${club.photoUrl}')">
+                    </div>
+                `;
+
+                const infoWindow = new kakao.maps.InfoWindow({ content: infoWindowContent });
+
+                // 마커 클릭 이벤트
+                kakao.maps.event.addListener(marker, 'click', () => {
+                    if (currentInfoWindow) {
+                        currentInfoWindow.close();
+                    }
+                    infoWindow.open(map, marker);
+                    currentInfoWindow = infoWindow;
+                });
+
+                // 지도 클릭 시 정보창 닫기
+                kakao.maps.event.addListener(map, 'click', () => {
+                    if (currentInfoWindow) {
+                        currentInfoWindow.close();
+                        currentInfoWindow = null;
+                    }
+                });
+            });
+        }
 
         // 사진 확대용 모달
         function showPhotoModal(photoUrl) {
-            // 중첩 방지: 이미 모달이 열려 있다면 닫는다.
             if (currentModal) {
                 currentModal.remove();
                 currentModal = null;
             }
 
-            // 새로운 모달 생성
             const modal = document.createElement('div');
             modal.className = 'photo-modal';
-            modal.innerHTML = `
-        <div class="photo-modal-content">
-            <img src="${photoUrl}" alt="클럽 사진 확대">
-        </div>
-    `;
+            modal.innerHTML = `<div class="photo-modal-content"><img src="${photoUrl}" alt="클럽 사진 확대"></div>`;
 
             // ESC 키로 모달 닫기 이벤트
             const handleEscKey = (event) => {
@@ -100,24 +100,19 @@
                 }
             };
 
-            // 닫기 이벤트 추가
             modal.addEventListener('click', () => {
                 closeModal(modal, handleEscKey);
             });
 
-            // ESC 키 이벤트 리스너 추가
             document.addEventListener('keydown', handleEscKey);
-
-            // 모달을 현재 DOM에 추가
             document.body.appendChild(modal);
             currentModal = modal;
         }
 
-        // 모달 닫기 로직
         function closeModal(modal, handleEscKey) {
-            modal.remove(); // DOM에서 모달 제거
-            currentModal = null; // 현재 활성 모달 초기화
-            document.removeEventListener('keydown', handleEscKey); // ESC 키 이벤트 제거
+            modal.remove();
+            currentModal = null;
+            document.removeEventListener('keydown', handleEscKey);
         }
     </script>
 
@@ -134,7 +129,7 @@
             <a th:href="@{/clubs/{id}(id=${club.id})}" class="text-decoration-none" th:text="${club.name}">클럽 이름</a>
             <span class="ms-2 text-muted" th:text="'평점: ' + ${club.averageRating} + ' / 5'"></span>
             <td>
-                <form  th:action="@{/clubs/admin/delete/{id}(id=${club.id})}" method="post" class="d-inline">
+                <form th:action="@{/clubs/admin/delete/{id}(id=${club.id})}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-warning btn-sm" sec:authorize="hasRole('ADMIN')">클럽 삭제</button>
                 </form>
                 <a th:href="@{/clubs/admin/edit/{id}(id=${club.id})}" class="btn btn-info btn-sm ms-1" sec:authorize="hasRole('ADMIN')">클럽 수정</a>
@@ -146,8 +141,11 @@
     <div class="mt-4">
         <a th:if="${clubs.hasPrevious()}" th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber - 1})}" class="btn btn-outline-secondary">이전</a>
         <span th:each="pageNum : ${#numbers.sequence(0, clubs.totalPages - 1)}">
-              <a th:href="@{/clubs/list(sortBy=${sortBy}, page=${pageNum})}" th:text="${pageNum + 1}" th:classappend="${pageNum == clubs.pageable.pageNumber} ? 'btn-primary' : 'btn-outline-secondary'" class="btn btn-sm mx-1"></a>
-          </span>
+            <a th:href="@{/clubs/list(sortBy=${sortBy}, page=${pageNum})}" th:text="${pageNum + 1}" th:classappend="${pageNum == clubs.pageable.pageNumber} ? 'btn-primary' : 'btn-outline-secondary'" class="btn btn-sm mx-1"></a>
+        </span>
         <a th:if="${clubs.hasNext()}" th:href="@{/clubs/list(sortBy=${sortBy}, page=${clubs.pageable.pageNumber + 1})}" class="btn btn-outline-secondary">다음</a>
     </div>
 </div>
+
+</body>
+</html>

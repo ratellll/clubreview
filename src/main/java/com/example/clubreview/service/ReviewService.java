@@ -53,7 +53,10 @@ public class ReviewService {
         review.setRating(rating);
         review.setCreateTime(createTime);
 
-        return reviewRepository.save(review);
+        reviewRepository.save(review);
+        updateClubAverageRating(clubId);
+
+        return review;
     }
 
     //유저 리뷰 권한확인
@@ -76,6 +79,8 @@ public class ReviewService {
         review.setComment(reviewDto.getComment());
         review.setRating(reviewDto.getRating());
         reviewRepository.save(review);
+
+        updateClubAverageRating(review.getClub().getId());
     }
 
     //유저 리뷰 삭제
@@ -84,6 +89,7 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
         reviewRepository.delete(review);
+        updateClubAverageRating(review.getClub().getId());
     }
 
     // 어드민 리뷰 수정
@@ -94,7 +100,11 @@ public class ReviewService {
         review.setComment(comment);
         review.setRating(rating);
         review.setUpdateTime(LocalDateTime.now());
-        return reviewRepository.save(review);
+         reviewRepository.save(review);
+
+        updateClubAverageRating(review.getClub().getId());
+        return review;
+
     }
 
     // 어드민 리뷰 삭제
@@ -103,10 +113,21 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다"));
         reviewRepository.delete(review);
+        updateClubAverageRating(review.getClub().getId());
     }
 
+    //리뷰점수 계산
+    public void updateClubAverageRating(Long clubId) {
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new DuplicateReviewException("해당 클럽이 존재하지 않습니다"));
+
+        Double averageRating = reviewRepository.avgRating(clubId);
+        club.setAverageRating(averageRating != null ? averageRating : 0.0);
+        clubRepository.save(club);
+    }
     private Review findReviewOrThrow(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ReviewNotFoundException("리뷰를 찾을 수 없습니다."));
     }
+
 }
 

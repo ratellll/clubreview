@@ -4,6 +4,7 @@ import com.example.clubreview.security.CustomAuthenticationFailureHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -30,9 +31,9 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/","/error","/users/register/**","/users/**", "/h2-console/**", "/uploads/**").permitAll() // 공개 경로
+                        .requestMatchers("/","/error","/users/register/**","/users/**", "/h2-console/**", "/uploads/**","/clubs/list","/clubs/details/**","/clubs/{id}").permitAll() // 공개 경로
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll() // 정적 리소스 접근 허용
-                        .requestMatchers("/clubs/list", "/clubs/{id}", "/clubs/details/**", "reviews/user/**","/mypage/**").authenticated() // 클럽 리스트와 상세 페이지는 로그인 필요
+                        .requestMatchers( "reviews/user/**","/mypage/**").authenticated()
                         .requestMatchers("/clubs/admin/**", "/reviews/admin/**","admin/users/**").hasRole("ADMIN") // ADMIN 권한 필요
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요
                 )
@@ -51,5 +52,11 @@ public class SecurityConfig {
                         .permitAll());
 
         return http.build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/webjars/**", "/assets/**");
     }
 }

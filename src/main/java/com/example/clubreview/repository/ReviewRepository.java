@@ -2,6 +2,8 @@ package com.example.clubreview.repository;
 
 import com.example.clubreview.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findByUserId(Long userId);
 
+    @Query("SELECT AVG (r.rating) FROM Review r where r.club.id = :clubId")
+    Double avgRating(@Param("clubId") Long clubId);
 }

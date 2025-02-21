@@ -130,7 +130,7 @@
 
     <!-- 로그인 유도 -->
     <div class="mt-4" th:if="${!#authorization.expression('isAuthenticated()')}">
-        <p class="text-danger">리뷰를 작성하려면 <a th:href="@{/login}">로그인</a>이 필요합니다.</p>
+        <p class="text-danger">리뷰를 작성하려면 <a th:href="@{/}">로그인</a>이 필요합니다.</p>
     </div>
 </div>
 
