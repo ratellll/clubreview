@@ -23,7 +23,7 @@ public class AdminController {
     private final UserRepository userRepository;
 
 
-    //유저 목록
+    //유저 목록123
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/list")
     public String getUserList(Model model) {
