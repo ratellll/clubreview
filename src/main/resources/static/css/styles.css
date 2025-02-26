@@ -129,3 +129,18 @@ button:hover {
     max-width: 800px;
     margin: 20px auto;
 }
+
+/* 전역적으로 body가 잠기는 경우 방지 */
+body {
+    overflow: auto !important;
+}
+
+/* 혹시 z-index가 높은 투명한 요소가 있는 경우 */
+.fullscreen-overlay {
+    display: none !important;
+}
+
+/* 모든 요소의 pointer-events 활성화 */
+* {
+    pointer-events: auto !important;
+}
