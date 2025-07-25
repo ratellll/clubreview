@@ -61,20 +61,25 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Public endpoints
+
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/clubs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs").permitAll()          // 클럽 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/clubs/**").permitAll()       // 클럽 상세, 리뷰 조회
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         // User endpoints
-                        .requestMatchers("/api/users/profile/**", "/api/reviews/**").authenticated()
+                        .requestMatchers("/api/users/profile/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
 
                         // Admin endpoints
-                        .requestMatchers("/api/admin/**", "/api/clubs", "/api/clubs/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/clubs").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/clubs/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/clubs/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/clubs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/clubs/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

@@ -31,6 +31,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         final String requestTokenHeader = request.getHeader("Authorization");
 
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/api/auth/") ||
+                (requestURI.startsWith("/api/clubs") && "GET".equals(request.getMethod()))) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+
         String username = null;
         String jwtToken = null;
 

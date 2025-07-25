@@ -6,15 +6,19 @@ import com.example.clubreview.entity.User;
 import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import com.example.clubreview.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class DatabaseInitializer {
 
     private final UserRepository userRepository;
@@ -22,59 +26,107 @@ public class DatabaseInitializer {
     private final ReviewRepository reviewRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public DatabaseInitializer(UserRepository userRepository, ClubRepository clubRepository,
-                               ReviewRepository reviewRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.clubRepository = clubRepository;
-        this.reviewRepository = reviewRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @Bean
-    CommandLineRunner initDatabase() {
-        return args -> initDatabaseTransactional();
-    }
-
+    @PostConstruct
     @Transactional
-    public void initDatabaseTransactional() {
-        // 유저 삭제
-        userRepository.deleteAll();
-        clubRepository.deleteAll();
+    public void initDatabase() {
+        // 기존 데이터 삭제
         reviewRepository.deleteAll();
+        clubRepository.deleteAll();
+        userRepository.deleteAll();
 
-        // 유저 생성
-        User user2 = new User("user1", passwordEncoder.encode("123"), "01012341235", User.Role.USER, "홍길동");
-        User user3 = new User("user2", passwordEncoder.encode("123"), "01095743212", User.Role.USER, "바둑이");
-        User user1 = new User("user3", passwordEncoder.encode("123"), "01098871623", User.Role.USER, "이방인");
-        User user4 = new User("admin", passwordEncoder.encode("admin1"), "01073751673", User.Role.ADMIN, "어드민");
-        User user5 = new User("user4", passwordEncoder.encode("123"), "01056234312", User.Role.USER, "김친구");
-        userRepository.saveAll(List.of(user1, user2, user3, user4, user5));
+        // 사용자 생성
+        User user1 = User.builder()
+                .username("user1")
+                .password(passwordEncoder.encode("password123"))
+                .phoneNumber("01012341235")
+                .nickname("홍길동")
+                .role(User.Role.USER)
+                .build();
 
-        // 클럽 데이터 생성
+        User user2 = User.builder()
+                .username("user2")
+                .password(passwordEncoder.encode("password123"))
+                .phoneNumber("01095743212")
+                .nickname("바둑이")
+                .role(User.Role.USER)
+                .build();
+
+        User user3 = User.builder()
+                .username("user3")
+                .password(passwordEncoder.encode("password123"))
+                .phoneNumber("01098871623")
+                .nickname("이방인")
+                .role(User.Role.USER)
+                .build();
+
+        User admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("admin123"))
+                .phoneNumber("01073751673")
+                .nickname("어드민")
+                .role(User.Role.ADMIN)
+                .build();
+
+        userRepository.saveAll(List.of(user1, user2, user3, admin));
+
+        // 클럽 생성
         List<Club> clubs = List.of(
-                new Club("Octagon", "서울 강남구", "강남에 위치한 인기 클럽 Octagon", "010-1000-1001", 4.6, 37.504833, 127.044176, "/images/clubs/capybara.png"),
-                new Club("M2", "서울 마포구", "홍대의 클럽 M2", "010-1000-1002", 4.2, 37.555702, 126.923612, "/images/clubs/capybara.png"),
-                new Club("Arena", "서울 강남구", "강남에서 유명한 클럽 Arena", "010-1000-1003", 4.5, 37.510722, 127.022393, "/images/clubs/capybara.png"),
-                new Club("Cakeshop", "서울 용산구", "이태원 클럽 Cakeshop", "010-1000-1004", 4.1, 37.534349, 126.994547, "/images/clubs/capybara.png"),
-                new Club("Club Made", "서울 마포구", "홍대의 힙한 클럽 Made", "010-1000-1005", 4.3, 37.555869, 126.922759, "/images/clubs/capybara.png"),
-                new Club("NB2", "서울 마포구", "홍대의 유명한 힙합 클럽 NB2", "010-1000-1006", 4.4, 37.556495, 126.923839, "/images/clubs/capybara.png"),
-                new Club("FAUST", "서울 중구", "을지로에 위치한 클럽 FAUST", "010-1000-1007", 3.8, 37.565328, 126.977822, "/images/clubs/capybara.png"),
-                new Club("SOAP", "서울 용산구", "이태원의 클럽 SOAP", "010-1000-1008", 4.0, 37.536925, 126.995072, "/images/clubs/capybara.png"),
-                new Club("Modeci", "서울 강남구", "럭셔리 클럽 Modeci", "010-1000-1009", 4.2, 37.506427, 127.045735, "/images/clubs/capybara.png"),
-                new Club("Mass", "서울 강남구", "강남의 대형 클럽 Mass", "010-1000-1010", 4.0, 37.504978, 127.042758, "/images/clubs/capybara.png"),
-                new Club("Chroma", "서울 송파구", "잠실에 위치한 대형 클럽 Chroma", "010-1000-1011", 4.7, 37.513144, 127.105474, "/images/clubs/capybara.png"),
-                new Club("Move", "서울 강남구", "음악이 좋은 클럽 Move", "010-1000-1012", 3.9, 37.508292, 127.038199, "/images/clubs/capybara.png"),
-                new Club("The Henz Club", "서울 마포구", "힙합 분위기의 클럽 The Henz Club", "010-1000-1013", 4.1, 37.556292, 126.923840, "/images/clubs/capybara.png"),
-                new Club("Hidden Cellar", "서울 용산구", "이태원의 Hidden Cellar", "010-1000-1014", 3.7, 37.535755, 126.994585, "/images/clubs/capybara.png"),
-                new Club("Vurt", "서울 마포구", "홍대의 작은 클럽 Vurt", "010-1000-1015", 4.0, 37.554232, 126.921872, "/images/clubs/capybara.png")
+                Club.builder()
+                        .name("Octagon")
+                        .location("서울 강남구")
+                        .description("강남에 위치한 인기 클럽 Octagon")
+                        .callNumber("010-1000-1001")
+                        .latitude(37.504833)
+                        .longitude(127.044176)
+                        .photoUrl("/images/clubs/capybara.png")
+                        .averageRating(4.6)
+                        .build(),
+                Club.builder()
+                        .name("M2")
+                        .location("서울 마포구")
+                        .description("홍대의 클럽 M2")
+                        .callNumber("010-1000-1002")
+                        .latitude(37.555702)
+                        .longitude(126.923612)
+                        .photoUrl("/images/clubs/capybara.png")
+                        .averageRating(4.2)
+                        .build(),
+                Club.builder()
+                        .name("Arena")
+                        .location("서울 강남구")
+                        .description("강남에서 유명한 클럽 Arena")
+                        .callNumber("010-1000-1003")
+                        .latitude(37.510722)
+                        .longitude(127.022393)
+                        .photoUrl("/images/clubs/capybara.png")
+                        .averageRating(4.5)
+                        .build()
         );
         clubRepository.saveAll(clubs);
 
-        // 각 클럽에 대한 리뷰 3개씩 생성
+        // 리뷰 생성
         for (Club club : clubs) {
-            Review review1 = new Review("좋은 경험이었습니다!", 5, club, user1);
-            Review review2 = new Review("음악이 좋아요!", 4, club, user2);
-            Review review3 = new Review("조금 혼잡했어요.", 3, club, user3);
+            Review review1 = Review.builder()
+                    .comment("좋은 경험이었습니다!")
+                    .rating(5)
+                    .club(club)
+                    .user(user1)
+                    .build();
+
+            Review review2 = Review.builder()
+                    .comment("음악이 좋아요!")
+                    .rating(4)
+                    .club(club)
+                    .user(user2)
+                    .build();
+
+            Review review3 = Review.builder()
+                    .comment("조금 혼잡했어요.")
+                    .rating(3)
+                    .club(club)
+                    .user(user3)
+                    .build();
+
             reviewRepository.saveAll(List.of(review1, review2, review3));
         }
     }
