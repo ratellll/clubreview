@@ -4,20 +4,30 @@ import com.example.clubreview.entity.Club;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ClubRepository extends JpaRepository<Club, Long> {
 
-
-    // 이름 오름차순으로 모든 클럽 조회 (페이징 포함)
+    // 페이징 정렬용 (실제 사용)
     Page<Club> findAllByOrderByNameAsc(Pageable pageable);
-
-    // 평점 내림차순으로 모든 클럽 조회 (페이징 포함)
     Page<Club> findAllByOrderByAverageRatingDesc(Pageable pageable);
 
-    // 클럽 이름으로 검색
+    // 중복 체크용 (실제 사용)
+    boolean existsByName(String name);
+
+    /*
     Optional<Club> findByName(String name);
 
+    @Query("SELECT c FROM Club c WHERE c.location LIKE %:location%")
+    List<Club> findByLocationContaining(@Param("location") String location);
 
+    @Query("SELECT c FROM Club c WHERE c.averageRating >= :minRating")
+    List<Club> findByAverageRatingGreaterThanEqual(@Param("minRating") double minRating);
+    */
 }

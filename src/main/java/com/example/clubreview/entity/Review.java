@@ -2,17 +2,23 @@ package com.example.clubreview.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder(toBuilder = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class Review {
 
     @Id
@@ -27,24 +33,35 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String comment;
 
+    @Column(nullable = false)
+    @Min(1) @Max(5)
     private int rating;
 
-    @Column(nullable = false)
-    @CreationTimestamp
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createTime;
 
+    @LastModifiedDate
     @Column(nullable = false)
-    @UpdateTimestamp
     private LocalDateTime updateTime;
 
-    //테스트용
-    public Review(String comment, int rating, Club club, User user) {
-        this.comment = comment;
-        this.rating = rating;
-        this.club = club;
-        this.user = user;
+    // 비즈니스 메서드
+    public Review updateContent(String comment, int rating) {
+        return this.toBuilder()
+                .comment(comment)
+                .rating(rating)
+                .build();
+    }
+
+    public static Review create(Club club, User user, String comment, int rating) {
+        return Review.builder()
+                .club(club)
+                .user(user)
+                .comment(comment)
+                .rating(rating)
+                .build();
     }
 }

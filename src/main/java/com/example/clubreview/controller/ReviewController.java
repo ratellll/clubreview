@@ -1,26 +1,24 @@
 package com.example.clubreview.controller;
 
 
-import com.example.clubreview.dto.ReviewDto;
+import com.example.clubreview.dto.review.ReviewDto;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
-import com.example.clubreview.exception.DuplicateReviewException;
 import com.example.clubreview.security.CustomUserDetails;
 import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Controller
 @RequestMapping("/reviews")
@@ -44,7 +42,7 @@ public class ReviewController {
 
             reviewService.addReview(clubId, user, rating, comment,createTime);
             redirectAttributes.addFlashAttribute("message", "리뷰가 등록되었습니다");
-        }catch (DuplicateReviewException e){
+        }catch (EntityNotFoundException e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/clubs/" + clubId;

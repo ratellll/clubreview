@@ -1,92 +1,127 @@
 package com.example.clubreview.service;
 
 
-import com.example.clubreview.dto.ClubDto;
+import com.example.clubreview.dto.club.ClubDto;
 import com.example.clubreview.entity.Club;
-import com.example.clubreview.exception.ClubNotFoundException;
 import com.example.clubreview.repository.ClubRepository;
+import com.example.clubreview.repository.ReviewRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class ClubService {
 
     private final ClubRepository clubRepository;
+    private final ReviewRepository reviewRepository;
 
-    // 모든 클럽 조회
     public List<Club> getAllClubs() {
         return clubRepository.findAll();
     }
 
-    // 특정 클럽 조회
-    public  Optional<Club> getClubById(Long id) {
+    public Optional<Club> getClubById(Long id) {
         return clubRepository.findById(id);
-
     }
-    //클럽 id조회 메서드로 추출
+
     public Club getClubByIdOrThrow(Long id) {
         return clubRepository.findById(id)
-                .orElseThrow(() -> new ClubNotFoundException("존재하지 않는 클럽입니다. 클럽 ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 클럽입니다: " + id));
     }
 
-    // 이름 오름차순으로 정렬된 클럽 목록 (페이징)
     public Page<Club> getClubsSortedByName(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return clubRepository.findAllByOrderByNameAsc(pageable);
     }
 
-    // 평점 내림차순으로 정렬된 클럽 목록 (페이징)
     public Page<Club> getClubsSortedByRating(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return clubRepository.findAllByOrderByAverageRatingDesc(pageable);
     }
 
-    // 클럽 이름으로 검색
-    public Optional<Club> getClubByName(String name) {
-        return clubRepository.findByName(name);
-    }
+    @Transactional
+    public Club addClub(ClubDto clubDto) {
+        log.info("클럽 생성: {}", clubDto.getName());
 
-    // 클럽 삭제
-    public void deleteClub(Long id) {
-        Club club = getClubByIdOrThrow(id);
-        clubRepository.delete(club);
-    }
+        if (clubRepository.existsByName(clubDto.getName())) {
+            throw new DataIntegrityViolationException("이미 존재하는 클럽 이름입니다.");
+        }
 
-    // 클럽 추가
-    public void addClub(ClubDto clubDto) {
         Club club = Club.builder()
                 .name(clubDto.getName())
                 .location(clubDto.getLocation())
                 .description(clubDto.getDescription())
                 .callNumber(clubDto.getCallNumber())
-                .longitude(clubDto.getLongitude())
                 .latitude(clubDto.getLatitude())
+                .longitude(clubDto.getLongitude())
+                .photoUrl(clubDto.getPhotoUrl())
+                .averageRating(0.0)
+                .build();
+
+        Club savedClub = clubRepository.save(club);
+        log.info("클럽 생성 완료: {}", savedClub.getId());
+
+        return savedClub;
+    }
+
+    @Transactional
+    public Club updateClub(Long id, ClubDto clubDto) {
+        log.info("클럽 수정: {}", id);
+
+        Club existingClub = getClubByIdOrThrow(id);
+
+        Club updatedClub = existingClub.toBuilder()
+                .name(clubDto.getName())
+                .location(clubDto.getLocation())
+                .description(clubDto.getDescription())
+                .callNumber(clubDto.getCallNumber())
+                .latitude(clubDto.getLatitude())
+                .longitude(clubDto.getLongitude())
                 .photoUrl(clubDto.getPhotoUrl())
                 .build();
-        clubRepository.save(club);
+
+        Club savedClub = clubRepository.save(updatedClub);
+        log.info("클럽 수정 완료: {}", savedClub.getId());
+
+        return savedClub;
     }
 
-    // 클럽 수정
-    public void updateClub(Long id, ClubDto clubDto) {
+    @Transactional
+    public void deleteClub(Long id) {
+        log.info("클럽 삭제: {}", id);
+
         Club club = getClubByIdOrThrow(id);
-        club.setName(clubDto.getName());
-        club.setLocation(clubDto.getLocation());
-        club.setDescription(clubDto.getDescription());
-        club.setCallNumber(clubDto.getCallNumber());
-        club.setLongitude(clubDto.getLongitude());
-        club.setLatitude(clubDto.getLatitude());
-        club.setPhotoUrl(clubDto.getPhotoUrl());
-        clubRepository.save(club);
+
+        // 관련 리뷰도 함께 삭제 (cascade로 자동 처리되지만 명시적으로)
+        reviewRepository.deleteByClubId(id);
+        clubRepository.delete(club);
+
+        log.info("클럽 삭제 완료: {}", id);
     }
 
-    public void deleteReview(Long reviewId) {
-        clubRepository.deleteById(reviewId);
+    @Transactional
+    public void updateClubAverageRating(Long clubId) {
+        log.debug("클럽 평균 평점 업데이트: {}", clubId);
+
+        Club club = getClubByIdOrThrow(clubId);
+        Double averageRating = reviewRepository.calculateAverageRating(clubId);
+
+        Club updatedClub = club.toBuilder()
+                .averageRating(averageRating != null ? averageRating : 0.0)
+                .build();
+
+        clubRepository.save(updatedClub);
+        log.debug("평균 평점 업데이트 완료: {} -> {}", clubId, averageRating);
     }
 }

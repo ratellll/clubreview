@@ -1,73 +1,110 @@
 package com.example.clubreview.controller;
 
 
+import com.example.clubreview.dto.config.ApiResponse;
+import com.example.clubreview.dto.user.UserResponse;
 import com.example.clubreview.entity.User;
-import com.example.clubreview.exception.UserNotFoundException;
-import com.example.clubreview.repository.UserRepository;
 import com.example.clubreview.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Controller
-@RequestMapping("/admin/users")
+@RestController
+@RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@Slf4j
+@Validated
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUserList() {
+        try {
+            List<User> users = userService.findAllUsers();
+            List<UserResponse> userResponses = users.stream()
+                    .map(UserResponse::from)
+                    .collect(Collectors.toList());
 
-    //유저 목록123
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/list")
-    public String getUserList(Model model) {
-        List<User> users = userService.findAllUsers();
-        model.addAttribute("users", users);
-        return "admin/users/list";
+            return ResponseEntity.ok(ApiResponse.success("사용자 목록 조회 성공", userResponses));
+        } catch (Exception e) {
+            log.error("사용자 목록 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사용자 목록 조회 중 오류가 발생했습니다."));
+        }
     }
 
-    //유저탈퇴
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/delete/{id}")
-    public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PostMapping("/users/{id}/ban")
+    public ResponseEntity<ApiResponse<UserResponse>> banUser(
+            @PathVariable @Positive Long id,
+            @RequestParam @Min(1) @Max(365) int days) {
+
+        log.info("사용자 정지 요청: {} ({}일)", id, days);
+
+        try {
+            User bannedUser = userService.banUser(id, days);
+            UserResponse response = UserResponse.from(bannedUser);
+
+            return ResponseEntity.ok(ApiResponse.success(
+                    String.format("사용자가 %d일 동안 정지되었습니다.", days), response));
+        } catch (EntityNotFoundException e) {
+            log.warn("사용자 정지 실패 - 사용자 없음: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("사용자 정지 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사용자 정지 중 오류가 발생했습니다."));
+        }
+    }
+
+    @PostMapping("/users/{id}/unban")
+    public ResponseEntity<ApiResponse<UserResponse>> unbanUser(@PathVariable @Positive Long id) {
+        log.info("사용자 정지 해제 요청: {}", id);
+
+        try {
+            User unbannedUser = userService.unbanUser(id);
+            UserResponse response = UserResponse.from(unbannedUser);
+
+            return ResponseEntity.ok(ApiResponse.success("사용자 정지가 해제되었습니다.", response));
+        } catch (EntityNotFoundException e) {
+            log.warn("사용자 정지 해제 실패 - 사용자 없음: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("사용자 정지 해제 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사용자 정지 해제 중 오류가 발생했습니다."));
+        }
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable @Positive Long id) {
+        log.info("사용자 삭제 요청: {}", id);
+
         try {
             userService.deleteUser(id);
-            redirectAttributes.addFlashAttribute("message", "유저가 성공적으로 삭제되었습니다.");
-        } catch (UserNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return ResponseEntity.ok(ApiResponse.success("사용자가 삭제되었습니다."));
+        } catch (EntityNotFoundException e) {
+            log.warn("사용자 삭제 실패 - 사용자 없음: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "유저 삭제 중 오류가 발생했습니다.");
+            log.error("사용자 삭제 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사용자 삭제 중 오류가 발생했습니다."));
         }
-        return "redirect:/admin/users/list";
-    }
-
-    //유저 정지
-    @PostMapping("/ban/{id}")
-    public String banUser(@PathVariable Long id, @RequestParam int days, RedirectAttributes redirectAttributes) {
-        try {
-            userService.banUser(id, days);
-            redirectAttributes.addFlashAttribute("message", "유저가" + days + " 일 동안 정지됩니다.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "회원정지 중 오류가 발생했습니다.");
-        }
-        return "redirect:/admin/users/list";
-    }
-
-    //유저 정지해제
-    @PostMapping("/unban/{id}")
-    public String unbanUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            userService.unbanUser(id);
-            redirectAttributes.addFlashAttribute("message", "유저 정지가  해제 됩니다.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "유저 정지 도중 오류가 발생했습니다.");
-        }
-        return "redirect:/admin/users/list";
     }
 }

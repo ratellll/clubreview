@@ -1,169 +1,219 @@
 package com.example.clubreview.controller;
 
-import com.example.clubreview.dto.ClubDto;
+import com.example.clubreview.dto.club.ClubCreateRequest;
+import com.example.clubreview.dto.club.ClubDetailResponse;
+import com.example.clubreview.dto.club.ClubDto;
+import com.example.clubreview.dto.club.ClubResponse;
+import com.example.clubreview.dto.config.ApiResponse;
+import com.example.clubreview.dto.config.PagedResponse;
+import com.example.clubreview.dto.review.ReviewResponse;
 import com.example.clubreview.entity.Club;
-import com.example.clubreview.exception.ClubNotFoundException;
+import com.example.clubreview.entity.Review;
 import com.example.clubreview.service.ClubService;
+import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.utils.FileUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
-@Controller
-@RequestMapping("/clubs")
+@RestController
+@RequestMapping("/api/clubs")
 @RequiredArgsConstructor
+@Slf4j
+@Validated
 public class ClubController {
 
     private final ClubService clubService;
+    private final ReviewService reviewService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedResponse<ClubResponse>>> getClubs(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size,
+            @RequestParam(required = false) @Pattern(regexp = "name|rating") String sortBy) {
+// 11
+        try {
+            Page<Club> clubs = Optional.ofNullable(sortBy)
+                    .filter(sort -> sort.equals("name"))
+                    .map(sort -> clubService.getClubsSortedByName(page, size))
+                    .orElse(clubService.getClubsSortedByRating(page, size));
 
+            Page<ClubResponse> clubResponses = clubs.map(ClubResponse::from);
+            PagedResponse<ClubResponse> pagedResponse = PagedResponse.of(clubResponses);
 
-    // 클럽 목록 조회 (이름순 또는 별점순 정렬)
-    @GetMapping("/list")
-    public String listClubs(@RequestParam(required = false) String sortBy,
-                            @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size,
-                            Model model) {
-        Page<Club> clubs = (sortBy != null && sortBy.equals("name"))
-                ? clubService.getClubsSortedByName(page, size)
-                : clubService.getClubsSortedByRating(page, size);
+            return ResponseEntity.ok(ApiResponse.success("클럽 목록 조회 성공", pagedResponse));
 
-        List<Map<String, Object>> clubLocations = clubs.getContent().stream().map(club -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", club.getId());
-            map.put("name", club.getName());
-            map.put("location", club.getLocation());
-            map.put("callNumber", club.getCallNumber());
-            map.put("latitude", club.getLatitude());
-            map.put("longitude", club.getLongitude());
-            map.put("description", club.getDescription());
-            map.put("averageRating", club.getAverageRating());
-            map.put("photoUrl", club.getPhotoUrl());
-            return map;
-        }).toList();
-
-        model.addAttribute("clubs", clubs);
-        model.addAttribute("clubLocations", clubLocations); // Page에서 사용하는 메서드 해당 데이터가 포함된 list를가져옴
-        System.out.println(clubLocations);
-        return "clubs/list";
+        } catch (Exception e) {
+            log.error("클럽 목록 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 목록 조회 중 오류가 발생했습니다."));
+        }
     }
 
-    // 클럽 상세 정보 조회
     @GetMapping("/{id}")
-    public String getClubDetail(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubByIdOrThrow(id);
-        model.addAttribute("club", club);
-        model.addAttribute("reviews", club.getReviews());
-        return "clubs/details";  // 클럽 상세 페이지 렌더링
-    }
-
-    // 클럽 생성폼(어드민전용)
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping("/admin/new")
-    public String createClubForm(Model model) {
-        model.addAttribute("club", new ClubDto());
-        return "clubs/create";
-    }
-
-    //클럽 생성처리
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PostMapping("/admin/new")
-    public String createClub(@Valid @ModelAttribute("club") ClubDto clubDto,
-                             BindingResult bindingResult,
-                             @RequestParam("file") MultipartFile file,
-                             RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "clubs/create"; // 유효성 검사 실패 시 현재 페이지 유지
-        }
+    public ResponseEntity<ApiResponse<ClubDetailResponse>> getClub(
+            @PathVariable @Positive Long id) {
 
         try {
-            // 파일 저장 처리
-            if (!file.isEmpty()) {
-                String photoUrl = FileUtil.saveFile(file);
-                clubDto.setPhotoUrl(photoUrl);
-            }
-            clubService.addClub(clubDto); // 서비스로 전달하여 클럽 저장
-            redirectAttributes.addFlashAttribute("message", "클럽이 성공적으로 등록되었습니다!");
-            return "redirect:/clubs/list"; // 등록 성공 시 리스트 페이지로 이동
-        } catch (IOException e) {
-            e.printStackTrace();
-            bindingResult.reject("fileUploadError", "파일 업로드 중 오류가 발생했습니다.");
-            return "clubs/create"; // 파일 업로드 오류 시 다시 등록 페이지로 이동
+            Club club = clubService.getClubByIdOrThrow(id);
+            ClubDetailResponse response = ClubDetailResponse.from(club);
+
+            return ResponseEntity.ok(ApiResponse.success("클럽 상세 조회 성공", response));
+
+        } catch (EntityNotFoundException e) {
+            log.warn("클럽 조회 실패 - 존재하지 않는 클럽: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("클럽 상세 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 상세 조회 중 오류가 발생했습니다."));
         }
-
-    }
-    //클럽 수정폼
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping("/admin/edit/{id}")
-    public String editClubForm(@PathVariable Long id, Model model) {
-        Club club = clubService.getClubByIdOrThrow(id);
-
-        ClubDto clubDto = new ClubDto(
-                club.getId(),
-                club.getName(),
-                club.getLocation(),
-                club.getDescription(),
-                club.getCallNumber(),
-                club.getLatitude(),
-                club.getLongitude(),
-                club.getPhotoUrl());
-
-        model.addAttribute("club", clubDto);
-        model.addAttribute("clubId", id);
-        return "clubs/edit";
     }
 
-    //클럽 수정처리
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PostMapping("/admin/edit/{id}")
-    public String updateClub(@PathVariable Long id, @ModelAttribute("club") ClubDto clubDto,
-                              @RequestParam("file") MultipartFile file,
-                              RedirectAttributes redirectAttributes) {
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getClubReviews(@PathVariable @Positive Long id) {
         try {
-            //파일처리 - 새로운파일업로드시
-            if (!file.isEmpty()) {
-                String photoUrl = FileUtil.saveFile(file);
-                clubDto.setPhotoUrl(photoUrl);
-            } else {
-                //파일 수정안할대
-                Club existingClub =clubService.getClubByIdOrThrow(id);
-                clubDto.setPhotoUrl(existingClub.getPhotoUrl());
-            }
-            // Dto 엔티티 변환하고 서비스로 전달
-            clubService.updateClub(id, clubDto);
-            redirectAttributes.addFlashAttribute("message", "클럽 정보가 성공적으로 수정되었습니다!");
-        } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드 중 오류가 발생했습니다.");
-            return "redirect:/clubs/admin/edit/" + id;
+            List<Review> reviews = reviewService.getReviewsByClubId(id);
+            List<ReviewResponse> reviewResponses = reviews.stream()
+                    .map(ReviewResponse::from)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(ApiResponse.success("클럽 리뷰 목록 조회 성공", reviewResponses));
+        } catch (Exception e) {
+            log.error("클럽 리뷰 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 리뷰 조회 중 오류가 발생했습니다."));
         }
-        return "redirect:/clubs/list";
     }
 
-    //클럽삭제
-    @PostMapping("/admin/delete/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public String deleteClub(@PathVariable Long id) {
-        clubService.deleteClub(id);
-        return "redirect:/clubs/list";
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ClubResponse>> createClub(
+            @Valid @RequestPart("club") ClubCreateRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+
+        log.info("클럽 생성 요청: {}", request.getName());
+
+        try {
+            String photoUrl = null;
+            if (file != null && !file.isEmpty()) {
+                photoUrl = FileUtil.saveFile(file);
+            }
+
+            ClubDto clubDto = ClubDto.builder()
+                    .name(request.getName())
+                    .location(request.getLocation())
+                    .description(request.getDescription())
+                    .callNumber(request.getCallNumber())
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .photoUrl(photoUrl)
+                    .build();
+
+            Club createdClub = clubService.addClub(clubDto);
+            ClubResponse response = ClubResponse.from(createdClub);
+
+            log.info("클럽 생성 완료: {}", createdClub.getId());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("클럽이 성공적으로 생성되었습니다.", response));
+
+        } catch (IOException e) {
+            log.error("파일 업로드 중 오류 발생", e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("파일 업로드 중 오류가 발생했습니다."));
+        } catch (Exception e) {
+            log.error("클럽 생성 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 생성 중 오류가 발생했습니다."));
+        }
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ClubResponse>> updateClub(
+            @PathVariable @Positive Long id,
+            @Valid @RequestPart("club") ClubCreateRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
 
+        log.info("클럽 수정 요청: {}", id);
+
+        try {
+            Club existingClub = clubService.getClubByIdOrThrow(id);
+
+            String photoUrl = existingClub.getPhotoUrl();
+            if (file != null && !file.isEmpty()) {
+                photoUrl = FileUtil.saveFile(file);
+            }
+
+            ClubDto clubDto = ClubDto.builder()
+                    .name(request.getName())
+                    .location(request.getLocation())
+                    .description(request.getDescription())
+                    .callNumber(request.getCallNumber())
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .photoUrl(photoUrl)
+                    .build();
+
+            Club updatedClub = clubService.updateClub(id, clubDto);
+            ClubResponse response = ClubResponse.from(updatedClub);
+
+            log.info("클럽 수정 완료: {}", id);
+            return ResponseEntity.ok(ApiResponse.success("클럽이 성공적으로 수정되었습니다.", response));
+
+        } catch (EntityNotFoundException e) {
+            log.warn("클럽 수정 실패 - 존재하지 않는 클럽: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (IOException e) {
+            log.error("파일 업로드 중 오류 발생", e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("파일 업로드 중 오류가 발생했습니다."));
+        } catch (Exception e) {
+            log.error("클럽 수정 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 수정 중 오류가 발생했습니다."));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteClub(@PathVariable @Positive Long id) {
+        log.info("클럽 삭제 요청: {}", id);
+
+        try {
+            clubService.deleteClub(id);
+
+            log.info("클럽 삭제 완료: {}", id);
+            return ResponseEntity.ok(ApiResponse.success("클럽이 성공적으로 삭제되었습니다."));
+
+        } catch (EntityNotFoundException e) {
+            log.warn("클럽 삭제 실패 - 존재하지 않는 클럽: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("클럽 삭제 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("클럽 삭제 중 오류가 발생했습니다."));
+        }
+    }
 }

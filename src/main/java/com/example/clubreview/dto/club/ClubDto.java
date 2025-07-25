@@ -1,38 +1,60 @@
 package com.example.clubreview.dto.club;
 
 import com.example.clubreview.entity.Club;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
+@JsonDeserialize(builder = ClubDto.ClubDtoBuilder.class)
 public class ClubDto {
 
-    private Long id;
+    private final Long id;
 
     @NotBlank(message = "클럽 이름은 필수입니다.")
-    private String name;
+    private final String name;
 
     @NotBlank(message = "주소는 필수입니다.")
-    private String location;
+    private final String location;
 
-    private String description;
-
-    private String callNumber;
+    private final String description;
+    private final String callNumber;
 
     @DecimalMin(value = "-90.0", message = "위도는 -90에서 90 사이여야 합니다.")
     @DecimalMax(value = "90.0", message = "위도는 -90에서 90 사이여야 합니다.")
-    private double latitude;
+    private final double latitude;
 
     @DecimalMin(value = "-180.0", message = "경도는 -180에서 180 사이여야 합니다.")
     @DecimalMax(value = "180.0", message = "경도는 -180에서 180 사이여야 합니다.")
-    private double longitude;
+    private final double longitude;
 
-    private String photoUrl;
+    private final String photoUrl;
+    private final double averageRating;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
+
+    public static ClubDto from(Club club) {
+        return ClubDto.builder()
+                .id(club.getId())
+                .name(club.getName())
+                .location(club.getLocation())
+                .description(club.getDescription())
+                .callNumber(club.getCallNumber())
+                .latitude(club.getLatitude())
+                .longitude(club.getLongitude())
+                .photoUrl(club.getPhotoUrl())
+                .averageRating(club.getAverageRating())
+                .createdAt(club.getCreatedAt())
+                .updatedAt(club.getUpdatedAt())
+                .build();
+    }
 
     public Club toEntity() {
         return Club.builder()
@@ -43,6 +65,7 @@ public class ClubDto {
                 .latitude(this.latitude)
                 .longitude(this.longitude)
                 .photoUrl(this.photoUrl)
+                .averageRating(this.averageRating)
                 .build();
     }
 }

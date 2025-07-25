@@ -4,16 +4,16 @@ package com.example.clubreview.controller;
 import com.example.clubreview.dto.config.ApiResponse;
 import com.example.clubreview.dto.config.JwtResponse;
 import com.example.clubreview.dto.config.LoginRequest;
-import com.example.clubreview.dto.UserDto;
-import com.example.clubreview.exception.DuplicateReviewException;
+import com.example.clubreview.dto.user.UserDto;
 import com.example.clubreview.service.CustomUserDetailsService;
 import com.example.clubreview.service.UserService;
-import com.example.clubreview.utils.JwtUtil;
+import com.example.clubreview.security.JwtUtil;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -87,7 +87,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("회원가입이 완료되었습니다."));
 
-        } catch (DuplicateReviewException e) {
+        } catch (DataIntegrityViolationException e) {
             log.warn("회원가입 실패 - 중복: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ApiResponse.error(e.getMessage()));
