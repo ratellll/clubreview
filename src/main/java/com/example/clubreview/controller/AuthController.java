@@ -1,9 +1,9 @@
 package com.example.clubreview.controller;
 
 
-import com.example.clubreview.dto.config.ApiResponse;
-import com.example.clubreview.dto.config.JwtResponse;
-import com.example.clubreview.dto.config.LoginRequest;
+import com.example.clubreview.dto.ApiResponse;
+import com.example.clubreview.dto.JwtResponse;
+import com.example.clubreview.dto.LoginRequest;
 import com.example.clubreview.dto.user.UserDto;
 import com.example.clubreview.service.CustomUserDetailsService;
 import com.example.clubreview.service.UserService;

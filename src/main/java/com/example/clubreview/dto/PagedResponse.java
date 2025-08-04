@@ -1,4 +1,4 @@
-package com.example.clubreview.dto.config;
+package com.example.clubreview.dto;
 
 
 import lombok.AccessLevel;

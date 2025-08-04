@@ -1,7 +1,7 @@
 package com.example.clubreview.controller;
 
 import com.example.clubreview.dto.MyPageDto;
-import com.example.clubreview.dto.config.ApiResponse;
+import com.example.clubreview.dto.ApiResponse;
 import com.example.clubreview.dto.review.ReviewResponse;
 import com.example.clubreview.dto.review.ReviewStatistics;
 import com.example.clubreview.dto.user.UserResponse;

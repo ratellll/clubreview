@@ -1,6 +1,6 @@
 package com.example.clubreview.security;
 
-import com.example.clubreview.dto.config.ApiResponse;
+import com.example.clubreview.dto.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletRequest;
