@@ -7,6 +7,10 @@ import RegisterPage from './pages/RegisterPage';
 import ClubListPage from './pages/ClubListPage';
 import './App.css';
 
+function ClubDetailPage() {
+    return null;
+}
+
 function App() {
     return (
         <AuthProvider>
@@ -28,6 +32,7 @@ function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/clubs" element={<ClubListPage />} />
+                        <Route path="/clubs/:id" element={<ClubDetailPage />} />
                     </Routes>
                 </div>
             </Router>
