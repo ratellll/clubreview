@@ -6,12 +6,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
-@JsonDeserialize(builder = ReviewCreateRequest.ReviewCreateRequestBuilder.class)
+@Jacksonized
 public class ReviewCreateRequest {
 
 

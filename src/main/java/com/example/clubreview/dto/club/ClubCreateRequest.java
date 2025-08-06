@@ -6,12 +6,13 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
-@JsonDeserialize(builder = ClubCreateRequest.ClubCreateRequestBuilder.class)
+@Jacksonized
 public class ClubCreateRequest {
 
 

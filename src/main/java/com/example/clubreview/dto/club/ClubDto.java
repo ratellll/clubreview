@@ -6,6 +6,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
-@JsonDeserialize(builder = ClubDto.ClubDtoBuilder.class)
+@Jacksonized
 public class ClubDto {
 
     private final Long id;

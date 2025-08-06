@@ -4,12 +4,13 @@ package com.example.clubreview.dto;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
-@JsonDeserialize(builder = LoginRequest.LoginRequestBuilder.class)
+@Jacksonized
 public class LoginRequest {
 
     @NotBlank(message = "아이디는 필수입니다.")
