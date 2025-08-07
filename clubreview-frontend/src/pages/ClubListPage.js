@@ -16,23 +16,35 @@ const ClubListPage = () => {
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [currentInfoWindow, setCurrentInfoWindow] = useState(null);
+    const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-    // Kakao 지도 스크립트 로드
+    // Kakao 지도 스크립트 로드 (HTML에서 이미 로드됨)
     useEffect(() => {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
-        document.head.appendChild(script);
-
-        script.onload = () => {
+        if (window.kakao && window.kakao.maps) {
             window.kakao.maps.load(() => {
+                setIsMapLoaded(true);
                 initializeMap();
             });
-        };
+        } else {
+            // 백업: 스크립트가 로드되지 않은 경우
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
+            document.head.appendChild(script);
 
-        return () => {
-            document.head.removeChild(script);
-        };
+            script.onload = () => {
+                window.kakao.maps.load(() => {
+                    setIsMapLoaded(true);
+                    initializeMap();
+                });
+            };
+
+            return () => {
+                if (document.head.contains(script)) {
+                    document.head.removeChild(script);
+                }
+            };
+        }
     }, []);
 
     // 클럽 데이터 조회
@@ -42,13 +54,13 @@ const ClubListPage = () => {
 
     // 지도에 마커 표시
     useEffect(() => {
-        if (map && clubs.length > 0) {
+        if (map && clubs.length > 0 && isMapLoaded) {
             displayMarkersOnMap();
         }
-    }, [map, clubs]);
+    }, [map, clubs, isMapLoaded]);
 
     const initializeMap = () => {
-        if (!mapRef.current) return;
+        if (!mapRef.current || !window.kakao || !window.kakao.maps) return;
 
         const container = mapRef.current;
         const options = {
@@ -74,10 +86,19 @@ const ClubListPage = () => {
             const params = {
                 page: currentPage,
                 size: 20,
-                sort: sortBy === 'rating' ? 'averageRating,desc' : 'name,asc'
+                sortBy: sortBy
             };
             const response = await clubService.getClubs(params);
-            setClubs(response.content || []);
+
+            // 정렬된 데이터 받기
+            let sortedClubs = response.content || [];
+            if (sortBy === 'name') {
+                sortedClubs = sortedClubs.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'rating') {
+                sortedClubs = sortedClubs.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+            }
+
+            setClubs(sortedClubs);
             setTotalPages(response.totalPages || 0);
             setError('');
         } catch (err) {
@@ -89,6 +110,8 @@ const ClubListPage = () => {
     };
 
     const displayMarkersOnMap = () => {
+        if (!window.kakao || !window.kakao.maps || !map) return;
+
         // 기존 마커들 제거
         markers.forEach(marker => marker.setMap(null));
 
@@ -114,8 +137,9 @@ const ClubListPage = () => {
                         ${club.photoUrl ? `
                             <img src="${club.photoUrl}" 
                                  alt="클럽 사진" 
-                                 style="width: 100%; max-height: 150px; object-fit: cover; margin-top: 10px; cursor: pointer;"
-                                 onclick="window.clubListPageInstance.showPhotoModal('${club.photoUrl}')" />
+                                 style="width: 100%; max-height: 150px; object-fit: cover; margin-top: 10px; cursor: pointer; display: block;"
+                                 onclick="window.clubListPageInstance.showPhotoModal('${club.photoUrl}')" 
+                                 onerror="this.style.display='none'" />
                         ` : ''}
                     </div>
                 `;
@@ -126,6 +150,7 @@ const ClubListPage = () => {
 
                 // 마커 클릭 이벤트
                 window.kakao.maps.event.addListener(marker, 'click', () => {
+                    // 이전 정보창 닫기
                     if (currentInfoWindow) {
                         currentInfoWindow.close();
                     }
@@ -145,8 +170,15 @@ const ClubListPage = () => {
     };
 
     const showPhotoModal = (photoUrl) => {
-        // 간단한 모달 구현
+        // 기존 모달이 있다면 제거
+        const existingModal = document.querySelector('.photo-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // 새 모달 생성
         const modal = document.createElement('div');
+        modal.className = 'photo-modal';
         modal.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); display: flex; justify-content: center;
@@ -159,17 +191,30 @@ const ClubListPage = () => {
                  alt="클럽 사진 확대" />
         `;
 
-        modal.onclick = () => document.body.removeChild(modal);
-        document.body.appendChild(modal);
-
-        // ESC 키로 닫기
-        const handleEsc = (e) => {
-            if (e.key === 'Escape') {
-                document.body.removeChild(modal);
-                document.removeEventListener('keydown', handleEsc);
+        // 클릭으로 닫기
+        modal.onclick = (e) => {
+            if (e.target === modal) { // 배경 클릭 시에만 닫기
+                closePhotoModal();
             }
         };
-        document.addEventListener('keydown', handleEsc);
+
+        // ESC 키로 닫기
+        const handleEscKey = (e) => {
+            if (e.key === 'Escape') {
+                closePhotoModal();
+            }
+        };
+
+        // 모달 닫기 함수
+        const closePhotoModal = () => {
+            if (modal && modal.parentNode) {
+                modal.remove();
+            }
+            document.removeEventListener('keydown', handleEscKey);
+        };
+
+        document.addEventListener('keydown', handleEscKey);
+        document.body.appendChild(modal);
     };
 
     const handleSortChange = (newSort) => {
