@@ -36,3 +36,13 @@
     transform: rotate(360deg);
   }
 }
+
+#kakao-map-container * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#kakao-map-container .MapWrap {
+  width: 100% !important;
+  max-width: 100% !important;
+}
