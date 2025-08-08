@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/userService';
+import { reviewService } from '../services/reviewService';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -155,11 +156,14 @@ const MyPage = () => {
 
     const handleEditReview = async (reviewId, updatedData) => {
         try {
-            // 리뷰 수정 로직 (reviewService 사용)
+            // reviewService 사용하여 실제 API 호출
+            await reviewService.updateReview(reviewId, updatedData);
+
             setEditingReview(null);
-            fetchMyReviews();
+            fetchMyReviews(); // 리뷰 목록 새로고침
             setSuccess('리뷰가 수정되었습니다.');
         } catch (err) {
+            console.error('리뷰 수정 실패:', err);
             setError(err.message);
         }
     };
@@ -167,10 +171,13 @@ const MyPage = () => {
     const handleDeleteReview = async (reviewId) => {
         if (window.confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
             try {
-                // 리뷰 삭제 로직 (reviewService 사용)
-                fetchMyReviews();
+                // reviewService 사용하여 실제 API 호출
+                await reviewService.deleteReview(reviewId);
+
+                fetchMyReviews(); // 리뷰 목록 새로고침
                 setSuccess('리뷰가 삭제되었습니다.');
             } catch (err) {
+                console.error('리뷰 삭제 실패:', err);
                 setError(err.message);
             }
         }

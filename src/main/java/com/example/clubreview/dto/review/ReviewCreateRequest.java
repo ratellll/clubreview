@@ -23,6 +23,6 @@ public class ReviewCreateRequest {
     private final int rating;
 
     @NotBlank(message = "리뷰 내용은 필수입니다.")
-    @Size(min = 10, max = 500, message = "리뷰 내용은 10자 이상 500자 이하여야 합니다.")
+    @Size(min = 3, max = 100, message = "리뷰 내용은 3자 이상 100자 이하여야 합니다.")
     private final String comment;
 }

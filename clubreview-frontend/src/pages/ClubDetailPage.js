@@ -41,9 +41,11 @@ const ClubDetailPage = () => {
     const fetchClubReviews = async () => {
         try {
             const response = await clubService.getClubReviews(id);
-            setReviews(response.content || []);
+            console.log('리뷰 데이터:', response); // 디버깅용
+            setReviews(response || []); // response가 배열이라면 직접 사용
         } catch (err) {
             console.error('리뷰 조회 실패:', err);
+            setReviews([]); // 에러 시 빈 배열로 설정
         } finally {
             setLoading(false);
         }
@@ -77,11 +79,7 @@ const ClubDetailPage = () => {
 
     const handleEditReview = async (reviewId, updatedData) => {
         try {
-            const reviewData = {
-                ...updatedData,
-                clubId: parseInt(id)
-            };
-            await reviewService.updateReview(reviewId, reviewData);
+            await reviewService.updateReview(reviewId, updatedData);
 
             setEditingReview(null);
             fetchClubReviews(); // 리뷰 목록 새로고침
@@ -95,7 +93,7 @@ const ClubDetailPage = () => {
     const handleDeleteReview = async (reviewId) => {
         if (window.confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
             try {
-                await reviewService.deleteReview(reviewId, parseInt(id));
+                await reviewService.deleteReview(reviewId);
 
                 fetchClubReviews(); // 리뷰 목록 새로고침
                 alert('리뷰가 삭제되었습니다.');
@@ -195,7 +193,7 @@ const ClubDetailPage = () => {
                                             <p className="card-text">{review.comment}</p>
 
                                             {/* 수정/삭제 버튼 (작성자만) */}
-                                            {isAuthenticated && user?.username === review.user?.username && (
+                                            {isAuthenticated && user?.username === (review.user?.username || review.username) && (
                                                 <div className="mt-2">
                                                     <button
                                                         className="btn btn-sm btn-outline-primary me-2"
