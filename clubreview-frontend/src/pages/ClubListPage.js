@@ -129,11 +129,27 @@ const ClubListPage = () => {
                 kakaoMap.relayout();
             }, 1000);
 
-            // 지도 클릭 시 정보창 닫기
+            // 지도 클릭 시 정보창 닫기 (ref 사용으로 수정)
             window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
-                if (currentInfoWindow) {
-                    currentInfoWindow.close();
+                console.log('지도 배경 클릭 - 정보창 닫기');
+                console.log('현재 정보창:', currentInfoWindowRef.current);
+                console.log('현재 마커 개수:', markersRef.current.length);
+
+                if (currentInfoWindowRef.current) {
+                    currentInfoWindowRef.current.close();
                     setCurrentInfoWindow(null);
+                    currentInfoWindowRef.current = null;
+
+                    // 모든 마커의 정보창 상태 초기화
+                    markersRef.current.forEach(marker => {
+                        if (marker.isInfoWindowOpen) {
+                            console.log('마커 상태 초기화:', marker.clubName);
+                            marker.isInfoWindowOpen = false;
+                        }
+                    });
+                    console.log('정보창 닫기 완료');
+                } else {
+                    console.log('닫을 정보창이 없음');
                 }
             });
 
@@ -171,11 +187,21 @@ const ClubListPage = () => {
         }
     };
 
+    const markersRef = useRef([]);
+    const currentInfoWindowRef = useRef(null);
+
     const displayMarkersOnMap = () => {
         if (!window.kakao || !window.kakao.maps || !map) return;
 
         // 기존 마커들 제거
-        markers.forEach(marker => marker.setMap(null));
+        markersRef.current.forEach(marker => marker.setMap(null));
+
+        // 기존 정보창 닫기
+        if (currentInfoWindowRef.current) {
+            currentInfoWindowRef.current.close();
+            setCurrentInfoWindow(null);
+            currentInfoWindowRef.current = null;
+        }
 
         const newMarkers = [];
 
@@ -187,53 +213,79 @@ const ClubListPage = () => {
                 });
 
                 const infoWindowContent = `
-                    <div style="padding: 15px; width: 300px;">
-                        <h5 style="margin-bottom: 10px; color: #007bff; cursor: pointer;" 
-                            onclick="window.clubListPageInstance.navigateToClub(${club.id})">
-                            ${club.name}
-                        </h5>
-                        <p style="margin: 5px 0;"><strong>위치:</strong> ${club.location || 'N/A'}</p>
-                        <p style="margin: 5px 0;"><strong>전화번호:</strong> ${club.callNumber || 'N/A'}</p>
-                        <p style="margin: 5px 0;"><strong>설명:</strong> ${club.description || 'N/A'}</p>
-                        <p style="margin: 5px 0;"><strong>평점:</strong> ⭐ ${club.averageRating || 0} / 5</p>
-                        ${club.photoUrl ? `
-                            <img src="${club.photoUrl}" 
-                                 alt="클럽 사진" 
-                                 style="width: 100%; max-height: 150px; object-fit: cover; margin-top: 10px; cursor: pointer; display: block;"
-                                 onclick="window.clubListPageInstance.showPhotoModal('${club.photoUrl}')" 
-                                 onerror="this.style.display='none'" />
-                        ` : ''}
-                    </div>
-                `;
+                <div style="padding: 15px; width: 300px;">
+                    <h5 style="margin-bottom: 10px; color: #007bff; cursor: pointer;" 
+                        onclick="window.clubListPageInstance.navigateToClub(${club.id})">
+                        ${club.name}
+                    </h5>
+                    <p style="margin: 5px 0;"><strong>위치:</strong> ${club.location || 'N/A'}</p>
+                    <p style="margin: 5px 0;"><strong>전화번호:</strong> ${club.callNumber || 'N/A'}</p>
+                    <p style="margin: 5px 0;"><strong>설명:</strong> ${club.description || 'N/A'}</p>
+                    <p style="margin: 5px 0;"><strong>평점:</strong> ⭐ ${club.averageRating || 0} / 5</p>
+                    ${club.photoUrl ? `
+                        <img src="${club.photoUrl}" 
+                             alt="클럽 사진" 
+                             style="width: 100%; max-height: 150px; object-fit: cover; margin-top: 10px; cursor: pointer; display: block;"
+                             onclick="window.clubListPageInstance.showPhotoModal('${club.photoUrl}')" 
+                             onerror="this.style.display='none'" />
+                    ` : ''}
+                </div>
+            `;
 
                 const infoWindow = new window.kakao.maps.InfoWindow({
                     content: infoWindowContent
                 });
 
+                // 마커에 정보창 연결
+                marker.infoWindow = infoWindow;
+                marker.isInfoWindowOpen = false;
+                marker.clubName = club.name; // 디버깅용
+
                 // 마커 클릭 이벤트
                 window.kakao.maps.event.addListener(marker, 'click', () => {
-                    // 이전 정보창 닫기
-                    if (currentInfoWindow) {
-                        currentInfoWindow.close();
-                    }
-                    infoWindow.open(map, marker);
-                    setCurrentInfoWindow(infoWindow);
+                    console.log('마커 클릭됨:', club.name);
 
-                    // ESC 키로 정보창 닫기
-                    const handleEscKey = (e) => {
-                        if (e.key === 'Escape') {
-                            infoWindow.close();
-                            setCurrentInfoWindow(null);
-                            document.removeEventListener('keydown', handleEscKey);
+                    // 현재 클릭한 마커의 정보창이 이미 열려있는지 확인
+                    if (marker.isInfoWindowOpen && currentInfoWindowRef.current === infoWindow) {
+                        // 같은 마커를 다시 클릭한 경우 - 정보창 닫기
+                        console.log('같은 마커 재클릭 - 정보창 닫기');
+                        infoWindow.close();
+                        setCurrentInfoWindow(null);
+                        currentInfoWindowRef.current = null;
+                        marker.isInfoWindowOpen = false;
+                    } else {
+                        // 다른 마커를 클릭했거나 정보창이 닫혀있는 경우
+
+                        // 먼저 현재 열려있는 정보창이 있다면 닫기
+                        if (currentInfoWindowRef.current) {
+                            console.log('이전 정보창 닫기');
+                            currentInfoWindowRef.current.close();
+                            // 이전 마커의 상태도 업데이트
+                            markersRef.current.forEach(m => {
+                                if (m.infoWindow === currentInfoWindowRef.current) {
+                                    m.isInfoWindowOpen = false;
+                                    console.log('이전 마커 상태 업데이트:', m.clubName);
+                                }
+                            });
                         }
-                    };
-                    document.addEventListener('keydown', handleEscKey);
+
+                        // 새로운 정보창 열기
+                        console.log('새 정보창 열림:', club.name);
+                        infoWindow.open(map, marker);
+                        setCurrentInfoWindow(infoWindow);
+                        currentInfoWindowRef.current = infoWindow;
+                        marker.isInfoWindowOpen = true;
+                    }
                 });
+
                 newMarkers.push(marker);
             }
         });
 
+        // ref와 state 모두 업데이트dd
+        markersRef.current = newMarkers;
         setMarkers(newMarkers);
+        console.log('마커 표시 완료:', newMarkers.length + '개');
     };
 
     const navigateToClub = (clubId) => {
@@ -271,8 +323,20 @@ const ClubListPage = () => {
 
         // ESC 키로 닫기
         const handleEscKey = (e) => {
-            if (e.key === 'Escape') {
-                closePhotoModal();
+            if (e.key === 'Escape' && currentInfoWindowRef.current) {
+                console.log('ESC 키로 정보창 닫기');
+                currentInfoWindowRef.current.close();
+                setCurrentInfoWindow(null);
+                currentInfoWindowRef.current = null;
+
+                // 모든 마커의 상태 업데이트
+                markersRef.current.forEach(m => {
+                    if (m.isInfoWindowOpen) {
+                        console.log('ESC - 마커 상태 초기화:', m.clubName);
+                        m.isInfoWindowOpen = false;
+                    }
+                });
+                document.removeEventListener('keydown', handleEscKey);
             }
         };
 
