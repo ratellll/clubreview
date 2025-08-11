@@ -20,64 +20,47 @@ const ClubListPage = () => {
 
     // Kakao 지도 스크립트 로드
     useEffect(() => {
-        // DOM이 완전히 렌더링될 때까지 약간 지연
-        const timer = setTimeout(() => {
-            console.log('🔍 DOM 렌더링 후 지도 초기화 시도');
-            console.log('mapRef.current:', mapRef.current);
-
+        const initMap = () => {
             if (!mapRef.current) {
-                console.error('❌ 지도 컨테이너가 아직 준비되지 않음');
+                console.log('❌ 지도 컨테이너 없음');
                 return;
             }
 
-            // HTML에서 이미 로드된 경우 체크
             if (window.kakao && window.kakao.maps) {
-                console.log('✅ Kakao Maps이 이미 로드됨');
+                console.log('✅ Kakao Maps 사용 가능');
                 window.kakao.maps.load(() => {
-                    console.log('✅ Kakao Maps 초기화 완료');
-                    setIsMapLoaded(true);
+                    console.log('✅ Kakao Maps 로드 완료');
                     initializeMap();
+                    setIsMapLoaded(true);
                 });
             } else {
-                console.log('🔄 Kakao Maps 스크립트 동적 로드 시작');
-                // 기존 스크립트가 있는지 확인
-                const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-
-                if (existingScript) {
-                    console.log('📜 기존 Kakao 스크립트 발견, 로드 대기 중...');
-                    existingScript.onload = () => {
-                        window.kakao.maps.load(() => {
-                            console.log('✅ 기존 스크립트로 Kakao Maps 초기화 완료');
-                            setIsMapLoaded(true);
-                            initializeMap();
-                        });
-                    };
-                } else {
-                    console.log('📜 새 Kakao 스크립트 생성 중...');
-                    const script = document.createElement('script');
-                    script.async = true;
-                    script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
-
-                    script.onload = () => {
-                        console.log('✅ 새 스크립트 로드 완료');
-                        window.kakao.maps.load(() => {
-                            console.log('✅ 새 스크립트로 Kakao Maps 초기화 완료');
-                            setIsMapLoaded(true);
-                            initializeMap();
-                        });
-                    };
-
-                    script.onerror = () => {
-                        console.error('❌ Kakao 스크립트 로드 실패');
-                        setError('지도를 불러오는데 실패했습니다.');
-                    };
-
-                    document.head.appendChild(script);
-                }
+                console.log('🔄 Kakao Maps 스크립트 로드 중...');
+                const script = document.createElement('script');
+                script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
+                script.onload = () => {
+                    console.log('✅ 스크립트 로드 완료');
+                    window.kakao.maps.load(() => {
+                        console.log('✅ Kakao Maps 초기화 완료');
+                        initializeMap();
+                        setIsMapLoaded(true);
+                    });
+                };
+                script.onerror = () => {
+                    console.error('❌ 스크립트 로드 실패');
+                    setError('지도를 불러올 수 없습니다.');
+                };
+                document.head.appendChild(script);
             }
-        }, 100); // 100ms 지연으로 DOM 렌더링 대기
+        };
 
-        return () => clearTimeout(timer);
+        // DOM이 준비된 후 실행
+        if (mapRef.current) {
+            initMap();
+        } else {
+            // DOM이 아직 준비되지 않은 경우 약간 지연
+            const timer = setTimeout(initMap, 100);
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     // 클럽 데이터 조회
@@ -87,80 +70,39 @@ const ClubListPage = () => {
 
     // 지도에 마커 표시
     useEffect(() => {
-        if (map && clubs.length > 0 && isMapLoaded) {
+        if (map && clubs.length > 0) {
+            console.log('🔍 마커 표시 시작:', clubs.length + '개 클럽');
             displayMarkersOnMap();
-
-            // 마커 표시 후 지도 크기 한 번 더 재조정
-            setTimeout(() => {
-                console.log('🔄 마커 표시 후 지도 크기 재조정');
-                map.relayout();
-            }, 200);
         }
-    }, [map, clubs, isMapLoaded]);
+    }, [map, clubs]);
 
     const initializeMap = () => {
-        console.log('🗺️ 지도 초기화 시작');
-        console.log('mapRef.current:', mapRef.current);
-        console.log('window.kakao:', !!window.kakao);
-        console.log('window.kakao.maps:', !!window.kakao?.maps);
+        console.log('🗺️ 지도 생성 시작');
 
-        // ref가 null인 경우 DOM에서 직접 찾기
-        let container = mapRef.current;
-        if (!container) {
-            console.log('🔍 ref가 null이므로 DOM에서 직접 찾는 중...');
-            container = document.getElementById('kakao-map-container');
-            if (!container) {
-                console.error('❌ 지도 컨테이너를 찾을 수 없음 (ref와 DOM 모두 실패)');
-                return;
-            }
-            console.log('✅ DOM에서 지도 컨테이너 찾음');
+        if (!mapRef.current) {
+            console.error('❌ 지도 컨테이너를 찾을 수 없음');
+            return;
         }
 
         if (!window.kakao || !window.kakao.maps) {
-            console.error('❌ Kakao Maps API를 사용할 수 없음');
+            console.error('❌ Kakao Maps API 없음');
             return;
         }
 
         try {
             const options = {
-                center: new window.kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심
+                center: new window.kakao.maps.LatLng(37.5665, 126.9780),
                 level: 8
             };
 
             console.log('🗺️ 지도 객체 생성 중...');
-            const kakaoMap = new window.kakao.maps.Map(container, options);
+            const kakaoMap = new window.kakao.maps.Map(mapRef.current, options);
 
-            // 지도 컨테이너 CSS 강제 조정
-            const mapContainer = container.querySelector('.MapWrap') || container;
-            if (mapContainer) {
-                mapContainer.style.width = '100%';
-                mapContainer.style.maxWidth = '100%';
-                mapContainer.style.overflow = 'hidden';
-                mapContainer.style.boxSizing = 'border-box';
-            }
-
-            // 지도 크기 재조정 (중요!)
-            setTimeout(() => {
-                console.log('🔄 지도 크기 재조정 시작');
-                kakaoMap.relayout();
-
-                // 추가 CSS 조정
-                const allMapElements = container.querySelectorAll('*');
-                allMapElements.forEach(el => {
-                    if (el.style.width && el.style.width.includes('px')) {
-                        const parent = el.parentElement;
-                        if (parent && parent.offsetWidth < parseInt(el.style.width)) {
-                            el.style.width = '100%';
-                            el.style.maxWidth = '100%';
-                        }
-                    }
-                });
-
-                console.log('✅ 지도 크기 재조정 완료');
-            }, 100);
+            // 지도 생성 직후 크기 재조정
+            kakaoMap.relayout();
 
             setMap(kakaoMap);
-            console.log('✅ 지도 객체 생성 완료');
+            console.log('✅ 지도 생성 완료');
 
             // 지도 클릭 시 정보창 닫기
             window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
@@ -170,13 +112,11 @@ const ClubListPage = () => {
                 }
             });
 
-            console.log('✅ 지도 이벤트 리스너 등록 완료');
         } catch (error) {
-            console.error('❌ 지도 초기화 중 오류:', error);
-            setError('지도 초기화에 실패했습니다: ' + error.message);
+            console.error('❌ 지도 생성 실패:', error);
+            setError('지도 생성에 실패했습니다.');
         }
     };
-
     const fetchClubs = async () => {
         try {
             setLoading(true);
@@ -253,8 +193,17 @@ const ClubListPage = () => {
                     }
                     infoWindow.open(map, marker);
                     setCurrentInfoWindow(infoWindow);
-                });
 
+                    // ESC 키로 정보창 닫기
+                    const handleEscKey = (e) => {
+                        if (e.key === 'Escape') {
+                            infoWindow.close();
+                            setCurrentInfoWindow(null);
+                            document.removeEventListener('keydown', handleEscKey);
+                        }
+                    };
+                    document.addEventListener('keydown', handleEscKey);
+                });
                 newMarkers.push(marker);
             }
         });
@@ -339,7 +288,6 @@ const ClubListPage = () => {
     useEffect(() => {
         const handleResize = () => {
             if (map) {
-                console.log('🔄 윈도우 리사이즈 - 지도 크기 재조정');
                 map.relayout();
             }
         };
@@ -366,9 +314,8 @@ const ClubListPage = () => {
                             dismissible
                         />
                     )}
-
                     {/* 카카오 지도 */}
-                    <div className="mb-4" style={{ overflow: 'hidden', borderRadius: '8px' }}>
+                    <div className="mb-4">
                         {!isMapLoaded && (
                             <div
                                 style={{
@@ -378,7 +325,8 @@ const ClubListPage = () => {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     backgroundColor: '#f8f9fa',
-                                    borderRadius: '8px'
+                                    borderRadius: '8px',
+                                    border: '1px solid #dee2e6'
                                 }}
                             >
                                 <p className="text-muted">지도를 불러오는 중...</p>
@@ -389,17 +337,13 @@ const ClubListPage = () => {
                             ref={mapRef}
                             style={{
                                 width: '100%',
-                                maxWidth: '100%',
                                 height: '500px',
-                                minHeight: '500px',
                                 borderRadius: '8px',
                                 backgroundColor: '#f8f9fa',
-                                visibility: isMapLoaded ? 'visible' : 'hidden',
-                                position: isMapLoaded ? 'static' : 'absolute',
-                                overflow: 'hidden',
-                                boxSizing: 'border-box'
+                                display: isMapLoaded ? 'block' : 'none'
                             }}
                         ></div>
+                    </div>
                         {error && error.includes('지도') && (
                             <div className="text-center py-3">
                                 <small className="text-danger">
@@ -500,7 +444,6 @@ const ClubListPage = () => {
                     )}
                 </div>
             </div>
-        </div>
     );
 };
 
