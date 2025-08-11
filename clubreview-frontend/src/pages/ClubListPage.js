@@ -30,8 +30,12 @@ const ClubListPage = () => {
                 console.log('✅ Kakao Maps 사용 가능');
                 window.kakao.maps.load(() => {
                     console.log('✅ Kakao Maps 로드 완료');
-                    initializeMap();
+                    // 먼저 지도를 표시하고
                     setIsMapLoaded(true);
+                    // 약간의 지연 후 지도 초기화
+                    setTimeout(() => {
+                        initializeMap();
+                    }, 50);
                 });
             } else {
                 console.log('🔄 Kakao Maps 스크립트 로드 중...');
@@ -41,8 +45,10 @@ const ClubListPage = () => {
                     console.log('✅ 스크립트 로드 완료');
                     window.kakao.maps.load(() => {
                         console.log('✅ Kakao Maps 초기화 완료');
-                        initializeMap();
                         setIsMapLoaded(true);
+                        setTimeout(() => {
+                            initializeMap();
+                        }, 50);
                     });
                 };
                 script.onerror = () => {
@@ -73,6 +79,12 @@ const ClubListPage = () => {
         if (map && clubs.length > 0) {
             console.log('🔍 마커 표시 시작:', clubs.length + '개 클럽');
             displayMarkersOnMap();
+
+            // 마커 표시 후 지도 크기 재조정
+            setTimeout(() => {
+                console.log('🔄 마커 표시 후 relayout');
+                map.relayout();
+            }, 200);
         }
     }, [map, clubs]);
 
@@ -98,11 +110,24 @@ const ClubListPage = () => {
             console.log('🗺️ 지도 객체 생성 중...');
             const kakaoMap = new window.kakao.maps.Map(mapRef.current, options);
 
-            // 지도 생성 직후 크기 재조정
-            kakaoMap.relayout();
-
             setMap(kakaoMap);
             console.log('✅ 지도 생성 완료');
+
+            // 지도 크기 재조정을 여러 번 다른 시점에 실행
+            setTimeout(() => {
+                console.log('🔄 1차 relayout');
+                kakaoMap.relayout();
+            }, 100);
+
+            setTimeout(() => {
+                console.log('🔄 2차 relayout');
+                kakaoMap.relayout();
+            }, 500);
+
+            setTimeout(() => {
+                console.log('🔄 3차 relayout (최종)');
+                kakaoMap.relayout();
+            }, 1000);
 
             // 지도 클릭 시 정보창 닫기
             window.kakao.maps.event.addListener(kakaoMap, 'click', () => {
@@ -288,7 +313,11 @@ const ClubListPage = () => {
     useEffect(() => {
         const handleResize = () => {
             if (map) {
-                map.relayout();
+                console.log('🔄 윈도우 리사이즈 - 지도 크기 재조정');
+                // 리사이즈 후 약간의 지연을 두고 relayout
+                setTimeout(() => {
+                    map.relayout();
+                }, 100);
             }
         };
 
@@ -338,12 +367,14 @@ const ClubListPage = () => {
                             style={{
                                 width: '100%',
                                 height: '500px',
+                                minWidth: '100%',
+                                minHeight: '500px',
                                 borderRadius: '8px',
                                 backgroundColor: '#f8f9fa',
-                                display: isMapLoaded ? 'block' : 'none'
+                                display: isMapLoaded ? 'block' : 'none',
+                                position: 'relative'
                             }}
                         ></div>
-                    </div>
                         {error && error.includes('지도') && (
                             <div className="text-center py-3">
                                 <small className="text-danger">
@@ -444,6 +475,7 @@ const ClubListPage = () => {
                     )}
                 </div>
             </div>
+        </div>
     );
 };
 
