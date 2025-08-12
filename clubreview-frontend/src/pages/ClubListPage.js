@@ -283,6 +283,7 @@ const ClubListPage = () => {
         });
 
         // ref와 state 모두 업데이트dd
+
         markersRef.current = newMarkers;
         setMarkers(newMarkers);
         console.log('마커 표시 완료:', newMarkers.length + '개');

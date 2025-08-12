@@ -15,13 +15,13 @@ function Navigation() {
 
     const handleLogout = () => {
         logout();
-        window.location.href = '/';
+        window.location.href = '/login';
     };
 
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container">
-                <Link className="navbar-brand" to={isAuthenticated ? "/clubs" : "/"}>
+                <Link className="navbar-brand" to={isAuthenticated ? "/clubs" : "/login"}>
                     🎉 클럽의 민족
                 </Link>
                 <div className="navbar-nav ms-auto">
