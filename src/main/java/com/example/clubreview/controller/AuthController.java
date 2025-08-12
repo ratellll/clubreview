@@ -79,11 +79,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody UserDto userDto) {
-        log.info("회원가입 시도: {}", userDto.getUsername());
+        log.info("회원가입 시도: {}", userDto.getUserName());
 
         try {
             userService.registerUser(userDto);
-            log.info("회원가입 성공: {}", userDto.getUsername());
+            log.info("회원가입 성공: {}", userDto.getUserName());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("회원가입이 완료되었습니다."));
 

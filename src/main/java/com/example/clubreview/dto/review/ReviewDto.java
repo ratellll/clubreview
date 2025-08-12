@@ -32,9 +32,9 @@ public class ReviewDto {
     private final Long userId;
     private final Long clubId;
     private final String clubName;
-    private final String userNickname;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final String userNickName;
+    private final LocalDateTime createTime;
+    private final LocalDateTime updateTime;
 
     public static ReviewDto from(Review review) {
         return ReviewDto.builder()
@@ -44,9 +44,9 @@ public class ReviewDto {
                 .userId(review.getUser().getId())
                 .clubId(review.getClub().getId())
                 .clubName(review.getClub().getName())
-                .userNickname(review.getUser().getNickname())
-                .createdAt(review.getCreateTime())
-                .updatedAt(review.getUpdateTime())
+                .userNickName(review.getUser().getNickName())
+                .createTime(review.getCreateTime())
+                .updateTime(review.getUpdateTime())
                 .build();
     }
 }

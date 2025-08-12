@@ -42,6 +42,7 @@ const ClubDetailPage = () => {
         try {
             const response = await clubService.getClubReviews(id);
             console.log('리뷰 데이터:', response); // 디버깅용
+            console.log('첫 번째 리뷰 상세:', response[0]);
             setReviews(response || []); // response가 배열이라면 직접 사용
         } catch (err) {
             console.error('리뷰 조회 실패:', err);
@@ -172,14 +173,14 @@ const ClubDetailPage = () => {
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div>
-                                            <strong>{review.user?.nickname || review.username}</strong>
+                                            <strong>{review.userNickName}</strong>
+                                            <small className="text-muted ms-2">
+                                                {new Date(review.createdAt).toLocaleDateString()}
+                                            </small>
                                             <div className="text-warning">
                                                 {renderStars(review.rating)}
                                             </div>
                                         </div>
-                                        <small className="text-muted">
-                                            {new Date(review.createTime).toLocaleDateString()}
-                                        </small>
                                     </div>
 
                                     {editingReview === review.id ? (
@@ -193,7 +194,8 @@ const ClubDetailPage = () => {
                                             <p className="card-text">{review.comment}</p>
 
                                             {/* 수정/삭제 버튼 (작성자만) */}
-                                            {isAuthenticated && user?.username === (review.user?.username || review.username) && (
+                                            {console.log('권한 체크:', 'isAuthenticated:', isAuthenticated, 'user?.userName:', user?.userName, 'review.userName:', review.userName)}
+                                            {isAuthenticated && user?.userName === review.userName && (
                                                 <div className="mt-2">
                                                     <button
                                                         className="btn btn-sm btn-outline-primary me-2"

@@ -15,20 +15,22 @@ public class ReviewResponse {
     private final Long id;
     private final String comment;
     private final int rating;
-    private final String userNickname;
+    private final String userNickName;
+    private final String userName;
     private final String clubName;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final LocalDateTime createTime;
+    private final LocalDateTime updateTime;
 
     public static ReviewResponse from(Review review) {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .comment(review.getComment())
                 .rating(review.getRating())
-                .userNickname(review.getUser().getNickname())
+                .userNickName(review.getUser().getNickName())
+                .userName(review.getUser().getUserName())
                 .clubName(review.getClub().getName())
-                .createdAt(review.getCreateTime())
-                .updatedAt(review.getUpdateTime())
+                .createTime(review.getCreateTime())
+                .updateTime(review.getUpdateTime())
                 .build();
     }
 }

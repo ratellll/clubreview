@@ -36,34 +36,34 @@ public class DatabaseInitializer {
 
         // 사용자 생성
         User user1 = User.builder()
-                .username("user1")
+                .userName("user1")
                 .password(passwordEncoder.encode("password123"))
                 .phoneNumber("01012341235")
-                .nickname("홍길동")
+                .nickName("홍길동")
                 .role(User.Role.USER)
                 .build();
 
         User user2 = User.builder()
-                .username("user2")
+                .userName("user2")
                 .password(passwordEncoder.encode("password123"))
                 .phoneNumber("01095743212")
-                .nickname("바둑이")
+                .nickName("바둑이")
                 .role(User.Role.USER)
                 .build();
 
         User user3 = User.builder()
-                .username("user3")
+                .userName("user3")
                 .password(passwordEncoder.encode("password123"))
                 .phoneNumber("01098871623")
-                .nickname("이방인")
+                .nickName("이방인")
                 .role(User.Role.USER)
                 .build();
 
         User admin = User.builder()
-                .username("admin")
+                .userName("admin")
                 .password(passwordEncoder.encode("admin123"))
                 .phoneNumber("01073751673")
-                .nickname("어드민")
+                .nickName("어드민")
                 .role(User.Role.ADMIN)
                 .build();
 

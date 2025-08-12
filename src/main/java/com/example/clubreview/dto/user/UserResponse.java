@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserResponse {
     private final Long id;
-    private final String username;
-    private final String nickname;
+    private final String userName;
+    private final String nickName;
     private final String phoneNumber;
     private final LocalDateTime createTime;
     private final LocalDateTime banEndTime;
@@ -24,8 +24,8 @@ public class UserResponse {
     public static UserResponse from(User user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .username(user.getUsername())
-                .nickname(user.getNickname())
+                .userName(user.getUserName())
+                .nickName(user.getNickName())
                 .phoneNumber(user.getPhoneNumber())
                 .createTime(user.getCreateTime())
                 .banEndTime(user.getBanEndTime())

@@ -38,8 +38,8 @@ public class ClubDto {
 
     private final String photoUrl;
     private final double averageRating;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final LocalDateTime createTime;
+    private final LocalDateTime updateTime;
 
     public static ClubDto from(Club club) {
         return ClubDto.builder()
@@ -52,8 +52,8 @@ public class ClubDto {
                 .longitude(club.getLongitude())
                 .photoUrl(club.getPhotoUrl())
                 .averageRating(club.getAverageRating())
-                .createdAt(club.getCreatedAt())
-                .updatedAt(club.getUpdatedAt())
+                .createTime(club.getCreateTime())
+                .updateTime(club.getUpdateTime())
                 .build();
     }
 

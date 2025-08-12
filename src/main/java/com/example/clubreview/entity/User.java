@@ -27,13 +27,13 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String userName;
 
     @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, unique = true)
-    private String nickname;
+    private String nickName;
 
     @Column(nullable = false, unique = true, length = 11)
     private String phoneNumber;
@@ -72,7 +72,7 @@ public class User {
 
     public User updateNickname(String newNickname) {
         return this.toBuilder()
-                .nickname(newNickname)
+                .nickName(newNickname)
                 .build();
     }
 

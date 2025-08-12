@@ -23,8 +23,8 @@ public class ClubResponse {
     private final double longitude;
     private final double averageRating;
     private final String photoUrl;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final LocalDateTime createTime;
+    private final LocalDateTime updateTime;
 
     public static ClubResponse from(Club club) {
         return ClubResponse.builder()
@@ -37,8 +37,8 @@ public class ClubResponse {
                 .longitude(club.getLongitude())
                 .averageRating(club.getAverageRating())
                 .photoUrl(club.getPhotoUrl())
-                .createdAt(club.getCreatedAt())
-                .updatedAt(club.getUpdatedAt())
+                .createTime(club.getCreateTime())
+                .updateTime(club.getUpdateTime())
                 .build();
     }
 }

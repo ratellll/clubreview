@@ -25,7 +25,7 @@ public class UserService {
 
     @Transactional
     public User registerUser(UserDto userDto) {
-        log.info("회원가입 시도: {}", userDto.getUsername());
+        log.info("회원가입 시도: {}", userDto.getUserName());
 
         // 중복 검사
         validateUserUniqueness(userDto);
@@ -35,9 +35,9 @@ public class UserService {
 
         // 사용자 생성
         User user = User.builder()
-                .username(userDto.getUsername())
+                .userName(userDto.getUserName())
                 .password(passwordEncoder.encode(userDto.getPassword()))
-                .nickname(userDto.getNickname())
+                .nickName(userDto.getNickName())
                 .phoneNumber(userDto.getPhoneNumber().replaceAll("-", ""))
                 .role(User.Role.USER)
                 .build();
@@ -54,9 +54,9 @@ public class UserService {
         }
 
         return switch (type.toLowerCase()) {
-            case "username" -> !userRepository.existsByUsername(value);
+            case "username" -> !userRepository.existsByUserName(value);
             case "phonenumber" -> !userRepository.existsByPhoneNumber(value.replaceAll("-", ""));
-            case "nickname" -> !userRepository.existsByNickname(value);
+            case "nickname" -> !userRepository.existsByNickName(value);
             default -> throw new IllegalArgumentException("유효하지 않은 타입입니다: " + type);
         };
     }
@@ -75,9 +75,9 @@ public class UserService {
         log.info("사용자 삭제 완료: {}", id);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + username));
+    public User findByUsername(String userName) {
+        return userRepository.findByUserName(userName)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + userName));
     }
 
     public User findById(Long id) {
@@ -117,17 +117,17 @@ public class UserService {
 
 
     @Transactional
-    public User updateNickname(String username, String newNickname) {
-        log.info("닉네임 변경: {} -> {}", username, newNickname);
+    public User updateNickname(String username, String newNickName) {
+        log.info("닉네임 변경: {} -> {}", username, newNickName);
 
-        validateNickname(newNickname);
+        validateNickname(newNickName);
 
         User user = findByUsername(username);
-        if (!user.getNickname().equals(newNickname) && userRepository.existsByNickname(newNickname)) {
+        if (!user.getNickName().equals(newNickName) && userRepository.existsByNickName(newNickName)) {
             throw new DataIntegrityViolationException("이미 사용 중인 닉네임입니다.");
         }
 
-        User updatedUser = user.updateNickname(newNickname);
+        User updatedUser = user.updateNickname(newNickName);
         User savedUser = userRepository.save(updatedUser);
 
         log.info("닉네임 변경 완료: {}", savedUser.getId());
@@ -149,10 +149,10 @@ public class UserService {
     }
 
     private void validateUserUniqueness(UserDto userDto) {
-        if (userRepository.existsByUsername(userDto.getUsername())) {
+        if (userRepository.existsByUserName(userDto.getUserName())) {
             throw new DataIntegrityViolationException("이미 존재하는 아이디입니다.");
         }
-        if (userRepository.existsByNickname(userDto.getNickname())) {
+        if (userRepository.existsByNickName(userDto.getNickName())) {
             throw new DataIntegrityViolationException("이미 존재하는 닉네임입니다.");
         }
         if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber().replaceAll("-", ""))) {
@@ -161,7 +161,7 @@ public class UserService {
     }
 
     private void validateUserData(UserDto userDto) {
-        validateNickname(userDto.getNickname());
+        validateNickname(userDto.getNickName());
         validatePassword(userDto.getPassword());
         validatePhoneNumber(userDto.getPhoneNumber());
     }

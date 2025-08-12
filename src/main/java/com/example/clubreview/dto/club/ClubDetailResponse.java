@@ -27,8 +27,8 @@ public class ClubDetailResponse {
     private final double averageRating;
     private final String photoUrl;
     private final List<ReviewResponse> reviews;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private final LocalDateTime createTime;
+    private final LocalDateTime updateTime;
 
     public static ClubDetailResponse from(Club club) {
         List<ReviewResponse> reviewResponses = club.getReviews().stream()
@@ -46,8 +46,8 @@ public class ClubDetailResponse {
                 .averageRating(club.getAverageRating())
                 .photoUrl(club.getPhotoUrl())
                 .reviews(reviewResponses)
-                .createdAt(club.getCreatedAt())
-                .updatedAt(club.getUpdatedAt())
+                .createTime(club.getCreateTime())
+                .updateTime(club.getUpdateTime())
                 .build();
     }
 }

@@ -9,7 +9,7 @@ const LoginPage = () => {
     const { login, isAuthenticated } = useAuth();
 
     const [formData, setFormData] = useState({
-        username: '',
+        userName: '',
         password: ''
     });
     const [loading, setLoading] = useState(false);
@@ -45,7 +45,7 @@ const LoginPage = () => {
         e.preventDefault();
 
         // 유효성 검사
-        if (!formData.username.trim()) {
+        if (!formData.userName.trim()) {
             setError('아이디를 입력해주세요.');
             return;
         }
@@ -103,19 +103,19 @@ const LoginPage = () => {
                             {/* 로그인 폼 */}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
-                                    <label htmlFor="username" className="form-label">
+                                    <label htmlFor="userName" className="form-label">
                                         아이디 <span className="text-danger">*</span>
                                     </label>
                                     <input
                                         type="text"
-                                        className={`form-control ${error && !formData.username ? 'is-invalid' : ''}`}
-                                        id="username"
-                                        name="username"
-                                        value={formData.username}
+                                        className={`form-control ${error && !formData.userName ? 'is-invalid' : ''}`}
+                                        id="userName"
+                                        name="userName"
+                                        value={formData.userName}
                                         onChange={handleChange}
                                         placeholder="아이디를 입력하세요"
                                         disabled={loading}
-                                        autoComplete="username"
+                                        autoComplete="userName"
                                     />
                                 </div>
 

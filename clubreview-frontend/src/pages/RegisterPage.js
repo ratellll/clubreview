@@ -7,9 +7,9 @@ const RegisterPage = () => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        username: '',
+        userName: '',
         password: '',
-        nickname: '',
+        nickName: '',
         phoneNumber: ''
     });
 
@@ -61,12 +61,12 @@ const RegisterPage = () => {
         }
 
         // 추가 유효성 검사
-        if (type === 'username' && value.length < 4) {
+        if (type === 'userName' && value.length < 4) {
             updateValidationResult(type, false, false, '아이디는 최소 4자 이상이어야 합니다.');
             return;
         }
 
-        if (type === 'nickname' && !/^[가-힣]+$/.test(value)) {
+        if (type === 'nickName' && !/^[가-힣]+$/.test(value)) {
             updateValidationResult(type, false, false, '닉네임은 한글만 입력 가능합니다.');
             return;
         }
@@ -99,8 +99,8 @@ const RegisterPage = () => {
 
     const getDisplayName = (type) => {
         const names = {
-            username: '아이디',
-            nickname: '닉네임',
+            userName: '아이디',
+            nickName: '닉네임',
             phoneNumber: '휴대폰 번호'
         };
         return names[type] || '항목';
@@ -110,12 +110,12 @@ const RegisterPage = () => {
         e.preventDefault();
 
         // 유효성 검사
-        if (!validationResults.username.checked || !validationResults.username.available) {
+        if (!validationResults.userName.checked || !validationResults.userName.available) {
             setError('아이디 중복 체크를 완료하세요.');
             return;
         }
 
-        if (!validationResults.nickname.checked || !validationResults.nickname.available) {
+        if (!validationResults.nickName.checked || !validationResults.nickName.available) {
             setError('닉네임 중복 체크를 완료하세요.');
             return;
         }
@@ -197,28 +197,28 @@ const RegisterPage = () => {
                                     <div className="input-group">
                                         <input
                                             type="text"
-                                            className={`form-control ${validationResults.username.checked ?
-                                                (validationResults.username.available ? 'is-valid' : 'is-invalid') : ''}`}
+                                            className={`form-control ${validationResults.userName.checked ?
+                                                (validationResults.userName.available ? 'is-valid' : 'is-invalid') : ''}`}
                                             id="username"
                                             name="username"
-                                            value={formData.username}
+                                            value={formData.useNname}
                                             onChange={handleChange}
                                             placeholder="아이디를 입력하세요"
-                                            disabled={loading || validationResults.username.available}
+                                            disabled={loading || validationResults.userName.available}
                                             required
                                         />
                                         <button
                                             type="button"
                                             className="btn btn-outline-secondary"
-                                            onClick={() => checkDuplicate('username')}
-                                            disabled={loading || validationResults.username.available || !formData.username.trim()}
+                                            onClick={() => checkDuplicate('userName')}
+                                            disabled={loading || validationResults.userName.available || !formData.userName.trim()}
                                         >
                                             중복 체크
                                         </button>
                                     </div>
-                                    {validationResults.username.message && (
-                                        <div className={`mt-1 small ${validationResults.username.available ? 'text-success' : 'text-danger'}`}>
-                                            {validationResults.username.message}
+                                    {validationResults.userName.message && (
+                                        <div className={`mt-1 small ${validationResults.userName.available ? 'text-success' : 'text-danger'}`}>
+                                            {validationResults.userName.message}
                                         </div>
                                     )}
                                 </div>
@@ -255,29 +255,29 @@ const RegisterPage = () => {
                                     <div className="input-group">
                                         <input
                                             type="text"
-                                            className={`form-control ${validationResults.nickname.checked ?
-                                                (validationResults.nickname.available ? 'is-valid' : 'is-invalid') : ''}`}
+                                            className={`form-control ${validationResults.nickName.checked ?
+                                                (validationResults.nickName.available ? 'is-valid' : 'is-invalid') : ''}`}
                                             id="nickname"
                                             name="nickname"
-                                            value={formData.nickname}
+                                            value={formData.nickName}
                                             onChange={handleChange}
                                             placeholder="닉네임을 입력하세요 (한글만)"
-                                            disabled={loading || validationResults.nickname.available}
+                                            disabled={loading || validationResults.nickName.available}
                                             pattern="^[가-힣]+$"
                                             required
                                         />
                                         <button
                                             type="button"
                                             className="btn btn-outline-secondary"
-                                            onClick={() => checkDuplicate('nickname')}
-                                            disabled={loading || validationResults.nickname.available || !formData.nickname.trim()}
+                                            onClick={() => checkDuplicate('nickName')}
+                                            disabled={loading || validationResults.nickName.available || !formData.nickName.trim()}
                                         >
                                             중복 체크
                                         </button>
                                     </div>
-                                    {validationResults.nickname.message && (
-                                        <div className={`mt-1 small ${validationResults.nickname.available ? 'text-success' : 'text-danger'}`}>
-                                            {validationResults.nickname.message}
+                                    {validationResults.nickName.message && (
+                                        <div className={`mt-1 small ${validationResults.nickName.available ? 'text-success' : 'text-danger'}`}>
+                                            {validationResults.nickName.message}
                                         </div>
                                     )}
                                 </div>

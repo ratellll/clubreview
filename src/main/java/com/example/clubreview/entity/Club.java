@@ -43,10 +43,10 @@ public class Club {
 
     @CreatedDate
     @Column(updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createTime;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateTime;
 
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

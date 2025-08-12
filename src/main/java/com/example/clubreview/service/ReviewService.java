@@ -58,7 +58,7 @@ public class ReviewService {
 
     @Transactional
     public Review addReview(Long clubId, User user, int rating, String comment, LocalDateTime createTime) {
-        log.info("리뷰 생성: 클럽 {}, 사용자 {}", clubId, user.getUsername());
+        log.info("리뷰 생성: 클럽 {}, 사용자 {}", clubId, user.getUserName());
 
         // 중복 리뷰 체크
         if (reviewRepository.findByUserIdAndClubId(user.getId(), clubId).isPresent()) {
@@ -78,9 +78,9 @@ public class ReviewService {
     }
 
     @Transactional
-    public void userReviewAccess(Long reviewId, String username) {
+    public void userReviewAccess(Long reviewId, String userName) {
         Review review = getReviewById(reviewId);
-        if (!review.getUser().getUsername().equals(username)) {
+        if (!review.getUser().getUserName().equals(userName)) {
             throw new SecurityException("본인의 리뷰만 수정 및 삭제가 가능합니다.");
         }
     }
@@ -92,7 +92,7 @@ public class ReviewService {
         Review review = getReviewById(reviewId);
 
         // 권한 체크
-        if (!review.getUser().getUsername().equals(currentUser)) {
+        if (!review.getUser().getUserName().equals(currentUser)) {
             throw new SecurityException("본인의 리뷰만 수정 및 삭제가 가능합니다.");
         }
 
