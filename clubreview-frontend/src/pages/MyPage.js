@@ -16,8 +16,8 @@ const MyPage = () => {
     const [reviews, setReviews] = useState([]);
     const [editingReview, setEditingReview] = useState(null);
 
-    const [nicknameForm, setNicknameForm] = useState({
-        nickname: '',
+    const [nickNameForm, setNickNameForm] = useState({
+        nickName: '',
         checked: false,
         available: false,
         message: ''
@@ -59,10 +59,10 @@ const MyPage = () => {
     };
 
     const checkNicknameDuplicate = async () => {
-        const nickname = nicknameForm.nickname.trim();
+        const nickName = nickNameForm.nickName.trim();
 
-        if (!nickname) {
-            setNicknameForm(prev => ({
+        if (!nickName) {
+            setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
                 available: false,
@@ -71,8 +71,8 @@ const MyPage = () => {
             return;
         }
 
-        if (!/^[가-힣]+$/.test(nickname)) {
-            setNicknameForm(prev => ({
+        if (!/^[가-힣]+$/.test(nickName)) {
+            setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
                 available: false,
@@ -81,8 +81,8 @@ const MyPage = () => {
             return;
         }
 
-        if (nickname.length < 2 || nickname.length > 5) {
-            setNicknameForm(prev => ({
+        if (nickName.length < 2 || nickName.length > 5) {
+            setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
                 available: false,
@@ -92,15 +92,15 @@ const MyPage = () => {
         }
 
         try {
-            const isAvailable = await authService.checkDuplicate('nickname', nickname);
-            setNicknameForm(prev => ({
+            const isAvailable = await authService.checkDuplicate('nickName', nickName);
+            setNickNameForm(prev => ({
                 ...prev,
                 checked: true,
                 available: isAvailable,
                 message: isAvailable ? '사용 가능한 닉네임입니다.' : '이미 사용 중인 닉네임입니다.'
             }));
         } catch (err) {
-            setNicknameForm(prev => ({
+            setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
                 available: false,
@@ -119,18 +119,18 @@ const MyPage = () => {
         }));
     };
 
-    const handleNicknameSubmit = async (e) => {
+    const handleNickNameSubmit = async (e) => {
         e.preventDefault();
 
-        if (!nicknameForm.checked || !nicknameForm.available) {
+        if (!nickNameForm.checked || !nickNameForm.available) {
             setError('닉네임 중복 체크를 완료하세요.');
             return;
         }
 
         try {
-            await userService.updateNickname(nicknameForm.nickname);
+            await userService.updateNickName(nickNameForm.nickName);
             setSuccess('닉네임이 변경되었습니다.');
-            setNicknameForm({ nickname: '', checked: false, available: false, message: '' });
+            setNickNameForm({ nickName: '', checked: false, available: false, message: '' });
             fetchMyPageData(); // 데이터 새로고침
         } catch (err) {
             setError(err.message);
@@ -219,10 +219,10 @@ const MyPage = () => {
                                 <h3 className="card-title">👤 내 정보</h3>
                                 <div className="row">
                                     <div className="col-md-4">
-                                        <strong>아이디:</strong> {myPageData.user?.username || user?.username}
+                                        <strong>아이디:</strong> {myPageData.user?.userName || user?.userName}
                                     </div>
                                     <div className="col-md-4">
-                                        <strong>닉네임:</strong> {myPageData.user?.nickname}
+                                        <strong>닉네임:</strong> {myPageData.user?.nickName}
                                     </div>
                                     <div className="col-md-4">
                                         <strong>전화번호:</strong> {myPageData.user?.phoneNumber}
@@ -236,43 +236,43 @@ const MyPage = () => {
                     <div className="card mb-4">
                         <div className="card-body">
                             <h3 className="card-title">✏️ 닉네임 변경</h3>
-                            <form onSubmit={handleNicknameSubmit}>
+                            <form onSubmit={handleNickNameSubmit}>
                                 <div className="mb-3">
                                     <div className="input-group">
                                         <input
                                             type="text"
-                                            className={`form-control ${nicknameForm.checked ?
-                                                (nicknameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
-                                            value={nicknameForm.nickname}
-                                            onChange={(e) => setNicknameForm(prev => ({
+                                            className={`form-control ${nickNameForm.checked ?
+                                                (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
+                                            value={nickNameForm.nickName}
+                                            onChange={(e) => setNickNameForm(prev => ({
                                                 ...prev,
-                                                nickname: e.target.value,
+                                                nickName: e.target.value,
                                                 checked: false,
                                                 available: false,
                                                 message: ''
                                             }))}
                                             placeholder="새로운 닉네임을 입력하세요"
-                                            disabled={nicknameForm.available}
+                                            disabled={nickNameForm.available}
                                         />
                                         <button
                                             type="button"
                                             className="btn btn-outline-secondary"
                                             onClick={checkNicknameDuplicate}
-                                            disabled={nicknameForm.available || !nicknameForm.nickname.trim()}
+                                            disabled={nickNameForm.available || !nickNameForm.nickName.trim()}
                                         >
                                             중복 체크
                                         </button>
                                     </div>
-                                    {nicknameForm.message && (
-                                        <div className={`mt-1 small ${nicknameForm.available ? 'text-success' : 'text-danger'}`}>
-                                            {nicknameForm.message}
+                                    {nickNameForm.message && (
+                                        <div className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
+                                            {nickNameForm.message}
                                         </div>
                                     )}
                                 </div>
                                 <button
                                     type="submit"
                                     className="btn btn-primary"
-                                    disabled={!nicknameForm.checked || !nicknameForm.available}
+                                    disabled={!nickNameForm.checked || !nickNameForm.available}
                                 >
                                     닉네임 변경
                                 </button>

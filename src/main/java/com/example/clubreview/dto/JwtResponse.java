@@ -14,14 +14,14 @@ import java.time.LocalDateTime;
 public class JwtResponse {
 
     private final String token;
-    private final String username;
+    private final String userName;
     private final String tokenType;
     private final LocalDateTime expiresAt;
 
-    public static JwtResponse of(String token, String username, LocalDateTime expiresAt) {
+    public static JwtResponse of(String token, String userName, LocalDateTime expiresAt) {
         return JwtResponse.builder()
                 .token(token)
-                .username(username)
+                .userName(userName)
                 .tokenType("Bearer")
                 .expiresAt(expiresAt)
                 .build();

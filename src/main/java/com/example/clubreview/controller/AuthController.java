@@ -104,7 +104,7 @@ public class AuthController {
 
     @GetMapping("/check")
     public ResponseEntity<ApiResponse<Boolean>> checkDuplicate(
-            @RequestParam @Valid @Pattern(regexp = "username|phoneNumber|nickname") String type,
+            @RequestParam @Valid @Pattern(regexp = "userName|phoneNumber|nickName") String type,
             @RequestParam @NotBlank String value) {
 
         try {

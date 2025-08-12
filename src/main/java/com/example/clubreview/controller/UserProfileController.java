@@ -109,15 +109,15 @@ public class UserProfileController {
         }
     }
 
-    @PutMapping("/nickname")
-    public ResponseEntity<ApiResponse<UserResponse>> updateNickname(
+    @PutMapping("/nickName")
+    public ResponseEntity<ApiResponse<UserResponse>> updateNickName(
             @Valid @RequestBody UserUpdateRequest request,
             Authentication authentication) {
 
         log.info("닉네임 변경 요청: {}", authentication.getName());
 
         try {
-            User updatedUser = myPageService.updateNickName(authentication.getName(), request.getNickname());
+            User updatedUser = myPageService.updateNickName(authentication.getName(), request.getNickName());
             UserResponse response = UserResponse.from(updatedUser);
 
             return ResponseEntity.ok(ApiResponse.success("닉네임이 변경되었습니다.", response));

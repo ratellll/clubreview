@@ -17,7 +17,7 @@ const RegisterPage = () => {
     const [error, setError] = useState('');
     const [validationResults, setValidationResults] = useState({
         username: { checked: false, available: false, message: '' },
-        nickname: { checked: false, available: false, message: '' },
+        nickName: { checked: false, available: false, message: '' },
         phoneNumber: { checked: false, available: false, message: '' },
         password: { valid: false, message: '' }
     });

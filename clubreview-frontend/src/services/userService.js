@@ -63,9 +63,9 @@ export const userService = {
     },
 
     // 닉네임 변경
-    async updateNickname(nickname) {
+    async updateNickName(nickName) {
         try {
-            const response = await api.put('/users/profile/nickname', { nickname });
+            const response = await api.put('/users/profile/nickName', { nickName });
             return response.data.data;
         } catch (error) {
             console.error('닉네임 변경 실패:', error);

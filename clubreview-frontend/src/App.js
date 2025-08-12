@@ -30,7 +30,7 @@ function Navigation() {
                     {isAuthenticated ? (
                         <>
                             <Link className="nav-link" to="/mypage">마이페이지</Link>
-                            <span className="nav-link">안녕하세요, {user?.username}님!</span>
+                            <span className="nav-link">안녕하세요, {user?.nickName}님!</span>
                             <button
                                 className="nav-link btn btn-link"
                                 onClick={handleLogout}
@@ -50,6 +50,7 @@ function Navigation() {
         </nav>
     );
 }
+
 
 function App() {
     return (

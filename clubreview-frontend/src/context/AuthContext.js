@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 
 const AuthContext = createContext();
 
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
                 // 토큰 만료 시간 확인
                 if (payload.exp * 1000 > Date.now()) {
-                    setUser({ username: payload.sub });
+                    setUser({ userName: payload.sub });
                     setIsAuthenticated(true);
                 } else {
                     // 토큰이 만료된 경우
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             localStorage.setItem('token', response.token);
-            setUser({ username: response.username });
+            setUser({ userName: response.userName,nickName:response.nickName });
             setIsAuthenticated(true);
             return response;
         } catch (error) {

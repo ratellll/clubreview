@@ -175,7 +175,7 @@ const ClubDetailPage = () => {
                                         <div>
                                             <strong>{review.userNickName}</strong>
                                             <small className="text-muted ms-2">
-                                                {new Date(review.createdAt).toLocaleDateString()}
+                                                {new Date(review.createTime).toLocaleDateString()}
                                             </small>
                                             <div className="text-warning">
                                                 {renderStars(review.rating)}
@@ -194,7 +194,6 @@ const ClubDetailPage = () => {
                                             <p className="card-text">{review.comment}</p>
 
                                             {/* 수정/삭제 버튼 (작성자만) */}
-                                            {console.log('권한 체크:', 'isAuthenticated:', isAuthenticated, 'user?.userName:', user?.userName, 'review.userName:', review.userName)}
                                             {isAuthenticated && user?.userName === review.userName && (
                                                 <div className="mt-2">
                                                     <button

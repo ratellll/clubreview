@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Configuration
@@ -111,6 +112,7 @@ public class DatabaseInitializer {
                     .rating(5)
                     .club(club)
                     .user(user1)
+                    .createTime(LocalDateTime.now().minusDays(1))
                     .build();
 
             Review review2 = Review.builder()
@@ -118,6 +120,7 @@ public class DatabaseInitializer {
                     .rating(4)
                     .club(club)
                     .user(user2)
+                    .createTime(LocalDateTime.now().minusDays(2))
                     .build();
 
             Review review3 = Review.builder()
@@ -125,6 +128,7 @@ public class DatabaseInitializer {
                     .rating(3)
                     .club(club)
                     .user(user3)
+                    .createTime(LocalDateTime.now().minusDays(3))
                     .build();
 
             reviewRepository.saveAll(List.of(review1, review2, review3));
