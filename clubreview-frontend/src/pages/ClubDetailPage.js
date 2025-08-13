@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { clubService } from '../services/clubService';
 import { reviewService } from '../services/reviewService';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import Alert from '../components/common/Alert';
 const ClubDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { isAuthenticated, user } = useAuth();
 
     const [club, setClub] = useState(null);
@@ -27,6 +28,14 @@ const ClubDetailPage = () => {
             fetchClubReviews();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (location.state?.refresh && id) {
+            console.log('클럽상세 새로고침됨');
+            fetchClubDetail(); // 클럽 정보 다시 로드
+            fetchClubReviews(); // 리뷰 목록 다시 로드
+        }
+        }, [location.state?.refresh, id]);
 
     const fetchClubDetail = async () => {
         try {

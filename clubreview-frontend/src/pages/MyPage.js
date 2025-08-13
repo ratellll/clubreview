@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/userService';
+import { useLocation } from 'react-router-dom';
 import { reviewService } from '../services/reviewService';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +9,7 @@ import Alert from '../components/common/Alert';
 
 const MyPage = () => {
     const { user, updateUser } = useAuth();
+    const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -33,6 +35,14 @@ const MyPage = () => {
         fetchMyPageData();
         fetchMyReviews();
     }, []);
+
+    useEffect(() => {
+        if (location.state?.refresh) {
+                        console.log('마이페이지 새로고침됨');
+                        fetchMyPageData(); // 사용자 정보 다시 로드
+                        fetchMyReviews(); // 리뷰 목록 다시 로드
+                    }
+            }, [location.state?.refresh]);
 
     const fetchMyPageData = async () => {
         try {

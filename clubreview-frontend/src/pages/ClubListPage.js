@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { clubService } from '../services/clubService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Alert from '../components/common/Alert';
 
 const ClubListPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const mapRef = useRef(null);
     const [clubs, setClubs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,13 +18,20 @@ const ClubListPage = () => {
     const [markers, setMarkers] = useState([]);
     const [currentInfoWindow, setCurrentInfoWindow] = useState(null);
     const [isMapLoaded, setIsMapLoaded] = useState(false);
+    const [isMapInitializing, setIsMapInitializing] = useState(false);
 
     // Kakao 지도 스크립트 로드
     useEffect(() => {
-
         const initMap = async () => {
+            if (isMapInitializing) {
+                console.log('⏸️ 지도 초기화 이미 진행 중...');
+                return;
+            }
+            setIsMapInitializing(true);
+
             if (!mapRef.current) {
                 console.log('❌ 지도 컨테이너 없음');
+                setIsMapInitializing(false);
                 setTimeout(initMap, 200);
                 return;
             }
@@ -56,6 +64,7 @@ const ClubListPage = () => {
                 script.onerror = () => {
                     console.error('❌ 스크립트 로드 실패');
                     setError('지도를 불러올 수 없습니다.');
+                    setIsMapInitializing(false);
                 };
                 document.head.appendChild(script);
             }
@@ -81,7 +90,24 @@ const ClubListPage = () => {
         fetchClubs();
     }, [sortBy, currentPage]);
 
-
+    useEffect(() => {
+        if (location.state?.refresh) {
+            console.log('클럽목록 새로고침됨');
+        // 지도 초기화 (기존 지도 정리 후 재생성)
+            if (map) {
+                console.log('🗑️ 기존 지도 정리 중...');
+                setMap(null);
+                setMarkers([]);
+                setIsMapLoaded(false);
+                setIsMapInitializing(false);
+                // 약간의 지연 후 지도 다시 초기화
+                setTimeout(() => {
+                    initMap();
+                    }, 100);
+            }
+            fetchClubs(); // 클럽 데이터 다시 로드
+        }
+        }, [location.state?.refresh]);
 
     // 지도에 마커 표시
     useEffect(() => {
@@ -120,6 +146,7 @@ const ClubListPage = () => {
             const kakaoMap = new window.kakao.maps.Map(mapRef.current, options);
 
             setMap(kakaoMap);
+            setIsMapInitializing(false);
             console.log('✅ 지도 생성 완료');
 
             // 지도 크기 재조정을 여러 번 다른 시점에 실행
@@ -165,6 +192,7 @@ const ClubListPage = () => {
         } catch (error) {
             console.error('❌ 지도 생성 실패:', error);
             setError('지도 생성에 실패했습니다.');
+            setIsMapInitializing(false);
         }
     };
     const fetchClubs = async () => {
