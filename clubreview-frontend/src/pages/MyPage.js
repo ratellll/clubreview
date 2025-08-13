@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import Alert from '../components/common/Alert';
 
 const MyPage = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -131,6 +131,7 @@ const MyPage = () => {
             await userService.updateNickName(nickNameForm.nickName);
             setSuccess('닉네임이 변경되었습니다.');
             setNickNameForm({ nickName: '', checked: false, available: false, message: '' });
+            updateUser({ nickName: nickNameForm.nickName });
             fetchMyPageData(); // 데이터 새로고침
         } catch (err) {
             setError(err.message);

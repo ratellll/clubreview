@@ -56,7 +56,15 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             localStorage.setItem('token', response.token);
-            setUser({ userName: response.userName,nickName:response.nickName });
+            try {
+                const userProfile = await userService.getMyPage();
+                setUser({
+                        username: response.username,
+                        nickName: userProfile.user.nickName
+                });
+            } catch (error) {
+                setUser({ username: response.username });
+            }
             setIsAuthenticated(true);
             return response;
         } catch (error) {
@@ -73,6 +81,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updateUser = (updateData) =>{
+        setUser(prevUser => ({
+            ...prevUser,
+            updateData
+        }));
+    };
+
+    const refreshUser = async () => {
+        await checkAuthStatus();
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         setUser(null);
@@ -85,7 +104,9 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
-        logout
+        logout,
+        updateUser,
+        refreshUser
     };
 
     return (

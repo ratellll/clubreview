@@ -11,7 +11,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import './App.css';
 
 function Navigation() {
-    const { isAuthenticated, user, logout } = useAuth();
+    const { isAuthenticated, user, logout, updateUser } = useAuth();
 
     const handleLogout = () => {
         logout();
