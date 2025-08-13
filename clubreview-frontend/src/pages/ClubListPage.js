@@ -20,6 +20,7 @@ const ClubListPage = () => {
 
     // Kakao 지도 스크립트 로드
     useEffect(() => {
+
         const initMap = async () => {
             if (!mapRef.current) {
                 console.log('❌ 지도 컨테이너 없음');
@@ -79,6 +80,8 @@ const ClubListPage = () => {
     useEffect(() => {
         fetchClubs();
     }, [sortBy, currentPage]);
+
+
 
     // 지도에 마커 표시
     useEffect(() => {

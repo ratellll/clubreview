@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -12,25 +12,46 @@ import './App.css';
 
 function Navigation() {
     const { isAuthenticated, user, logout, updateUser } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logout();
         window.location.href = '/login';
     };
 
+    const handleNavigation = (path) => {
+        if (location.pathname === path) {
+            // 같은 경로인 경우 강제 새로고침
+            navigate(path, { replace: true, state: { refresh: Date.now() } });
+        } else {
+            // 다른 경로인 경우 일반 이동
+            navigate(path);
+        }
+    };
+
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <div className="container">
-                <Link className="navbar-brand" to={isAuthenticated ? "/clubs" : "/login"}>
-                    🎉 클럽의 민족
-                </Link>
+                <button className="navbar-brand btn btn-link"
+                        onClick={() => handleNavigation(isAuthenticated ? "/clubs" : "/login")}
+                        style={{ border: 'none', background: 'none', textDecoration: 'none' }}>
+                🎉 클럽의 민족
+                </button>
                 <div className="navbar-nav ms-auto">
-                    <Link className="nav-link" to="/clubs">클럽 목록</Link>
-
+                    <button className="nav-link btn btn-link"
+                            onClick={() => handleNavigation("/clubs")}
+                            style={{ border: 'none', background: 'none' }}>
+                            클럽 목록
+                    </button>
                     {isAuthenticated ? (
                         <>
-                            <Link className="nav-link" to="/mypage">마이페이지</Link>
-                            <span className="nav-link">안녕하세요, {user?.nickName}님!</span>
+                        <button className="nav-link btn btn-link"
+                                onClick={() => handleNavigation("/mypage")}
+                                style={{ border: 'none', background: 'none' }}>
+                            마이페이지
+                            </button>
+                        <span className="nav-link">안녕하세요, {user?.nickName}님!</span>
                             <button
                                 className="nav-link btn btn-link"
                                 onClick={handleLogout}
@@ -41,8 +62,16 @@ function Navigation() {
                         </>
                     ) : (
                         <>
-                            <Link className="nav-link" to="/login">로그인</Link>
-                            <Link className="nav-link" to="/register">회원가입</Link>
+                        <button className="nav-link btn btn-link"
+                                onClick={() => handleNavigation("/login")}
+                                style={{ border: 'none', background: 'none' }}>
+                            로그인
+                        </button>
+                        <button className="nav-link btn btn-link"
+                                onClick={() => handleNavigation("/register")}
+                                style={{ border: 'none', background: 'none' }}>
+                            회원가입
+                        </button>
                         </>
                     )}
                 </div>

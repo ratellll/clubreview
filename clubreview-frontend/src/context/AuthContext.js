@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
     const updateUser = (updateData) =>{
         setUser(prevUser => ({
             ...prevUser,
-            updateData
+            ...updateData
         }));
     };
 
