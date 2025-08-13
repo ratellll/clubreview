@@ -20,56 +20,54 @@ const ClubListPage = () => {
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [isMapInitializing, setIsMapInitializing] = useState(false);
 
-    // Kakao 지도 스크립트 로드
-    useEffect(() => {
-        const initMap = async () => {
-            if (isMapInitializing) {
-                console.log('⏸️ 지도 초기화 이미 진행 중...');
-                return;
-            }
-            setIsMapInitializing(true);
 
-            if (!mapRef.current) {
-                console.log('❌ 지도 컨테이너 없음');
-                setIsMapInitializing(false);
-                setTimeout(initMap, 200);
-                return;
-            }
 
-            if (window.kakao && window.kakao.maps) {
-                console.log('✅ Kakao Maps 사용 가능');
+    const initMap = async () => {
+        if (isMapInitializing) {
+            console.log('⏸️ 지도 초기화 이미 진행 중...');
+            return;
+        }
+        setIsMapInitializing(true);
+        if (!mapRef.current) {
+            console.log('❌ 지도 컨테이너 없음');
+            setIsMapInitializing(false);
+            setTimeout(initMap, 200);
+            return;
+        }
+        if (window.kakao && window.kakao.maps) {
+            console.log('✅ Kakao Maps 사용 가능');
+            window.kakao.maps.load(() => {
+                console.log('✅ Kakao Maps 로드 완료');
+                setIsMapLoaded(true);
+                setTimeout(() => {
+                    initializeMap();
+                    }, 50);
+            });
+        } else {
+            console.log('🔄 Kakao Maps 스크립트 로드 중...');
+            const script = document.createElement('script');
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
+            script.onload = () => {
+                console.log('✅ 스크립트 로드 완료');
                 window.kakao.maps.load(() => {
-                    console.log('✅ Kakao Maps 로드 완료');
-                    // 먼저 지도를 표시하고
+                    console.log('✅ Kakao Maps 초기화 완료');
                     setIsMapLoaded(true);
-                    // 약간의 지연 후 지도 초기화
                     setTimeout(() => {
                         initializeMap();
-                    }, 50);
-                });
-            } else {
-                console.log('🔄 Kakao Maps 스크립트 로드 중...');
-                const script = document.createElement('script');
-                script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&autoload=false';
-                script.onload = () => {
-                    console.log('✅ 스크립트 로드 완료');
-                    window.kakao.maps.load(() => {
-                        console.log('✅ Kakao Maps 초기화 완료');
-                        setIsMapLoaded(true);
-                        setTimeout(() => {
-                            initializeMap();
                         }, 50);
-                    });
-                };
-                script.onerror = () => {
-                    console.error('❌ 스크립트 로드 실패');
-                    setError('지도를 불러올 수 없습니다.');
-                    setIsMapInitializing(false);
-                };
-                document.head.appendChild(script);
-            }
-        };
+                });
+            };
+            script.onerror = () => {
+                console.error('❌ 스크립트 로드 실패');
+                setError('지도를 불러올 수 없습니다.');
+                setIsMapInitializing(false);
+            };
+            document.head.appendChild(script);
+        }
+    };
 
+    // Kakao 지도 스크립트 로드
+    useEffect(() => {
         // 컴포넌트 마운트 후 충분한 지연 시간 확보
         const timer = setTimeout(() => {
             console.log('🚀 지도 초기화 시작');
@@ -83,7 +81,7 @@ const ClubListPage = () => {
                 delete window.clubListPageInstance;
             }
         };
-    }, []);
+    }, [isMapInitializing]); // isMapInitializing을 의존성에 추가
 
     // 클럽 데이터 조회
     useEffect(() => {
@@ -107,7 +105,7 @@ const ClubListPage = () => {
             }
             fetchClubs(); // 클럽 데이터 다시 로드
         }
-        }, [location.state?.refresh]);
+        }, [location.state?.refresh, map]); // map을 의존성에 추가
 
     // 지도에 마커 표시
     useEffect(() => {
