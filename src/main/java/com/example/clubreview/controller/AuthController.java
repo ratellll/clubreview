@@ -43,31 +43,31 @@ public class AuthController {
     public ResponseEntity<ApiResponse<JwtResponse>> login(
             @Valid @RequestBody LoginRequest request) {
 
-        log.info("로그인 시도: {}", request.getUsername());
+        log.info("로그인 시도: {}", request.getUserName());
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getUserName(),
                             request.getPassword()
                     )
             );
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUserName());
             String token = jwtUtil.generateToken(userDetails);
             LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
 
             JwtResponse jwtResponse = JwtResponse.of(token, userDetails.getUsername(), expiresAt);
 
-            log.info("로그인 성공: {}", request.getUsername());
+            log.info("로그인 성공: {}", request.getUserName());
             return ResponseEntity.ok(ApiResponse.success("로그인 성공", jwtResponse));
 
         } catch (BadCredentialsException e) {
-            log.warn("로그인 실패 - 잘못된 인증정보: {}", request.getUsername());
+            log.warn("로그인 실패 - 잘못된 인증정보: {}", request.getUserName());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("아이디 또는 비밀번호가 올바르지 않습니다."));
         } catch (LockedException e) {
-            log.warn("로그인 실패 - 계정 잠김: {}", request.getUsername());
+            log.warn("로그인 실패 - 계정 잠김: {}", request.getUserName());
             return ResponseEntity.status(HttpStatus.LOCKED)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {

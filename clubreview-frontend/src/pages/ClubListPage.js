@@ -20,9 +20,10 @@ const ClubListPage = () => {
 
     // Kakao 지도 스크립트 로드
     useEffect(() => {
-        const initMap = () => {
+        const initMap = async () => {
             if (!mapRef.current) {
                 console.log('❌ 지도 컨테이너 없음');
+                setTimeout(initMap, 200);
                 return;
             }
 
@@ -59,14 +60,19 @@ const ClubListPage = () => {
             }
         };
 
-        // DOM이 준비된 후 실행
-        if (mapRef.current) {
+        // 컴포넌트 마운트 후 충분한 지연 시간 확보
+        const timer = setTimeout(() => {
+            console.log('🚀 지도 초기화 시작');
             initMap();
-        } else {
-            // DOM이 아직 준비되지 않은 경우 약간 지연
-            const timer = setTimeout(initMap, 100);
-            return () => clearTimeout(timer);
-        }
+            }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            // 클린업
+            if (window.clubListPageInstance) {
+                delete window.clubListPageInstance;
+            }
+        };
     }, []);
 
     // 클럽 데이터 조회

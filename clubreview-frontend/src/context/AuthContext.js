@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         checkAuthStatus();
     }, []);
 
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
         const token = localStorage.getItem('token');
         if (token) {
             try {
@@ -30,7 +30,15 @@ export const AuthProvider = ({ children }) => {
 
                 // 토큰 만료 시간 확인
                 if (payload.exp * 1000 > Date.now()) {
-                    setUser({ userName: payload.sub });
+                    try {
+                        const userProfile = await userService.getMyPage();
+                        setUser({
+                                username: payload.sub,
+                                nickName: userProfile.user.nickName
+                        });
+                    } catch (error) {
+                        setUser({ username: payload.sub });
+                    }
                     setIsAuthenticated(true);
                 } else {
                     // 토큰이 만료된 경우

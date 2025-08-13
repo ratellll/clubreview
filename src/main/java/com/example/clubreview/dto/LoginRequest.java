@@ -14,7 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 public class LoginRequest {
 
     @NotBlank(message = "아이디는 필수입니다.")
-    private final String username;
+    private final String userName;
 
     @NotBlank(message = "비밀번호는 필수입니다.")
     private final String password;
