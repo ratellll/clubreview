@@ -91,6 +91,8 @@ const ClubListPage = () => {
         fetchClubs();
     }, [sortBy, currentPage]);
 
+    
+
     useEffect(() => {
         if (location.state?.refresh) {
             console.log('클럽목록 새로고침됨');
@@ -159,6 +161,12 @@ const ClubListPage = () => {
             setTimeout(() => {
                 console.log('🔄 지도 크기 재조정');
                 kakaoMap.relayout();
+
+                if (clubs.length > 0) {
+                    console.log('🔍 지도 생성 완료 후 마커 표시');
+                    displayMarkersOnMap();
+                }
+
             }, 300);
 
             // 지도 클릭 시 정보창 닫기
@@ -185,6 +193,14 @@ const ClubListPage = () => {
             setIsMapInitializing(false);
         }
     };
+
+    // initializeMap에서 clubs에 접근할 수 있도록 별도 함수로 분리
+    const handleMapReady = () => {
+        if (clubs.length > 0 && mapInstanceRef.current && isMapReadyRef.current) {
+            displayMarkersOnMap();
+        }
+    };
+
     const fetchClubs = async () => {
         try {
             setLoading(true);
@@ -206,6 +222,10 @@ const ClubListPage = () => {
             setClubs(sortedClubs);
             setTotalPages(response.totalPages || 0);
             setError('');
+
+            if (mapInstanceRef.current && isMapReadyRef.current) {
+                displayMarkersOnMap();
+            }
         } catch (err) {
             console.error('클럽 목록 조회 실패:', err);
             setError('클럽 목록을 불러오는데 실패했습니다.');
@@ -214,9 +234,21 @@ const ClubListPage = () => {
         }
     };
 
+    // clubs 변경 시 마커 표시 (지도가 준비된 상태에서만)
+        useEffect(() => {
+            handleMapReady();
+            }, [clubs]);
+
 
     const displayMarkersOnMap = () => {
         if (!window.kakao || !window.kakao.maps || !mapInstanceRef.current) return;
+
+        console.log('🔍 마커 표시 시작:', clubs.length + '개 클럽');
+        console.log('지도 상태:', {
+            mapInstance: !!mapInstanceRef.current,
+                isReady: isMapReadyRef.current,
+            clubsCount: clubs.length
+        });
 
         // 기존 마커들 제거
         markersRef.current.forEach(marker => marker.setMap(null));
