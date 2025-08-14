@@ -91,36 +91,37 @@ const ClubListPage = () => {
         fetchClubs();
     }, [sortBy, currentPage]);
 
-    
+
 
     useEffect(() => {
         if (location.state?.refresh) {
-            console.log('클럽목록 새로고침됨');
-            if (mapInstanceRef.current) {
-                console.log('🗑️ 기존 지도 정리 중...');
-                mapInstanceRef.current = null;
-                setMap(null);
-                setMarkers([]);
-                setIsMapLoaded(false);
-                setIsMapInitializing(false);
-                isMapReadyRef.current = false;
-
-                setTimeout(() => {
-                    initMap();
-                    }, 100);
-            }
-            fetchClubs(); // 클럽 데이터 다시 로드
-
+            console.log('페이지 새로고침 - 지도와 데이터 재로드');
+            resetMapAndData();
             window.history.replaceState(null, '');
         }
-        }, [location.state?.refresh]);
+    }, [location.state?.refresh]);
 
-    // 지도에 마커 표시
+    const resetMapAndData = () => {
+        if (mapInstanceRef.current) {
+            console.log('🗑️ 기존 지도 정리 중...');
+            mapInstanceRef.current = null;
+            setMap(null);
+            setMarkers([]);
+            setIsMapLoaded(false);
+            setIsMapInitializing(false);
+            isMapReadyRef.current = false;
+
+            setTimeout(() => {
+                initMap();
+                }, 100);
+        }
+        fetchClubs(); // 클럽 데이터도 다시 로드
+    };
+        // 지도에 마커 표시
     useEffect(() => {
         if (mapInstanceRef.current && clubs.length > 0 && isMapReadyRef.current) {
             console.log('🔍 마커 표시 시작:', clubs.length + '개 클럽');
             displayMarkersOnMap();
-
         }
     }, [clubs]);
 
@@ -161,12 +162,11 @@ const ClubListPage = () => {
             setTimeout(() => {
                 console.log('🔄 지도 크기 재조정');
                 kakaoMap.relayout();
-
+                // 지도 생성 완료 후 clubs 데이터가 있으면 마커 표시
                 if (clubs.length > 0) {
                     console.log('🔍 지도 생성 완료 후 마커 표시');
                     displayMarkersOnMap();
                 }
-
             }, 300);
 
             // 지도 클릭 시 정보창 닫기
@@ -194,13 +194,6 @@ const ClubListPage = () => {
         }
     };
 
-    // initializeMap에서 clubs에 접근할 수 있도록 별도 함수로 분리
-    const handleMapReady = () => {
-        if (clubs.length > 0 && mapInstanceRef.current && isMapReadyRef.current) {
-            displayMarkersOnMap();
-        }
-    };
-
     const fetchClubs = async () => {
         try {
             setLoading(true);
@@ -223,6 +216,7 @@ const ClubListPage = () => {
             setTotalPages(response.totalPages || 0);
             setError('');
 
+            // 클럽 데이터 로드 완료 후 지도가 준비되어 있으면 마커 표시
             if (mapInstanceRef.current && isMapReadyRef.current) {
                 displayMarkersOnMap();
             }
@@ -234,26 +228,34 @@ const ClubListPage = () => {
         }
     };
 
-    // clubs 변경 시 마커 표시 (지도가 준비된 상태에서만)
-        useEffect(() => {
-            handleMapReady();
-            }, [clubs]);
-
-
     const displayMarkersOnMap = () => {
         if (!window.kakao || !window.kakao.maps || !mapInstanceRef.current) return;
 
-        console.log('🔍 마커 표시 시작:', clubs.length + '개 클럽');
-        console.log('지도 상태:', {
+        console.log('=== MARKER DISPLAY START ===');
+        console.log('Clubs count:', clubs.length);
+        console.log('Map state:', {
             mapInstance: !!mapInstanceRef.current,
                 isReady: isMapReadyRef.current,
-            clubsCount: clubs.length
+                  kakaoMaps: !!window.kakao?.maps
+        });
+
+        // clubs 데이터 상세 확인
+        clubs.forEach((club, index) => {
+            console.log(`Club ${index}:`, {
+                id: club.id,
+                name: club.name,
+                latitude: club.latitude,
+                longitude: club.longitude,
+                hasCoordinates: !!(club.latitude && club.longitude)
+            });
         });
 
         // 기존 마커들 제거
+        console.log('Removing existing markers:', markersRef.current.length);
         markersRef.current.forEach(marker => marker.setMap(null));
 
         // 기존 정보창 닫기
+        console.log('Closing existing info windows');
         if (currentInfoWindowRef.current) {
             currentInfoWindowRef.current.close();
             setCurrentInfoWindow(null);
@@ -262,8 +264,11 @@ const ClubListPage = () => {
 
         const newMarkers = [];
 
-        clubs.forEach(club => {
+        clubs.forEach((club, index) => {
+            console.log(`Processing club ${index}: ${club.name}`);
             if (club.latitude && club.longitude) {
+                console.log(`Creating marker for ${club.name} at (${club.latitude}, ${club.longitude})`);
+                try {
                 const marker = new window.kakao.maps.Marker({
                     position: new window.kakao.maps.LatLng(club.latitude, club.longitude),
                     map: mapInstanceRef.current
@@ -336,12 +341,20 @@ const ClubListPage = () => {
                 });
 
                 newMarkers.push(marker);
+                    console.log(`Marker created successfully for ${club.name}`);
+                } catch (error) {
+                    console.error(`Failed to create marker for ${club.name}:`, error);
+                }
+            } else {
+                console.log(`Skipping ${club.name} - no coordinates (lat: ${club.latitude}, lng: ${club.longitude})`);
             }
         });
 
+        console.log('Setting markers to refs and state');
         markersRef.current = newMarkers;
         setMarkers(newMarkers);
-        console.log('마커 표시 완료:', newMarkers.length + '개');
+        console.log('=== MARKER DISPLAY COMPLETE ===');
+        console.log('Total markers created:', newMarkers.length);
     };
 
     const navigateToClub = (clubId) => {
