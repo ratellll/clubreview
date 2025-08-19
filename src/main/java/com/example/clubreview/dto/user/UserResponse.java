@@ -18,7 +18,7 @@ public class UserResponse {
     private final String phoneNumber;
     private final LocalDateTime createTime;
     private final LocalDateTime banEndTime;
-    private final User.Role role;
+    private String role;
     private final boolean banned;
 
     public static UserResponse from(User user) {
@@ -29,7 +29,7 @@ public class UserResponse {
                 .phoneNumber(user.getPhoneNumber())
                 .createTime(user.getCreateTime())
                 .banEndTime(user.getBanEndTime())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .banned(user.isBanned())
                 .build();
     }

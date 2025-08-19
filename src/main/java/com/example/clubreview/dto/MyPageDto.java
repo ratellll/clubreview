@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class MyPageDto {
 
     private final UserDto user;
+    private String role;
     private final List<ReviewDto> reviews;
     private final int totalReviews;
     private final double averageRating;

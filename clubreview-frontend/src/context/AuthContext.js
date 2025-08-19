@@ -34,7 +34,8 @@ export const AuthProvider = ({ children }) => {
                         const userProfile = await userService.getMyPage();
                         setUser({
                                 username: payload.sub,
-                                nickName: userProfile.user.nickName
+                                nickName: userProfile.user.nickName,
+                            role : userProfile.user.role
                         });
                     } catch (error) {
                         setUser({ username: payload.sub });
@@ -60,7 +61,8 @@ export const AuthProvider = ({ children }) => {
                 const userProfile = await userService.getMyPage();
                 setUser({
                         username: response.username,
-                        nickName: userProfile.user.nickName
+                        nickName: userProfile.user.nickName,
+                    role : userProfile.user.role
                 });
             } catch (error) {
                 setUser({ username: response.username });
