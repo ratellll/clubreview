@@ -34,6 +34,7 @@ public class MyPageDto {
 
         return MyPageDto.builder()
                 .user(UserDto.from(user))
+                .role(user.getRole().name())
                 .reviews(reviewDtos)
                 .totalReviews(reviews.size())
                 .averageRating(avgRating)

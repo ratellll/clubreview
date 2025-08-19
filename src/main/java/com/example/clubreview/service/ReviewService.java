@@ -6,7 +6,6 @@ import com.example.clubreview.dto.review.ReviewStatistics;
 import com.example.clubreview.entity.Club;
 import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
-import com.example.clubreview.repository.ClubRepository;
 import com.example.clubreview.repository.ReviewRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +31,14 @@ public class ReviewService {
 
 
     @Transactional(readOnly = true)
-    public List<Review> getAllReviews() {
+    public List<Review> getAllReviews(String authorNickname) {
         log.info("모든 리뷰 조회");
-        return reviewRepository.findAllByOrderByCreateTimeDesc();
+        if (authorNickname != null && !authorNickname.trim().isEmpty()) {
+            log.info("닉네임으로 리뷰 검색: {}", authorNickname);
+            return reviewRepository.findByUserNickNameContainingIgnoreCaseOrderByCreateTimeDesc(authorNickname.trim());
+        } else {
+            return reviewRepository.findAllByOrderByCreateTimeDesc();
+        }
     }
 
     public List<Review> getReviewsByClubId(Long clubId) {

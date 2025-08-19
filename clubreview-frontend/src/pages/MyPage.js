@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {userService} from '../services/userService';
 import {useLocation} from 'react-router-dom';
 import {reviewService} from '../services/reviewService';
@@ -32,6 +32,8 @@ const MyPage = () => {
     const [adminUsers, setAdminUsers] = useState([]);
     const [adminReviews, setAdminReviews] = useState([]);
     const [adminClubs, setAdminClubs] = useState([]);
+    const [reviewSearchNickname, setReviewSearchNickname] = useState('');
+    const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
     const [searchNickname, setSearchNickname] = useState('');
     const [activeTab, setActiveTab] = useState('profile');
     const [editingClub, setEditingClub] = useState(null);
@@ -41,6 +43,44 @@ const MyPage = () => {
     });
     const isAdmin = user?.role === 'ADMIN';
 
+
+    // 카카오맵 관련 상태
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [selectedPlace, setSelectedPlace] = useState(null);
+    const [mapInstance, setMapInstance] = useState(null);
+    const [markersArray, setMarkersArray] = useState([]);
+
+    // 리뷰 검색 디바운스
+    const debouncedReviewSearch = useCallback((nickname) => {
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                const reviews = await adminService.getAllReviews(nickname);
+                setAdminReviews(reviews);
+            } catch (err) {
+                setError(err.message);
+            }
+        }, 300);
+
+        setSearchDebounceTimer(timer);
+    }, [searchDebounceTimer]);
+
+    // 리뷰 검색어 변경 핸들러
+    const handleReviewSearchChange = (e) => {
+        const value = e.target.value;
+        setReviewSearchNickname(value);
+        debouncedReviewSearch(value);
+    };
+    // 디버깅을 위한 로그 추가
+    useEffect(() => {
+        console.log('🔍 Debug - Current user:', user);
+        console.log('🔍 Debug - User role:', user?.role);
+        console.log('🔍 Debug - Is admin:', isAdmin);
+    }, [user, isAdmin]);
     const [passwordForm, setPasswordForm] = useState({
         password: '',
         valid: false,
@@ -66,7 +106,7 @@ const MyPage = () => {
     const fetchAdminReviews = async () => {
         if (!isAdmin) return;
         try {
-            const reviews = await adminService.getAllReviews();
+            const reviews = await adminService.getAllReviews(reviewSearchNickname);
             setAdminReviews(reviews);
         } catch (err) {
             setError(err.message);
@@ -194,6 +234,88 @@ const MyPage = () => {
         });
         setActiveTab('club-management');
     };
+
+    // 카카오맵 장소 검색
+    const searchPlaces = () => {
+        if (!searchKeyword.trim()) {
+            alert('검색어를 입력해주세요');
+            return;
+        }
+
+        const ps = new window.kakao.maps.services.Places();
+        ps.keywordSearch(searchKeyword, (data, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+                setSearchResults(data);
+                displayMarkers(data);
+            } else {
+                alert('검색 결과가 없습니다.');
+            }
+        });
+    };
+
+    // 지도에 마커 표시
+    const displayMarkers = (places) => {
+        if (!mapInstance) return;
+
+        // 기존 마커 제거
+        markersArray.forEach(marker => marker.setMap(null));
+        setMarkersArray([]);
+
+        const bounds = new window.kakao.maps.LatLngBounds();
+        const newMarkers = [];
+
+        places.forEach((place, index) => {
+            const placePosition = new window.kakao.maps.LatLng(place.y, place.x);
+            const marker = new window.kakao.maps.Marker({
+                position: placePosition,
+                map: mapInstance
+            });
+
+            window.kakao.maps.event.addListener(marker, 'click', () => {
+                selectPlace(place);
+            });
+
+            newMarkers.push(marker);
+            bounds.extend(placePosition);
+        });
+
+        setMarkersArray(newMarkers);
+        mapInstance.setBounds(bounds);
+    };
+
+    // 장소 선택
+    const selectPlace = (place) => {
+        setSelectedPlace(place);
+        setClubForm(prev => ({
+            ...prev,
+            location: place.address_name,
+            latitude: place.y,
+            longitude: place.x
+        }));
+    };
+
+    // 카카오맵 초기화
+    useEffect(() => {
+        if (activeTab === 'club-management' && !mapInstance) {
+            const script = document.createElement('script');
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&libraries=services&autoload=false';
+            script.onload = () => {
+                window.kakao.maps.load(() => {
+                    const container = document.getElementById('club-map');
+                    if (container) {
+                        const options = {
+                            center: new window.kakao.maps.LatLng(37.5665, 126.9780),
+                            level: 3
+                        };
+                        const map = new window.kakao.maps.Map(container, options);
+                        setMapInstance(map);
+                    }
+                });
+            };
+            document.head.appendChild(script);
+        }
+    }, [activeTab, mapInstance]);
+
 
     // 탭 변경 시 데이터 로딩
     useEffect(() => {
@@ -547,6 +669,42 @@ const MyPage = () => {
                                 <h3 className="card-title">🏢 클럽 관리</h3>
 
                                 {/* 클럽 등록/수정 폼 */}
+                                {/* 카카오맵 장소 검색 */}
+                                <div className="mb-4">
+                                    <h5>장소 검색</h5>
+                                    <div className="input-group mb-3">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="장소명을 입력하세요"
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}
+                                        />
+                                        <button className="btn btn-primary" onClick={searchPlaces}>
+                                            검색
+                                        </button>
+                                    </div>
+
+                                    {/* 지도 */}
+                                    <div id="club-map"
+                                         style={{width: '100%', height: '300px', marginBottom: '10px'}}></div>
+
+                                    {/* 검색 결과 */}
+                                    {searchResults.length > 0 && (
+                                        <div className="search-results" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                                            {searchResults.map((place, index) => (
+                                                <div key={index}
+                                                     className={`border p-2 mb-2 cursor-pointer ${selectedPlace?.id === place.id ? 'bg-primary text-white' : ''}`}
+                                                     onClick={() => selectPlace(place)}>
+                                                    <strong>{place.place_name}</strong><br/>
+                                                    <small>{place.address_name}</small>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
                                 <form onSubmit={handleClubFormSubmit} className="mb-4">
                                     <div className="row">
                                         <div className="col-md-6">
@@ -674,6 +832,18 @@ const MyPage = () => {
                         <div className="card">
                             <div className="card-body">
                                 <h3 className="card-title">📝 리뷰 관리</h3>
+                                {/* 작성자 닉네임 검색 */}
+                                <div className="mb-4">
+                                    <div className="input-group">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="작성자 닉네임으로 검색"
+                                            value={reviewSearchNickname}
+                                            onChange={handleReviewSearchChange}
+                                        />
+                                    </div>
+                                </div>
 
                                 <div className="table-responsive">
                                     <table className="table table-striped">
@@ -725,54 +895,58 @@ const MyPage = () => {
                             </div>
                         </div>
                     )}
-                    {/* 닉네임 변경 */}
-                    <div className="card mb-4">
-                        <div className="card-body">
-                            <h3 className="card-title">✏️ 닉네임 변경</h3>
-                            <form onSubmit={handleNickNameSubmit}>
-                                <div className="mb-3">
-                                    <div className="input-group">
-                                        <input
-                                            type="text"
-                                            className={`form-control ${nickNameForm.checked ?
-                                                (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
-                                            value={nickNameForm.nickName}
-                                            onChange={(e) => setNickNameForm(prev => ({
-                                                ...prev,
-                                                nickName: e.target.value,
-                                                checked: false,
-                                                available: false,
-                                                message: ''
-                                            }))}
-                                            placeholder="새로운 닉네임을 입력하세요"
-                                            disabled={nickNameForm.available}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="btn btn-outline-secondary"
-                                            onClick={checkNicknameDuplicate}
-                                            disabled={nickNameForm.available || !nickNameForm.nickName.trim()}
-                                        >
-                                            중복 체크
-                                        </button>
-                                    </div>
-                                    {nickNameForm.message && (
-                                        <div
-                                            className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
-                                            {nickNameForm.message}
+                    {!isAdmin && (
+                        <>
+                            {/* 닉네임 변경 */}
+                            <div className="card mb-4">
+                                <div className="card-body">
+                                    <h3 className="card-title">✏️ 닉네임 변경</h3>
+                                    <form onSubmit={handleNickNameSubmit}>
+                                        <div className="mb-3">
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className={`form-control ${nickNameForm.checked ?
+                                                        (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
+                                                    value={nickNameForm.nickName}
+                                                    onChange={(e) => setNickNameForm(prev => ({
+                                                        ...prev,
+                                                        nickName: e.target.value,
+                                                        checked: false,
+                                                        available: false,
+                                                        message: ''
+                                                    }))}
+                                                    placeholder="새로운 닉네임을 입력하세요"
+                                                    disabled={nickNameForm.available}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-secondary"
+                                                    onClick={checkNicknameDuplicate}
+                                                    disabled={nickNameForm.available || !nickNameForm.nickName.trim()}
+                                                >
+                                                    중복 체크
+                                                </button>
+                                            </div>
+                                            {nickNameForm.message && (
+                                                <div
+                                                    className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
+                                                    {nickNameForm.message}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary"
+                                            disabled={!nickNameForm.checked || !nickNameForm.available}
+                                        >
+                                            닉네임 변경
+                                        </button>
+                                    </form>
                                 </div>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    disabled={!nickNameForm.checked || !nickNameForm.available}
-                                >
-                                    닉네임 변경
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* 비밀번호 변경 */}
                     <div className="card mb-4">

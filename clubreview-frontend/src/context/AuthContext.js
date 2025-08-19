@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
                     // 토큰이 만료된 경우
                     localStorage.removeItem('token');
                 }
+                
             } catch (error) {
                 console.error('토큰 파싱 오류:', error);
                 localStorage.removeItem('token');
@@ -70,6 +71,11 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             return response;
         } catch (error) {
+
+            if (error.response?.status === 403) {
+                alert(`❌ ${error.response.data.message}`);
+                throw new Error('계정이 정지되었습니다.');
+            }
             throw error;
         }
     };

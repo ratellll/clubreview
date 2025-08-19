@@ -66,9 +66,9 @@ public class AdminController {
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<List<AdminReviewResponse>>> getAllReviews() {
+    public ResponseEntity<ApiResponse<List<AdminReviewResponse>>> getAllReviews(@RequestParam(required = false) String authorNickname) {
         try {
-            List<Review> reviews = reviewService.getAllReviews();
+            List<Review> reviews = reviewService.getAllReviews(authorNickname);
             List<AdminReviewResponse> reviewResponses = reviews.stream()
                     .map(AdminReviewResponse::from)
                     .collect(Collectors.toList());

@@ -72,9 +72,9 @@ export const adminService = {
     },
 
     // 모든 리뷰 조회
-    async getAllReviews() {
+    async getAllReviews(authorNickname = '') {
         try {
-            const response = await api.get('/admin/reviews');
+            const response = await api.get('/admin/reviews', { params: { authorNickname } });
             return response.data.data;
         } catch (error) {
             console.error('모든 리뷰 조회 실패:', error);

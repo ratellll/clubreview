@@ -23,6 +23,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             window.location.href = '/login';
+        } else if (error.response?.status === 403) {
+            alert('❌ 계정이 정지되어 접근할 수 없습니다.');
         }
         return Promise.reject(error);
     }

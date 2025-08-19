@@ -5,6 +5,7 @@ import com.example.clubreview.dto.ApiResponse;
 import com.example.clubreview.dto.JwtResponse;
 import com.example.clubreview.dto.LoginRequest;
 import com.example.clubreview.dto.user.UserDto;
+import com.example.clubreview.entity.User;
 import com.example.clubreview.service.CustomUserDetailsService;
 import com.example.clubreview.service.UserService;
 import com.example.clubreview.security.JwtUtil;
@@ -57,6 +58,14 @@ public class AuthController {
             String token = jwtUtil.generateToken(userDetails);
             LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
 
+            // 사용자 정보 조회 (벤 정보 포함)
+            User user = userService.findByUsername(request.getUserName());
+            if (user.isBanned()) {
+                log.warn("벤된 사용자 로그인 시도: {}", request.getUserName());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.error("계정이 정지되었습니다. 정지 해제일: " + user.getBanEndTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
+            }
+
             JwtResponse jwtResponse = JwtResponse.of(token, userDetails.getUsername(), expiresAt);
 
             log.info("로그인 성공: {}", request.getUserName());
@@ -69,7 +78,7 @@ public class AuthController {
         } catch (LockedException e) {
             log.warn("로그인 실패 - 계정 잠김: {}", request.getUserName());
             return ResponseEntity.status(HttpStatus.LOCKED)
-                    .body(ApiResponse.error(e.getMessage()));
+                    .body(ApiResponse.error("해당 유저는 벤 상태 입니다."+request.getUserName()));
         } catch (Exception e) {
             log.error("로그인 처리 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

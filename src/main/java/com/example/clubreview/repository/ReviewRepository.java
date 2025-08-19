@@ -45,4 +45,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 
     List<Review> findAllByOrderByCreateTimeDesc();
+
+    List<Review> findByUserNickNameContainingIgnoreCaseOrderByCreateTimeDesc(String nickName);
 }

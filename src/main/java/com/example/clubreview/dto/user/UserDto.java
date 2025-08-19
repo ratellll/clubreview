@@ -39,7 +39,7 @@ public class UserDto {
 
     private final LocalDateTime createTime;
     private final LocalDateTime banEndTime;
-    private final User.Role role;
+    private final String role;
 
     public static UserDto from(User user) {
         return UserDto.builder()
@@ -49,7 +49,7 @@ public class UserDto {
                 .phoneNumber(user.getPhoneNumber())
                 .createTime(user.getCreateTime())
                 .banEndTime(user.getBanEndTime())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
     }
 
@@ -59,7 +59,9 @@ public class UserDto {
                 .password(encodedPassword)
                 .nickName(this.nickName)
                 .phoneNumber(this.phoneNumber)
-                .role(this.role != null ? this.role : User.Role.USER)
+                .role(this.role != null ?
+                        User.Role.valueOf(this.role.toUpperCase()) :
+                        User.Role.USER)
                 .build();
     }
 }
