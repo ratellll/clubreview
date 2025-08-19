@@ -30,6 +30,13 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ClubService clubService;
 
+
+    @Transactional(readOnly = true)
+    public List<Review> getAllReviews() {
+        log.info("모든 리뷰 조회");
+        return reviewRepository.findAllByOrderByCreateTimeDesc();
+    }
+
     public List<Review> getReviewsByClubId(Long clubId) {
         log.debug("클럽 리뷰 조회: {}", clubId);
         return reviewRepository.findByClubIdWithUser(clubId);
@@ -37,7 +44,7 @@ public class ReviewService {
 
     public Review getReviewById(Long reviewId) {
         return reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new EntityNotFoundException("리뷰를 찾을 수 없습니다: " + reviewId));
+                .orElseThrow(() -> new EntityNotFoundException("리뷰를 찾을 수 없습니다: "));
     }
 
     // 사용자 ID로 자신이 작성한 리뷰만 조회

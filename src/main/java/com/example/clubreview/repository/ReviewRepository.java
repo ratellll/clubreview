@@ -42,4 +42,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Modifying
     @Query("DELETE FROM Review r WHERE r.club.id = :clubId")
     void deleteByClubId(@Param("clubId") Long clubId);
+
+
+    List<Review> findAllByOrderByCreateTimeDesc();
 }

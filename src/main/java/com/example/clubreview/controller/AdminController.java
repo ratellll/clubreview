@@ -2,13 +2,14 @@ package com.example.clubreview.controller;
 
 
 import com.example.clubreview.dto.ApiResponse;
+import com.example.clubreview.dto.review.AdminReviewResponse;
 import com.example.clubreview.dto.user.UserResponse;
+import com.example.clubreview.entity.Review;
 import com.example.clubreview.entity.User;
+import com.example.clubreview.service.ReviewService;
 import com.example.clubreview.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     private final UserService userService;
+    private final ReviewService reviewService;
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUserList() {
@@ -43,6 +45,39 @@ public class AdminController {
             log.error("사용자 목록 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("사용자 목록 조회 중 오류가 발생했습니다."));
+        }
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(
+            @RequestParam @NotBlank @Size(min = 1, max = 50) String nickname) {
+        try {
+            List<User> users = userService.searchUsersByNickname(nickname);
+            List<UserResponse> userResponses = users.stream()
+                    .map(UserResponse::from)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(ApiResponse.success("사용자 검색 성공", userResponses));
+        } catch (Exception e) {
+            log.error("사용자 검색 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("사용자 검색 중 오류가 발생했습니다."));
+        }
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<ApiResponse<List<AdminReviewResponse>>> getAllReviews() {
+        try {
+            List<Review> reviews = reviewService.getAllReviews();
+            List<AdminReviewResponse> reviewResponses = reviews.stream()
+                    .map(AdminReviewResponse::from)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(ApiResponse.success("모든 리뷰 조회 성공", reviewResponses));
+        } catch (Exception e) {
+            log.error("모든 리뷰 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("모든 리뷰 조회 중 오류가 발생했습니다."));
         }
     }
 

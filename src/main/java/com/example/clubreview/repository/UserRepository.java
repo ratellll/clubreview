@@ -20,13 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserName(String userName);
     boolean existsByNickName(String nickName);
     boolean existsByPhoneNumber(String phoneNumber);
+    List<User> findByNickNameContaining(String nickname);
 
-    // 향후 관리자 기능용 (주석 처리)
-    /*
-    @Query("SELECT u FROM User u WHERE u.role = :role")
-    List<User> findByRole(@Param("role") User.Role role);
-
-    @Query("SELECT u FROM User u WHERE u.banEndTime IS NOT NULL AND u.banEndTime > :now")
-    List<User> findBannedUsers(@Param("now") LocalDateTime now);
-    */
 }

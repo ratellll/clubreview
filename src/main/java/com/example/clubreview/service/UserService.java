@@ -77,17 +77,25 @@ public class UserService {
 
     public User findByUsername(String userName) {
         return userRepository.findByUserName(userName)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + userName));
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " +userName));
     }
 
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " +id));
     }
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
+
+
+    @Transactional(readOnly = true)
+    public List<User> searchUsersByNickname(String nickname) {
+        log.info("닉네임으로 사용자 검색: {}", nickname);
+        return userRepository.findByNickNameContaining(nickname);
+    }
+
 
     @Transactional
     public User banUser(Long id, int days) {

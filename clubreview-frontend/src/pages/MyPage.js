@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
-import { useLocation } from 'react-router-dom';
-import { reviewService } from '../services/reviewService';
-import { authService } from '../services/authService';
-import { useAuth } from '../context/AuthContext';
+import React, {useState, useEffect} from 'react';
+import {userService} from '../services/userService';
+import {useLocation} from 'react-router-dom';
+import {reviewService} from '../services/reviewService';
+import {authService} from '../services/authService';
+import {adminService} from '../services/adminService';
+import {clubService} from '../services/clubService';
+import {useAuth} from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Alert from '../components/common/Alert';
 
+
 const MyPage = () => {
-    const { user, updateUser } = useAuth();
+    const {user, updateUser} = useAuth();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -25,6 +28,19 @@ const MyPage = () => {
         message: ''
     });
 
+    // 어드민 상태
+    const [adminUsers, setAdminUsers] = useState([]);
+    const [adminReviews, setAdminReviews] = useState([]);
+    const [adminClubs, setAdminClubs] = useState([]);
+    const [searchNickname, setSearchNickname] = useState('');
+    const [activeTab, setActiveTab] = useState('profile');
+    const [editingClub, setEditingClub] = useState(null);
+    const [clubForm, setClubForm] = useState({
+        name: '', location: '', description: '', callNumber: '',
+        latitude: '', longitude: '', file: null
+    });
+    const isAdmin = user?.role === 'ADMIN';
+
     const [passwordForm, setPasswordForm] = useState({
         password: '',
         valid: false,
@@ -36,13 +52,166 @@ const MyPage = () => {
         fetchMyReviews();
     }, []);
 
+    // 어드민 기능들
+    const fetchAdminUsers = async () => {
+        if (!isAdmin) return;
+        try {
+            const users = await adminService.getUsers();
+            setAdminUsers(users);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const fetchAdminReviews = async () => {
+        if (!isAdmin) return;
+        try {
+            const reviews = await adminService.getAllReviews();
+            setAdminReviews(reviews);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleSearchUsers = async () => {
+        if (!searchNickname.trim()) {
+            fetchAdminUsers();
+            return;
+        }
+        try {
+            const users = await adminService.searchUsers(searchNickname);
+            setAdminUsers(users);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleBanUser = async (userId, days) => {
+        if (!window.confirm(`사용자를 ${days}일 동안 정지하시겠습니까?`)) return;
+        try {
+            await adminService.banUser(userId, days);
+            setSuccess('사용자가 정지되었습니다.');
+            fetchAdminUsers();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleUnbanUser = async (userId) => {
+        if (!window.confirm('사용자 정지를 해제하시겠습니까?')) return;
+        try {
+            await adminService.unbanUser(userId);
+            setSuccess('사용자 정지가 해제되었습니다.');
+            fetchAdminUsers();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm('정말로 이 사용자를 삭제하시겠습니까?')) return;
+        try {
+            await adminService.deleteUser(userId);
+            setSuccess('사용자가 삭제되었습니다.');
+            fetchAdminUsers();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleAdminDeleteReview = async (reviewId) => {
+        if (!window.confirm('정말로 이 리뷰를 삭제하시겠습니까?')) return;
+        try {
+            await adminService.deleteReview(reviewId);
+            setSuccess('리뷰가 삭제되었습니다.');
+            fetchAdminReviews();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleClubFormSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const formData = new FormData();
+            const clubData = {
+                name: clubForm.name,
+                location: clubForm.location,
+                description: clubForm.description,
+                callNumber: clubForm.callNumber,
+                latitude: parseFloat(clubForm.latitude) || 0.0,
+                longitude: parseFloat(clubForm.longitude) || 0.0
+            };
+
+            formData.append('club', new Blob([JSON.stringify(clubData)], {
+                type: 'application/json'
+            }));
+
+            if (clubForm.file) {
+                formData.append('file', clubForm.file);
+            }
+
+            if (editingClub) {
+                await clubService.updateClub(editingClub.id, formData);
+                setSuccess('클럽이 수정되었습니다.');
+                setEditingClub(null);
+            } else {
+                await clubService.createClub(formData);
+                setSuccess('클럽이 등록되었습니다.');
+            }
+
+            setClubForm({
+                name: '', location: '', description: '', callNumber: '',
+                latitude: '', longitude: '', file: null
+            });
+
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleDeleteClub = async (clubId) => {
+        if (!window.confirm('정말로 이 클럽을 삭제하시겠습니까?')) return;
+        try {
+            await clubService.deleteClub(clubId);
+            setSuccess('클럽이 삭제되었습니다.');
+            // 클럽 목록 새로고침 로직 필요
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleEditClub = (club) => {
+        setEditingClub(club);
+        setClubForm({
+            name: club.name,
+            location: club.location,
+            description: club.description,
+            callNumber: club.callNumber,
+            latitude: club.latitude.toString(),
+            longitude: club.longitude.toString(),
+            file: null
+        });
+        setActiveTab('club-management');
+    };
+
+    // 탭 변경 시 데이터 로딩
+    useEffect(() => {
+        if (activeTab === 'user-management' && isAdmin) {
+            fetchAdminUsers();
+        } else if (activeTab === 'review-management' && isAdmin) {
+            fetchAdminReviews();
+        }
+    }, [activeTab, isAdmin]);
+
+
     useEffect(() => {
         if (location.state?.refresh) {
-                        console.log('마이페이지 새로고침됨');
-                        fetchMyPageData(); // 사용자 정보 다시 로드
-                        fetchMyReviews(); // 리뷰 목록 다시 로드
-                    }
-            }, [location.state?.refresh]);
+            console.log('마이페이지 새로고침됨');
+            fetchMyPageData(); // 사용자 정보 다시 로드
+            fetchMyReviews(); // 리뷰 목록 다시 로드
+        }
+    }, [location.state?.refresh]);
 
     const fetchMyPageData = async () => {
         try {
@@ -81,7 +250,7 @@ const MyPage = () => {
             return;
         }
 
-        if (!/^[가-힣]+$/.test(nickName)) {
+        if (!/^[가-힣]$/.test(nickName)) {
             setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
@@ -140,8 +309,8 @@ const MyPage = () => {
         try {
             await userService.updateNickName(nickNameForm.nickName);
             setSuccess('닉네임이 변경되었습니다.');
-            setNickNameForm({ nickName: '', checked: false, available: false, message: '' });
-            updateUser({ nickName: nickNameForm.nickName });
+            setNickNameForm({nickName: '', checked: false, available: false, message: ''});
+            updateUser({nickName: nickNameForm.nickName});
             fetchMyPageData(); // 데이터 새로고침
         } catch (err) {
             setError(err.message);
@@ -159,7 +328,7 @@ const MyPage = () => {
         try {
             await userService.updatePassword(passwordForm.password);
             setSuccess('비밀번호가 변경되었습니다.');
-            setPasswordForm({ password: '', valid: false, message: '' });
+            setPasswordForm({password: '', valid: false, message: ''});
         } catch (err) {
             setError(err.message);
         }
@@ -195,7 +364,7 @@ const MyPage = () => {
     };
 
     if (loading) {
-        return <LoadingSpinner message="마이페이지를 불러오는 중..." />;
+        return <LoadingSpinner message="마이페이지를 불러오는 중..."/>;
     }
 
     return (
@@ -222,27 +391,340 @@ const MyPage = () => {
                             dismissible
                         />
                     )}
+                    {/* 탭 네비게이션 */}
+                    <ul className="nav nav-tabs mb-4">
+                        <li className="nav-item">
+                            <button className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('profile')}>
+                                내 정보
+                            </button>
+                        </li>
+                        {isAdmin && (
+                            <>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'user-management' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('user-management')}>
+                                        회원 관리
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'club-management' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('club-management')}>
+                                        클럽 관리
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'review-management' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('review-management')}>
+                                        리뷰 관리
+                                    </button>
+                                </li>
+                            </>
+                        )}
+                    </ul>
 
-                    {/* 내 정보 */}
-                    {myPageData && (
-                        <div className="card mb-4">
+                    {/* 일반 사용자 정보 탭 */}
+                    {activeTab === 'profile' && (
+                        <>
+                            {/* 내 정보 */}
+                            {myPageData && (
+                                <div className="card mb-4">
+                                    <div className="card-body">
+                                        <h3 className="card-title">👤 내 정보</h3>
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <strong>아이디:</strong> {myPageData.user?.userName || user?.userName}
+                                            </div>
+                                            <div className="col-md-4">
+                                                <strong>닉네임:</strong> {myPageData.user?.nickName}
+                                            </div>
+                                            <div className="col-md-4">
+                                                <strong>전화번호:</strong> {myPageData.user?.phoneNumber}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* 관리자 - 회원 관리 탭 */}
+                    {activeTab === 'user-management' && isAdmin && (
+                        <div className="card">
                             <div className="card-body">
-                                <h3 className="card-title">👤 내 정보</h3>
-                                <div className="row">
-                                    <div className="col-md-4">
-                                        <strong>아이디:</strong> {myPageData.user?.userName || user?.userName}
+                                <h3 className="card-title">👥 회원 관리</h3>
+
+                                {/* 사용자 검색 */}
+                                <div className="mb-4">
+                                    <div className="input-group">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="닉네임으로 검색"
+                                            value={searchNickname}
+                                            onChange={(e) => setSearchNickname(e.target.value)}
+                                        />
+                                        <button className="btn btn-primary" onClick={handleSearchUsers}>
+                                            검색
+                                        </button>
+                                        <button className="btn btn-secondary" onClick={fetchAdminUsers}>
+                                            전체보기
+                                        </button>
                                     </div>
-                                    <div className="col-md-4">
-                                        <strong>닉네임:</strong> {myPageData.user?.nickName}
-                                    </div>
-                                    <div className="col-md-4">
-                                        <strong>전화번호:</strong> {myPageData.user?.phoneNumber}
-                                    </div>
+                                </div>
+
+                                {/* 사용자 목록 */}
+                                <div className="table-responsive">
+                                    <table className="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>닉네임</th>
+                                            <th>아이디</th>
+                                            <th>상태</th>
+                                            <th>관리</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {adminUsers.map(user => (
+                                            <tr key={user.id}>
+                                                <td>{user.id}</td>
+                                                <td>{user.nickName}</td>
+                                                <td>{user.userName}</td>
+                                                <td>
+                                                    {user.banEndTime ? (
+                                                        <span className="badge bg-danger">
+                                                                정지됨 ({new Date(user.banEndTime).toLocaleDateString()})
+                                                            </span>
+                                                    ) : (
+                                                        <span className="badge bg-success">활성</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {user.banEndTime ? (
+                                                        <button
+                                                            className="btn btn-success btn-sm me-1"
+                                                            onClick={() => handleUnbanUser(user.id)}
+                                                        >
+                                                            정지해제
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-warning btn-sm me-1"
+                                                                onClick={() => handleBanUser(user.id, 7)}
+                                                            >
+                                                                7일 정지
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-warning btn-sm me-1"
+                                                                onClick={() => handleBanUser(user.id, 30)}
+                                                            >
+                                                                30일 정지
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    <button
+                                                        className="btn btn-danger btn-sm"
+                                                        onClick={() => handleDeleteUser(user.id)}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     )}
 
+                    {/* 관리자 - 클럽 관리 탭 */}
+                    {activeTab === 'club-management' && isAdmin && (
+                        <div className="card">
+                            <div className="card-body">
+                                <h3 className="card-title">🏢 클럽 관리</h3>
+
+                                {/* 클럽 등록/수정 폼 */}
+                                <form onSubmit={handleClubFormSubmit} className="mb-4">
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">클럽명</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={clubForm.name}
+                                                    onChange={(e) => setClubForm({...clubForm, name: e.target.value})}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">위치</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={clubForm.location}
+                                                    onChange={(e) => setClubForm({
+                                                        ...clubForm,
+                                                        location: e.target.value
+                                                    })}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">전화번호</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={clubForm.callNumber}
+                                                    onChange={(e) => setClubForm({
+                                                        ...clubForm,
+                                                        callNumber: e.target.value
+                                                    })}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-3">
+                                            <div className="mb-3">
+                                                <label className="form-label">위도</label>
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    className="form-control"
+                                                    value={clubForm.latitude}
+                                                    onChange={(e) => setClubForm({
+                                                        ...clubForm,
+                                                        latitude: e.target.value
+                                                    })}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-3">
+                                            <div className="mb-3">
+                                                <label className="form-label">경도</label>
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    className="form-control"
+                                                    value={clubForm.longitude}
+                                                    onChange={(e) => setClubForm({
+                                                        ...clubForm,
+                                                        longitude: e.target.value
+                                                    })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">설명</label>
+                                        <textarea
+                                            className="form-control"
+                                            rows="3"
+                                            value={clubForm.description}
+                                            onChange={(e) => setClubForm({...clubForm, description: e.target.value})}
+                                            required
+                                        ></textarea>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">사진</label>
+                                        <input
+                                            type="file"
+                                            className="form-control"
+                                            accept="image/*"
+                                            onChange={(e) => setClubForm({...clubForm, file: e.target.files[0]})}
+                                            required={!editingClub}
+                                        />
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <button type="submit" className="btn btn-primary">
+                                            {editingClub ? '수정' : '등록'}
+                                        </button>
+                                        {editingClub && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                onClick={() => {
+                                                    setEditingClub(null);
+                                                    setClubForm({
+                                                        name: '', location: '', description: '', callNumber: '',
+                                                        latitude: '', longitude: '', file: null
+                                                    });
+                                                }}
+                                            >
+                                                취소
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 관리자 - 리뷰 관리 탭 */}
+                    {activeTab === 'review-management' && isAdmin && (
+                        <div className="card">
+                            <div className="card-body">
+                                <h3 className="card-title">📝 리뷰 관리</h3>
+
+                                <div className="table-responsive">
+                                    <table className="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>클럽</th>
+                                            <th>작성자</th>
+                                            <th>평점</th>
+                                            <th>내용</th>
+                                            <th>작성일</th>
+                                            <th>관리</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {adminReviews.map(review => (
+                                            <tr key={review.id}>
+                                                <td>{review.id}</td>
+                                                <td>{review.clubName}</td>
+                                                <td>{review.userNickName}</td>
+                                                <td>
+                                                                    <span className="badge bg-warning">
+                                                            {'★'.repeat(review.rating)}
+                                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div style={{
+                                                        maxWidth: '200px',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }}>
+                                                        {review.comment}
+                                                    </div>
+                                                </td>
+                                                <td>{new Date(review.createTime).toLocaleDateString()}</td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-danger btn-sm"
+                                                        onClick={() => handleAdminDeleteReview(review.id)}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* 닉네임 변경 */}
                     <div className="card mb-4">
                         <div className="card-body">
@@ -275,7 +757,8 @@ const MyPage = () => {
                                         </button>
                                     </div>
                                     {nickNameForm.message && (
-                                        <div className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
+                                        <div
+                                            className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
                                             {nickNameForm.message}
                                         </div>
                                     )}
@@ -306,7 +789,8 @@ const MyPage = () => {
                                         placeholder="새로운 비밀번호를 입력하세요 (최소 8자)"
                                     />
                                     {passwordForm.message && (
-                                        <div className={`mt-1 small ${passwordForm.valid ? 'text-success' : 'text-danger'}`}>
+                                        <div
+                                            className={`mt-1 small ${passwordForm.valid ? 'text-success' : 'text-danger'}`}>
                                             {passwordForm.message}
                                         </div>
                                     )}
@@ -385,7 +869,7 @@ const MyPage = () => {
 };
 
 // 리뷰 수정 폼 컴포넌트
-const EditReviewForm = ({ review, onSave, onCancel }) => {
+const EditReviewForm = ({review, onSave, onCancel}) => {
     const [editData, setEditData] = useState({
         rating: review.rating,
         comment: review.comment
