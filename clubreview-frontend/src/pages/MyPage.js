@@ -45,10 +45,10 @@ const MyPage = () => {
 
 
     useEffect(() => {
-        if (user?.role === 'ADMIN' && activeTab === 'profile') {
-            setActiveTab('club-management');
-        }
-    }, [user]);
+                if (isAdmin && ['profile', 'password', 'my-reviews'].includes(activeTab)) {
+                        setActiveTab('club-management');
+                    }
+            }, [isAdmin, activeTab]);
     // 카카오맵 관련 상태
     const [searchKeyword, setSearchKeyword] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -560,17 +560,31 @@ const MyPage = () => {
                             dismissible
                         />
                     )}
-                    {/* 탭 네비게이션 */}
-                    <ul className="nav nav-tabs mb-4">
-                        {/* 관리자 계정에서는 '내 정보' 탭 숨김 */}
-                        {!isAdmin && (
-                            <li className="nav-item">
-                                <button className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-                                        onClick={() => setActiveTab('profile')}>
-                                    내 정보
-                                </button>
-                            </li>
-                        )}
+                                        {/* 탭 네비게이션 */}
+                                        <ul className="nav nav-tabs mb-4">
+                                            {/* 관리자 계정에서는 '내 정보/비밀번호 변경/내가 쓴 리뷰' 탭 숨김 */}
+                                            {!isAdmin && (
+                                                <>
+                                                    <li className="nav-item">
+                                                            <button className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
+                                                                    onClick={() => setActiveTab('profile')}>
+                                                                내 정보
+                                                            </button>
+                                                    </li>
+                                                    <li className="nav-item">
+                                                            <button className={`nav-link ${activeTab === 'password' ? 'active' : ''}`}
+                                                                    onClick={() => setActiveTab('password')}>
+                                                                비밀번호 변경
+                                                            </button>
+                                                    </li>
+                                                    <li className="nav-item">
+                                                        <button className={`nav-link ${activeTab === 'my-reviews' ? 'active' : ''}`}
+                                                                onClick={() => setActiveTab('my-reviews')}>
+                                                            내가 쓴 리뷰
+                                                        </button>
+                                                    </li>
+                                            </>
+                                    )}
                         {isAdmin && (
                             <>
                                 <li className="nav-item">
@@ -597,15 +611,8 @@ const MyPage = () => {
 
                     {/* 일반 사용자 정보 탭 */}
                     {/* 관리자 계정에서는 '내 정보' 섹션 자체 비노출 */}
-                    {activeTab === 'profile' && !isAdmin && (
-                        <div className="card mb-4">
-                            <div className="card-body">
-                                <h3 className="card-title">👤 내 정보</h3>
-                            </div>
-                        </div>
-                    )}
                     {/* 내 정보 */}
-                    {myPageData && (
+                    {activeTab === 'profile' && !isAdmin && (
                         <div className="card mb-4">
                             <div className="card-body">
                                 <h3 className="card-title">👤 내 정보</h3>
@@ -796,6 +803,8 @@ const MyPage = () => {
                                                         주소 검색
                                                     </button>
                                                 </div>
+                                                <input type="hidden" name="latitude" value={clubForm.latitude ?? ''} readOnly />
+                                                <input type="hidden" name="longitude" value={clubForm.longitude ?? ''} readOnly />
                                             </div>
                                         </div>
                                     </div>
@@ -812,36 +821,6 @@ const MyPage = () => {
                                                         callNumber: e.target.value
                                                     })}
                                                     required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <div className="mb-3">
-                                                <label className="form-label">위도</label>
-                                                <input
-                                                    type="number"
-                                                    step="any"
-                                                    className="form-control"
-                                                    value={clubForm.latitude}
-                                                    onChange={(e) => setClubForm({
-                                                        ...clubForm,
-                                                        latitude: e.target.value
-                                                    })}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <div className="mb-3">
-                                                <label className="form-label">경도</label>
-                                                <input
-                                                    type="number"
-                                                    step="any"
-                                                    className="form-control"
-                                                    value={clubForm.longitude}
-                                                    onChange={(e) => setClubForm({
-                                                        ...clubForm,
-                                                        longitude: e.target.value
-                                                    })}
                                                 />
                                             </div>
                                         </div>
@@ -959,9 +938,9 @@ const MyPage = () => {
                             </div>
                         </div>
                     )}
-                    {!isAdmin && (
-                        <>
+
                             {/* 닉네임 변경 */}
+                    {activeTab === 'password' && !isAdmin && (
                             <div className="card mb-4">
                                 <div className="card-body">
                                     <h3 className="card-title">✏️ 닉네임 변경</h3>
@@ -1009,10 +988,10 @@ const MyPage = () => {
                                     </form>
                                 </div>
                             </div>
-                        </>
                     )}
 
                     {/* 비밀번호 변경 */}
+                    {activeTab === 'my-reviews' && !isAdmin && (
                     <div className="card mb-4">
                         <div className="card-body">
                             <h3 className="card-title">🔐 비밀번호 변경</h3>
@@ -1043,8 +1022,10 @@ const MyPage = () => {
                             </form>
                         </div>
                     </div>
+                    )}
 
                     {/* 내 리뷰 목록 */}
+                    {activeTab === 'my-reviews' && !isAdmin && (
                     <div className="card">
                         <div className="card-body">
                             <h3 className="card-title">📝 내가 쓴 리뷰 ({reviews.length}개)</h3>
@@ -1100,11 +1081,13 @@ const MyPage = () => {
                             )}
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
+
 
 // 리뷰 수정 폼 컴포넌트
 const EditReviewForm = ({review, onSave, onCancel}) => {
