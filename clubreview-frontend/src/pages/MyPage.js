@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {userService} from '../services/userService';
 import {useLocation} from 'react-router-dom';
 import {reviewService} from '../services/reviewService';
@@ -54,7 +54,9 @@ const MyPage = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [selectedPlace, setSelectedPlace] = useState(null);
     const [mapInstance, setMapInstance] = useState(null);
-    const [markersArray, setMarkersArray] = useState([]);
+    const searchMarkersRef = useRef([]); // 검색 결과 마커들
+    const selectedMarkerRef = useRef(null); // 선택(주소/장소) 마커
+    const [markersArray, setMarkersArray] = useState([]); // UI 업데이트용
 
     // 리뷰 검색 디바운스
     const debouncedReviewSearch = useCallback((nickname) => {
@@ -251,42 +253,36 @@ const MyPage = () => {
         ps.keywordSearch(searchKeyword, (data, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
                 setSearchResults(data);
-                displayMarkers(data);
+                displayMarkers(data, { fitBounds: true });
             } else {
                 alert('검색 결과가 없습니다.');
             }
         });
     };
 
-    // 지도에 마커 표시
-    const displayMarkers = (places) => {
+    // 지도에 마커 표시 (검색 결과 전용)
+    const displayMarkers = useCallback((places, { fitBounds = true } = {}) => {
         if (!mapInstance) return;
 
-        // 기존 마커 제거
-        markersArray.forEach(marker => marker.setMap(null));
-        setMarkersArray([]);
+        // 기존 "검색 결과" 마커만 제거 (선택 마커는 유지)
+        searchMarkersRef.current.forEach(m => m.setMap(null));
+        searchMarkersRef.current = [];
 
         const bounds = new window.kakao.maps.LatLngBounds();
-        const newMarkers = [];
-
-        places.forEach((place, index) => {
-            const placePosition = new window.kakao.maps.LatLng(place.y, place.x);
-            const marker = new window.kakao.maps.Marker({
-                position: placePosition,
-                map: mapInstance
-            });
-
-            window.kakao.maps.event.addListener(marker, 'click', () => {
-                selectPlace(place);
-            });
-
-            newMarkers.push(marker);
-            bounds.extend(placePosition);
+        const newMarkers = places.map(place => {
+            const pos = new window.kakao.maps.LatLng(place.y, place.x);
+            const marker = new window.kakao.maps.Marker({ position: pos });
+            marker.setMap(mapInstance);
+            window.kakao.maps.event.addListener(marker, 'click', () => selectPlace(place));
+            bounds.extend(pos);
+            return marker;
         });
 
+        searchMarkersRef.current = newMarkers;
         setMarkersArray(newMarkers);
-        mapInstance.setBounds(bounds);
-    };
+        if (fitBounds) mapInstance.setBounds(bounds);
+    }, [mapInstance]);
+
 
     // 장소 선택
     const selectPlace = (place) => {
@@ -325,21 +321,22 @@ const MyPage = () => {
                         try {
                             if (mapInstance) {
                                 const pos = new window.kakao.maps.LatLng(y, x);
-                                const marker = new window.kakao.maps.Marker({position: pos});
-                                markersArray.forEach(m => m.setMap(null));
+                                if (selectedMarkerRef.current) selectedMarkerRef.current.setMap(null);
+                                const marker = new window.kakao.maps.Marker({ position: pos });
+                                marker.setZIndex(100);
                                 marker.setMap(mapInstance);
-                                setMarkersArray([marker]);
+                                selectedMarkerRef.current = marker;
                                 mapInstance.setCenter(pos);
                             }
-                        } catch (_) { /* 지도 미표시 시 무시 */
-                        }
+                        } catch (_) { /* 지도 미표시 시 무시 */ }
+
                     } else {
                         alert('주소를 좌표로 변환하는 데 실패했습니다.');
                     }
                 });
             }
         }).open();
-    }, [mapInstance, markersArray]);
+    }, [mapInstance]);
 
     // 카카오맵 초기화
     const loadKakao = useCallback(() => new Promise((resolve) => {
@@ -370,15 +367,38 @@ const MyPage = () => {
             : new window.kakao.maps.LatLng(37.5665, 126.9780);
         const map = new window.kakao.maps.Map(container, {center, level: 3});
         setMapInstance(map);
-        setMarkersArray([]);
+
+
         setTimeout(() => { // 왜: 탭 전환 후 표시 문제 해결
             try {
                 map.relayout();
                 map.setCenter(center);
-            } catch (_) {
-            }
+                // 기존 검색/선택 마커를 새 맵에 재부착
+                searchMarkersRef.current.forEach(m => m.setMap(map));
+                if (selectedMarkerRef.current) selectedMarkerRef.current.setMap(map);
+            } catch (_) {}
         }, 0);
     }, [loadKakao, clubForm.latitude, clubForm.longitude]);
+
+
+    // 줌/이동/idle 시 마커 유지
+    useEffect(() => {
+        if (!mapInstance) return;
+        const restore = () => {
+            searchMarkersRef.current.forEach(m => { if (!m.getMap()) m.setMap(mapInstance); });
+            if (selectedMarkerRef.current && !selectedMarkerRef.current.getMap()) {
+                selectedMarkerRef.current.setMap(mapInstance);
+            }
+        };
+        window.kakao.maps.event.addListener(mapInstance, 'zoom_changed', restore);
+        window.kakao.maps.event.addListener(mapInstance, 'dragend', restore);
+        window.kakao.maps.event.addListener(mapInstance, 'idle', restore);
+        return () => {
+            window.kakao.maps.event.removeListener(mapInstance, 'zoom_changed', restore);
+            window.kakao.maps.event.removeListener(mapInstance, 'dragend', restore);
+            window.kakao.maps.event.removeListener(mapInstance, 'idle', restore);
+        };
+    }, [mapInstance]);
 
     useEffect(() => {
         if (activeTab === 'club-management') {
