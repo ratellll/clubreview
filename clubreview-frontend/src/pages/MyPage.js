@@ -17,7 +17,7 @@ const MyPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const [myPageData, setMyPageData] = useState(null);
+    const [myPageData, setMyPageData] = useState({});
     const [reviews, setReviews] = useState([]);
     const [editingReview, setEditingReview] = useState(null);
 
@@ -45,10 +45,10 @@ const MyPage = () => {
 
 
     useEffect(() => {
-                if (isAdmin && ['profile', 'password', 'my-reviews'].includes(activeTab)) {
-                        setActiveTab('club-management');
-                    }
-            }, [isAdmin, activeTab]);
+        if (isAdmin && ['profile', 'password', 'my-reviews'].includes(activeTab)) {
+            setActiveTab('club-management');
+        }
+    }, [isAdmin, activeTab]);
     // 카카오맵 관련 상태
     const [searchKeyword, setSearchKeyword] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -342,26 +342,49 @@ const MyPage = () => {
     }, [mapInstance, markersArray]);
 
     // 카카오맵 초기화
-    useEffect(() => {
-        if (activeTab === 'club-management' && !mapInstance) {
-            const script = document.createElement('script');
-            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&libraries=services&autoload=false';
-            script.onload = () => {
-                window.kakao.maps.load(() => {
-                    const container = document.getElementById('club-map');
-                    if (container) {
-                        const options = {
-                            center: new window.kakao.maps.LatLng(37.5665, 126.9780),
-                            level: 3
-                        };
-                        const map = new window.kakao.maps.Map(container, options);
-                        setMapInstance(map);
-                    }
-                });
-            };
-            document.head.appendChild(script);
+    const loadKakao = useCallback(() => new Promise((resolve) => {
+        if (window.kakao?.maps) {
+            window.kakao.maps.load(resolve);
+            return;
         }
-    }, [activeTab, mapInstance]);
+        let script = document.getElementById('kakao-maps-sdk');
+        if (!script) {
+            script = document.createElement('script');
+            script.id = 'kakao-maps-sdk';
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=93b4ad501fc7b3941109e59488da8aa9&libraries=services&autoload=false';
+            script.onload = () => window.kakao.maps.load(resolve);
+            document.head.appendChild(script);
+        } else {
+            script.addEventListener('load', () => window.kakao.maps.load(resolve), {once: true});
+        }
+    }), []);
+
+
+    // 탭 재진입 시에도 항상 현재 컨테이너에 새 맵을 생성하고 relayout 수행
+    const mountMap = useCallback(async () => {
+        await loadKakao();
+        const container = document.getElementById('club-map');
+        if (!container) return;
+        const center = (clubForm.latitude && clubForm.longitude)
+            ? new window.kakao.maps.LatLng(clubForm.latitude, clubForm.longitude)
+            : new window.kakao.maps.LatLng(37.5665, 126.9780);
+        const map = new window.kakao.maps.Map(container, {center, level: 3});
+        setMapInstance(map);
+        setMarkersArray([]);
+        setTimeout(() => { // 왜: 탭 전환 후 표시 문제 해결
+            try {
+                map.relayout();
+                map.setCenter(center);
+            } catch (_) {
+            }
+        }, 0);
+    }, [loadKakao, clubForm.latitude, clubForm.longitude]);
+
+    useEffect(() => {
+        if (activeTab === 'club-management') {
+            mountMap();
+        }
+    }, [activeTab, mountMap]);
 
 
     // 탭 변경 시 데이터 로딩
@@ -419,7 +442,7 @@ const MyPage = () => {
             return;
         }
 
-        if (!/^[가-힣]$/.test(nickName)) {
+        if (!/^[가-힣]+$/.test(nickName)) {
             setNickNameForm(prev => ({
                 ...prev,
                 checked: false,
@@ -560,31 +583,25 @@ const MyPage = () => {
                             dismissible
                         />
                     )}
-                                        {/* 탭 네비게이션 */}
-                                        <ul className="nav nav-tabs mb-4">
-                                            {/* 관리자 계정에서는 '내 정보/비밀번호 변경/내가 쓴 리뷰' 탭 숨김 */}
-                                            {!isAdmin && (
-                                                <>
-                                                    <li className="nav-item">
-                                                            <button className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-                                                                    onClick={() => setActiveTab('profile')}>
-                                                                내 정보
-                                                            </button>
-                                                    </li>
-                                                    <li className="nav-item">
-                                                            <button className={`nav-link ${activeTab === 'password' ? 'active' : ''}`}
-                                                                    onClick={() => setActiveTab('password')}>
-                                                                비밀번호 변경
-                                                            </button>
-                                                    </li>
-                                                    <li className="nav-item">
-                                                        <button className={`nav-link ${activeTab === 'my-reviews' ? 'active' : ''}`}
-                                                                onClick={() => setActiveTab('my-reviews')}>
-                                                            내가 쓴 리뷰
-                                                        </button>
-                                                    </li>
-                                            </>
-                                    )}
+                    {/* 탭 네비게이션 */}
+                    <ul className="nav nav-tabs mb-4">
+                        {/* 관리자 계정에서는 '내 정보/비밀번호 변경/내가 쓴 리뷰' 탭 숨김 */}
+                        {!isAdmin && (
+                            <>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('profile')}>
+                                        내 정보
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'my-reviews' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('my-reviews')}>
+                                        내가 쓴 리뷰
+                                    </button>
+                                </li>
+                            </>
+                        )}
                         {isAdmin && (
                             <>
                                 <li className="nav-item">
@@ -608,28 +625,96 @@ const MyPage = () => {
                             </>
                         )}
                     </ul>
-
-                    {/* 일반 사용자 정보 탭 */}
-                    {/* 관리자 계정에서는 '내 정보' 섹션 자체 비노출 */}
-                    {/* 내 정보 */}
+                    {/* 일반 사용자 - 내 정보: 프로필  닉네임 변경  비밀번호 변경 함께 표시 */}
                     {activeTab === 'profile' && !isAdmin && (
-                        <div className="card mb-4">
-                            <div className="card-body">
-                                <h3 className="card-title">👤 내 정보</h3>
-                                <div className="row">
-                                    <div className="col-md-4">
-                                        <strong>아이디:</strong> {myPageData.user?.userName || user?.userName}
-                                    </div>
-                                    <div className="col-md-4">
-                                        <strong>닉네임:</strong> {myPageData.user?.nickName}
-                                    </div>
-                                    <div className="col-md-4">
-                                        <strong>전화번호:</strong> {myPageData.user?.phoneNumber}
+                        <>
+                            <div className="card mb-4">
+                                <div className="card-body">
+                                    <h3 className="card-title">👤 내 정보</h3>
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>아이디:</strong> {myPageData.user?.userName || user?.userName}</div>
+                                        <div className="col-md-4"><strong>닉네임:</strong> {myPageData.user?.nickName}
+                                        </div>
+                                        <div className="col-md-4"><strong>전화번호:</strong> {myPageData.user?.phoneNumber}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            {/* 닉네임 변경 */}
+                            <div className="card mb-4">
+                                <div className="card-body">
+                                    <h3 className="card-title">✏️ 닉네임 변경</h3>
+                                    <form onSubmit={handleNickNameSubmit}>
+                                        <div className="mb-3">
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className={`form-control ${nickNameForm.checked ? (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
+                                                    value={nickNameForm.nickName}
+                                                    onChange={(e) => setNickNameForm(prev => ({
+                                                        ...prev,
+                                                        nickName: e.target.value,
+                                                        checked: false,
+                                                        available: false,
+                                                        message: ''
+                                                    }))}
+                                                    placeholder="새로운 닉네임을 입력하세요"
+                                                    disabled={nickNameForm.available}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-secondary"
+                                                    onClick={checkNicknameDuplicate}
+                                                    disabled={nickNameForm.available || !nickNameForm.nickName.trim()}
+                                                >
+                                                    중복 체크
+                                                </button>
+                                            </div>
+                                            {nickNameForm.message && (
+                                                <div
+                                                    className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
+                                                    {nickNameForm.message}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button type="submit" className="btn btn-primary"
+                                                disabled={!nickNameForm.checked || !nickNameForm.available}>
+                                            닉네임 변경
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {/* 비밀번호 변경 */}
+                            <div className="card mb-4">
+                                <div className="card-body">
+                                    <h3 className="card-title">🔐 비밀번호 변경</h3>
+                                    <form onSubmit={handlePasswordSubmit}>
+                                        <div className="mb-3">
+                                            <input
+                                                type="password"
+                                                className={`form-control ${passwordForm.valid ? 'is-valid' : (passwordForm.password ? 'is-invalid' : '')}`}
+                                                value={passwordForm.password}
+                                                onChange={(e) => validatePassword(e.target.value)}
+                                                placeholder="새로운 비밀번호를 입력하세요 (최소 8자)"
+                                            />
+                                            {passwordForm.message && (
+                                                <div
+                                                    className={`mt-1 small ${passwordForm.valid ? 'text-success' : 'text-danger'}`}>
+                                                    {passwordForm.message}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button type="submit" className="btn btn-primary"
+                                                disabled={!passwordForm.valid}>비밀번호 변경
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </>
                     )}
+
                     {/* 관리자 - 회원 관리 탭 */}
                     {activeTab === 'user-management' && isAdmin && (
                         <div className="card">
@@ -803,8 +888,10 @@ const MyPage = () => {
                                                         주소 검색
                                                     </button>
                                                 </div>
-                                                <input type="hidden" name="latitude" value={clubForm.latitude ?? ''} readOnly />
-                                                <input type="hidden" name="longitude" value={clubForm.longitude ?? ''} readOnly />
+                                                <input type="hidden" name="latitude" value={clubForm.latitude ?? ''}
+                                                       readOnly/>
+                                                <input type="hidden" name="longitude" value={clubForm.longitude ?? ''}
+                                                       readOnly/>
                                             </div>
                                         </div>
                                     </div>
@@ -938,149 +1025,63 @@ const MyPage = () => {
                             </div>
                         </div>
                     )}
-
-                            {/* 닉네임 변경 */}
-                    {activeTab === 'password' && !isAdmin && (
-                            <div className="card mb-4">
-                                <div className="card-body">
-                                    <h3 className="card-title">✏️ 닉네임 변경</h3>
-                                    <form onSubmit={handleNickNameSubmit}>
-                                        <div className="mb-3">
-                                            <div className="input-group">
-                                                <input
-                                                    type="text"
-                                                    className={`form-control ${nickNameForm.checked ?
-                                                        (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
-                                                    value={nickNameForm.nickName}
-                                                    onChange={(e) => setNickNameForm(prev => ({
-                                                        ...prev,
-                                                        nickName: e.target.value,
-                                                        checked: false,
-                                                        available: false,
-                                                        message: ''
-                                                    }))}
-                                                    placeholder="새로운 닉네임을 입력하세요"
-                                                    disabled={nickNameForm.available}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-outline-secondary"
-                                                    onClick={checkNicknameDuplicate}
-                                                    disabled={nickNameForm.available || !nickNameForm.nickName.trim()}
-                                                >
-                                                    중복 체크
-                                                </button>
-                                            </div>
-                                            {nickNameForm.message && (
-                                                <div
-                                                    className={`mt-1 small ${nickNameForm.available ? 'text-success' : 'text-danger'}`}>
-                                                    {nickNameForm.message}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary"
-                                            disabled={!nickNameForm.checked || !nickNameForm.available}
-                                        >
-                                            닉네임 변경
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                    )}
-
-                    {/* 비밀번호 변경 */}
-                    {activeTab === 'my-reviews' && !isAdmin && (
-                    <div className="card mb-4">
-                        <div className="card-body">
-                            <h3 className="card-title">🔐 비밀번호 변경</h3>
-                            <form onSubmit={handlePasswordSubmit}>
-                                <div className="mb-3">
-                                    <input
-                                        type="password"
-                                        className={`form-control ${passwordForm.valid ? 'is-valid' :
-                                            (passwordForm.password ? 'is-invalid' : '')}`}
-                                        value={passwordForm.password}
-                                        onChange={(e) => validatePassword(e.target.value)}
-                                        placeholder="새로운 비밀번호를 입력하세요 (최소 8자)"
-                                    />
-                                    {passwordForm.message && (
-                                        <div
-                                            className={`mt-1 small ${passwordForm.valid ? 'text-success' : 'text-danger'}`}>
-                                            {passwordForm.message}
-                                        </div>
-                                    )}
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    disabled={!passwordForm.valid}
-                                >
-                                    비밀번호 변경
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    )}
-
                     {/* 내 리뷰 목록 */}
                     {activeTab === 'my-reviews' && !isAdmin && (
-                    <div className="card">
-                        <div className="card-body">
-                            <h3 className="card-title">📝 내가 쓴 리뷰 ({reviews.length}개)</h3>
+                        <div className="card">
+                            <div className="card-body">
+                                <h3 className="card-title">📝 내가 쓴 리뷰 ({reviews.length}개)</h3>
 
-                            {reviews.length === 0 ? (
-                                <div className="text-center py-4">
-                                    <p className="text-muted">작성한 리뷰가 없습니다.</p>
-                                </div>
-                            ) : (
-                                <div>
-                                    {reviews.map(review => (
-                                        <div key={review.id} className="border-bottom pb-3 mb-3">
-                                            <div className="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <strong className="text-primary">
-                                                        🎉 {review.clubName || '클럽명'}
-                                                    </strong>
-                                                    <div className="text-warning">
-                                                        {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                {reviews.length === 0 ? (
+                                    <div className="text-center py-4">
+                                        <p className="text-muted">작성한 리뷰가 없습니다.</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {reviews.map(review => (
+                                            <div key={review.id} className="border-bottom pb-3 mb-3">
+                                                <div className="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <strong className="text-primary">
+                                                            🎉 {review.clubName || '클럽명'}
+                                                        </strong>
+                                                        <div className="text-warning">
+                                                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                                        </div>
+                                                        <p className="mt-2">{review.comment}</p>
+                                                        <small className="text-muted">
+                                                            {new Date(review.createTime).toLocaleDateString()}
+                                                        </small>
                                                     </div>
-                                                    <p className="mt-2">{review.comment}</p>
-                                                    <small className="text-muted">
-                                                        {new Date(review.createTime).toLocaleDateString()}
-                                                    </small>
+                                                    <div>
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary me-2"
+                                                            onClick={() => setEditingReview(review.id)}
+                                                        >
+                                                            수정
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger"
+                                                            onClick={() => handleDeleteReview(review.id)}
+                                                        >
+                                                            삭제
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-outline-primary me-2"
-                                                        onClick={() => setEditingReview(review.id)}
-                                                    >
-                                                        수정
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => handleDeleteReview(review.id)}
-                                                    >
-                                                        삭제
-                                                    </button>
-                                                </div>
-                                            </div>
 
-                                            {/* 리뷰 수정 폼 */}
-                                            {editingReview === review.id && (
-                                                <EditReviewForm
-                                                    review={review}
-                                                    onSave={handleEditReview}
-                                                    onCancel={() => setEditingReview(null)}
-                                                />
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                                                {/* 리뷰 수정 폼 */}
+                                                {editingReview === review.id && (
+                                                    <EditReviewForm
+                                                        review={review}
+                                                        onSave={handleEditReview}
+                                                        onCancel={() => setEditingReview(null)}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
                     )}
                 </div>
             </div>
