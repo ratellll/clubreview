@@ -16,7 +16,7 @@ const RegisterPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [validationResults, setValidationResults] = useState({
-        username: { checked: false, available: false, message: '' },
+        userName: { checked: false, available: false, message: '' },
         nickName: { checked: false, available: false, message: '' },
         phoneNumber: { checked: false, available: false, message: '' },
         password: { valid: false, message: '' }
@@ -30,7 +30,7 @@ const RegisterPage = () => {
         if (name !== 'password') {
             setValidationResults(prev => ({
                 ...prev,
-                [name]: { checked: false, available: false, message: '' }
+                [name === 'username' ? 'userName' : name]: { checked: false, available: false, message: '' }
             }));
         } else {
             // 비밀번호 실시간 검증
@@ -39,6 +39,17 @@ const RegisterPage = () => {
 
         if (error) setError('');
     };
+        // 닉네임 전용 change 핸들러 (한글 입력 허용)
+    const handleNicknameChange = (e) => {
+        const { value } = e.target;
+        setFormData({ ...formData, nickName: value });
+        setValidationResults(prev => ({
+                ...prev,
+            nickName: { checked: false, available: false, message: '' }
+        }));
+        if (error) setError('');
+    };
+
 
     const validatePassword = (password) => {
         const isValid = password.length >= 8;
@@ -78,7 +89,7 @@ const RegisterPage = () => {
 
         try {
             const isAvailable = await authService.checkDuplicate(type, value);
-            const displayName = getDisplayName(type);
+            const displayName = getDisplayName(type === 'username' ? 'userName' : type);
 
             if (isAvailable) {
                 updateValidationResult(type, true, true, `사용 가능한 ${displayName}입니다.`);
@@ -93,7 +104,7 @@ const RegisterPage = () => {
     const updateValidationResult = (type, checked, available, message) => {
         setValidationResults(prev => ({
             ...prev,
-            [type]: { checked, available, message }
+            [type === 'username' ? 'userName' : type]: { checked, available, message }
         }));
     };
 
@@ -200,8 +211,8 @@ const RegisterPage = () => {
                                             className={`form-control ${validationResults.userName.checked ?
                                                 (validationResults.userName.available ? 'is-valid' : 'is-invalid') : ''}`}
                                             id="username"
-                                            name="username"
-                                            value={formData.useNname}
+                                            name="userName"
+                                            value={formData.userName}
                                             onChange={handleChange}
                                             placeholder="아이디를 입력하세요"
                                             disabled={loading || validationResults.userName.available}
@@ -249,7 +260,7 @@ const RegisterPage = () => {
 
                                 {/* 닉네임 */}
                                 <div className="mb-3">
-                                    <label htmlFor="nickname" className="form-label">
+                                    <label htmlFor="nickName" className="form-label">
                                         닉네임 <span className="text-danger">*</span>
                                     </label>
                                     <div className="input-group">
@@ -260,10 +271,9 @@ const RegisterPage = () => {
                                             id="nickname"
                                             name="nickname"
                                             value={formData.nickName}
-                                            onChange={handleChange}
+                                            onChange={handleNicknameChange}
                                             placeholder="닉네임을 입력하세요 (한글만)"
                                             disabled={loading || validationResults.nickName.available}
-                                            pattern="^[가-힣]+$"
                                             required
                                         />
                                         <button

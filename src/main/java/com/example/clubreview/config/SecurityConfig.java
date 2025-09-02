@@ -1,12 +1,12 @@
 package com.example.clubreview.config;
 
-import com.example.clubreview.security.CustomAuthenticationFailureHandler;
 import com.example.clubreview.security.JwtAuthenticationEntryPoint;
 import com.example.clubreview.security.JwtRequestFilter;
 import com.example.clubreview.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,7 +26,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(jsr250Enabled = true ,prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -68,6 +67,13 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/admin/export/kakao/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/favicon.ico",
+                                "/error",
+                                "/css/**", "/js/**", "/images/**", "/assets/**", "/webjars/**"
+                        ).permitAll()
 
                         // User endpoints
                         .requestMatchers("/api/users/profile/**").authenticated()
@@ -104,5 +110,35 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
+    }
+
+    @Bean(name = "appChain")
+    @Order(1)
+    SecurityFilterChain appChain(HttpSecurity http, JwtAuthenticationEntryPoint entryPoint,
+                                 JwtRequestFilter jwtRequestFilter) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(e -> e.authenticationEntryPoint(entryPoint))
+                .authorizeHttpRequests(a -> a
+                        .requestMatchers("/auth/**", "/actuator/health").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    SecurityFilterChain security(HttpSecurity http,
+                                 JwtAuthenticationEntryPoint entryPoint,
+                                 JwtRequestFilter jwtRequestFilter) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(e -> e.authenticationEntryPoint(entryPoint))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/admin/export/kakao/**").permitAll() // 퍼블릭
+                        .requestMatchers("/auth/**", "/actuator/health").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터는 이 체인에만
+        return http.build();
     }
 }

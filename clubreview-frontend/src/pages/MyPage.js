@@ -217,6 +217,18 @@ const MyPage = () => {
         }
     };
 
+    // 닉네임 전용 change 핸들러
+    const handleNicknameFormChange = (e) => {
+        const value = e.target.value;
+        setNickNameForm(prev => ({
+                ...prev,
+                nickName: value,
+                checked: false,
+                available: false,
+            message: ''
+        }));
+    };
+
     const handleDeleteClub = async (clubId) => {
         if (!window.confirm('정말로 이 클럽을 삭제하시겠습니까?')) return;
         try {
@@ -673,13 +685,7 @@ const MyPage = () => {
                                                     type="text"
                                                     className={`form-control ${nickNameForm.checked ? (nickNameForm.available ? 'is-valid' : 'is-invalid') : ''}`}
                                                     value={nickNameForm.nickName}
-                                                    onChange={(e) => setNickNameForm(prev => ({
-                                                        ...prev,
-                                                        nickName: e.target.value,
-                                                        checked: false,
-                                                        available: false,
-                                                        message: ''
-                                                    }))}
+                                                    onChange={handleNicknameFormChange}
                                                     placeholder="새로운 닉네임을 입력하세요"
                                                     disabled={nickNameForm.available}
                                                 />

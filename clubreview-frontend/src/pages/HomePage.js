@@ -1,5 +1,4 @@
 import React from 'react';
-import ApiTest from '../components/common/ApiTest';
 
 const HomePage = () => {
     return (
@@ -12,7 +11,6 @@ const HomePage = () => {
                             <p className="card-text">React 프론트엔드가 성공적으로 실행되었습니다!</p>
                         </div>
                     </div>
-                    <ApiTest />
                 </div>
             </div>
         </div>

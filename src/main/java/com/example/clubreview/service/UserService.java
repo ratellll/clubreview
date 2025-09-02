@@ -56,7 +56,7 @@ public class UserService {
         return switch (type.toLowerCase()) {
             case "username" -> !userRepository.existsByUserName(value);
             case "phonenumber" -> !userRepository.existsByPhoneNumber(value.replaceAll("-", ""));
-            case "nickname" -> !userRepository.existsByNickName(value);
+            case "nickname", "nickName" -> !userRepository.existsByNickName(value);
             default -> throw new IllegalArgumentException("유효하지 않은 타입입니다: " + type);
         };
     }

@@ -2,7 +2,7 @@
 #  profiles:
 #    active: prod # 기본 프로파일 설정
 
----
+
 
 spring:
   config:
@@ -23,7 +23,29 @@ spring:
 jwt:
   secret: Pqw/FGD2GMTRcxU4WDANQVqHyalfmCIISxigQYOBEYE8+sD52um+dxSF64TwGhjcTyMGzu9/cLshZ5+WnmcUEA==
   expiration: 86400
----
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+seed:
+  run-on-startup: true
+  truncate-before: true
+  dependent-tables: [review]
+  default-average-rating: 0.0
+  csv-path: classpath:seed/seoul_clubs_pubs.csv
+  use-csv-description: false   # 제 자동 설명 사용
+
+kakao:
+  host: https://dapi.kakao.com
+  restApiKey: "8ec4a0631236aef6effc281e57c9e41a"
+  timeoutMs: 5000
+  defaultRadius: 3000
+
 #
 #spring:
 #  config:

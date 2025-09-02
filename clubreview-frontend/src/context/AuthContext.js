@@ -33,14 +33,16 @@ export const AuthProvider = ({ children }) => {
                     try {
                         const userProfile = await userService.getMyPage();
                         setUser({
-                                username: payload.sub,
+                                userName: payload.sub,
                                 nickName: userProfile.user.nickName,
-                            role : userProfile.user.role
+                            role: userProfile.user.role
                         });
+                        setIsAuthenticated(true);
                     } catch (error) {
+                        console.warn('사용자 프로필 조회 실패, 기본 정보로 설정:', error);
                         setUser({ username: payload.sub });
+                        setIsAuthenticated(true);
                     }
-                    setIsAuthenticated(true);
                 } else {
                     // 토큰이 만료된 경우
                     localStorage.removeItem('token');
@@ -61,14 +63,16 @@ export const AuthProvider = ({ children }) => {
             try {
                 const userProfile = await userService.getMyPage();
                 setUser({
-                        username: response.username,
+                        username: response.userName,
                         nickName: userProfile.user.nickName,
-                    role : userProfile.user.role
+                    role: userProfile.user.role
                 });
+                setIsAuthenticated(true);
             } catch (error) {
+                console.warn('사용자 프로필 조회 실패, 기본 정보로 설정:', error);
                 setUser({ username: response.username });
+                setIsAuthenticated(true);
             }
-            setIsAuthenticated(true);
             return response;
         } catch (error) {
 

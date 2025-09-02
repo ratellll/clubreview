@@ -51,7 +51,7 @@ function Navigation() {
                                 style={{ border: 'none', background: 'none' }}>
                             마이페이지
                             </button>
-                        <span className="nav-link">안녕하세요, {user?.nickName}님!</span>
+                            <span className="nav-link">안녕하세요, {user?.nickName || user?.userName}님!</span>
                             <button
                                 className="nav-link btn btn-link"
                                 onClick={handleLogout}
