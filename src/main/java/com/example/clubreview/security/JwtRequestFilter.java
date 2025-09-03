@@ -1,5 +1,7 @@
 package com.example.clubreview.security;
 
+import com.example.clubreview.security.CustomUserDetails;
+import com.example.clubreview.security.JwtUtil;
 import com.example.clubreview.service.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -12,13 +14,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -28,32 +27,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
 
-
-    private static final List<RequestMatcher> WHITELIST = List.of(
-            new AntPathRequestMatcher("/admin/export/kakao/**")
-    );
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
-        for (RequestMatcher rm : WHITELIST) {
-            if (rm.matches(request)) return true;
-        }
-        String auth = request.getHeader("Authorization");
-        return auth == null || !auth.startsWith("Bearer ");
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
+        final String requestTokenHeader = request.getHeader("Authorization");
 
-        for (RequestMatcher rm : WHITELIST) {
-            if (rm.matches(request)) {
-                chain.doFilter(request, response);
-                return; // 퍼블릭 경로는 JWT 검사 완전 스킵
-            }
-        }
         String requestURI = request.getRequestURI();
         if (requestURI.startsWith("/api/auth/") ||
                 (requestURI.startsWith("/api/clubs") && "GET".equals(request.getMethod()))) {
@@ -61,7 +40,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String requestTokenHeader = request.getHeader("Authorization");
+
         String username = null;
         String jwtToken = null;
 
@@ -105,7 +84,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }
-
         chain.doFilter(request, response);
     }
 }
