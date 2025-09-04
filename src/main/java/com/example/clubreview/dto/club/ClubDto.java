@@ -28,13 +28,15 @@ public class ClubDto {
     private final String description;
     private final String callNumber;
 
+    @DecimalMin(value = "-180.0", message = "경도는 -180에서 180 사이여야 합니다.")
+    @DecimalMax(value = "180.0", message = "경도는 -180에서 180 사이여야 합니다.")
+    private final double longitude;
+
     @DecimalMin(value = "-90.0", message = "위도는 -90에서 90 사이여야 합니다.")
     @DecimalMax(value = "90.0", message = "위도는 -90에서 90 사이여야 합니다.")
     private final double latitude;
 
-    @DecimalMin(value = "-180.0", message = "경도는 -180에서 180 사이여야 합니다.")
-    @DecimalMax(value = "180.0", message = "경도는 -180에서 180 사이여야 합니다.")
-    private final double longitude;
+
 
     private final String photoUrl;
     private final double averageRating;
@@ -48,8 +50,8 @@ public class ClubDto {
                 .location(club.getLocation())
                 .description(club.getDescription())
                 .callNumber(club.getCallNumber())
-                .latitude(club.getLatitude())
                 .longitude(club.getLongitude())
+                .latitude(club.getLatitude())
                 .photoUrl(club.getPhotoUrl())
                 .averageRating(club.getAverageRating())
                 .createTime(club.getCreateTime())
@@ -63,8 +65,8 @@ public class ClubDto {
                 .location(this.location)
                 .description(this.description)
                 .callNumber(this.callNumber)
-                .latitude(this.latitude)
                 .longitude(this.longitude)
+                .latitude(this.latitude)
                 .photoUrl(this.photoUrl)
                 .averageRating(this.averageRating)
                 .build();

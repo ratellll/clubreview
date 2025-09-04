@@ -843,19 +843,19 @@ const MyPage = () => {
                                 {/* 카카오맵 장소 검색 */}
                                 <div className="mb-4">
                                     <h5>장소 검색</h5>
-                                    <div className="input-group mb-3">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="장소명을 입력하세요"
-                                            value={searchKeyword}
-                                            onChange={(e) => setSearchKeyword(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}
-                                        />
-                                        <button className="btn btn-primary" onClick={searchPlaces}>
-                                            검색
-                                        </button>
-                                    </div>
+                                    {/*<div className="input-group mb-3">*/}
+                                    {/*    <input*/}
+                                    {/*        type="text"*/}
+                                    {/*        className="form-control"*/}
+                                    {/*        placeholder="장소명을 입력하세요"*/}
+                                    {/*        value={searchKeyword}*/}
+                                    {/*        onChange={(e) => setSearchKeyword(e.target.value)}*/}
+                                    {/*        onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}*/}
+                                    {/*    />*/}
+                                    {/*    <button className="btn btn-primary" onClick={searchPlaces}>*/}
+                                    {/*        검색*/}
+                                    {/*    </button>*/}
+                                    {/*</div>*/}
 
                                     {/* 지도 */}
                                     <div id="club-map"

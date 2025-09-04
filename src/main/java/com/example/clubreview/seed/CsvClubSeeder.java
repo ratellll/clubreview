@@ -20,6 +20,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
@@ -38,6 +39,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Profile("dev")
+@Order(1)
 public class CsvClubSeeder implements ApplicationRunner {
 
     private final JdbcTemplate jdbc;

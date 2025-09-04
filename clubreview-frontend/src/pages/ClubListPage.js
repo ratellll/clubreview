@@ -146,7 +146,7 @@ const ClubListPage = () => {
     const fetchClubs = useCallback(async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, size: 20, sortBy };
+            const params = { page: currentPage, size: 50, sortBy };
             const response = await clubService.getClubs(params);
             let sortedClubs = response.content || [];
             if (sortBy === 'name') sortedClubs = sortedClubs.sort((a, b) => a.name.localeCompare(b.name));
@@ -154,6 +154,8 @@ const ClubListPage = () => {
             setClubs(sortedClubs);
             setTotalPages(response.totalPages || 0);
             setError('');
+            // 현재 페이지 클럽들만 지도에 표시
+            clubsRef.current = sortedClubs;
         } catch (err) {
             console.error('클럽 목록 조회 실패:', err);
             setError('클럽 목록을 불러오는데 실패했습니다.');
@@ -174,7 +176,7 @@ const ClubListPage = () => {
             setTimeout(() => { initMap(); }, 100);
         }
         fetchClubs();
-    }, [closeCurrentInfoWindow, initMap, fetchClubs]);
+    }, [closeCurrentInfoWindow, initMap]);
 
     // displayMarkersOnMap: DOM 이벤트 바인딩 방식으로 InfoWindow 내용 구성
     const displayMarkersOnMap = useCallback((sourceClubs = clubsRef.current) => {
@@ -263,19 +265,15 @@ const ClubListPage = () => {
     // 클럽 데이터 조회 트리거
     useEffect(() => {
         fetchClubs();
-    }, [fetchClubs]);
+    }, [currentPage, sortBy]);
 
     // 로딩 종료 시(정렬 변경 등) 지도 DOM이 유지된 상태에서 강제 재배치 + 마커 재도색
     useEffect(() => {
-        if (!loading && mapInstanceRef.current && isMapReadyRef.current) {
-            setTimeout(() => {
-                try { mapInstanceRef.current.relayout(); } catch {}
-                if (clubsRef.current && clubsRef.current.length > 0) {
-                    displayMarkersOnMap(clubsRef.current);
-                }
-            }, 0);
+        if (mapInstanceRef.current && clubs.length > 0 && isMapReadyRef.current) {
+            // 약간의 지연을 두어 DOM 업데이트 후 마커 표시
+            setTimeout(() => displayMarkersOnMap(clubs), 100);
         }
-    }, [loading, displayMarkersOnMap]);
+    }, [clubs, displayMarkersOnMap]);
 
     // 데이터 준비되면 마커 표시
     useEffect(() => {
@@ -285,10 +283,20 @@ const ClubListPage = () => {
     // 라우팅 state에 따른 리셋
     useEffect(() => {
         if (location.state?.refresh) {
-            resetMapAndData();
+            if (mapInstanceRef.current) {
+                markersRef.current.forEach((m) => m.setMap(null));
+                markersRef.current = [];
+                closeCurrentInfoWindow();
+                mapInstanceRef.current = null;
+                setIsMapLoaded(false);
+                setIsMapInitializing(false);
+                isMapReadyRef.current = false;
+                setTimeout(() => { initMap(); }, 100);
+            }
+            fetchClubs();
             window.history.replaceState(null, '');
         }
-    }, [location.state?.refresh, resetMapAndData]);
+    }, [location.state?.refresh]);
 
     // 전역 ESC 처리(인포윈도우/사진 모달 모두 닫기)
     useEffect(() => {

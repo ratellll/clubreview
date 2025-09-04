@@ -37,6 +37,7 @@ seed:
   truncate-before: true
   dependent-tables: [review]
   default-average-rating: 0.0
+  create-reviews: true
   csv-path: classpath:seed/seoul_clubs_pubs.csv
   use-csv-description: false   # 제 자동 설명 사용
 
