@@ -34,8 +34,11 @@ const MyPage = () => {
     const [adminClubs, setAdminClubs] = useState([]);
     const [reviewSearchNickname, setReviewSearchNickname] = useState('');
     const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
+    const [adminClubsPage, setAdminClubsPage] = useState(0);
+    const [adminClubsTotalPages, setAdminClubsTotalPages] = useState(0);
     const [searchNickname, setSearchNickname] = useState('');
     const [activeTab, setActiveTab] = useState(() => (user?.role === 'ADMIN' ? 'club-management' : 'profile'));
+    const [clubToEdit, setClubToEdit] = useState(null);
     const [editingClub, setEditingClub] = useState(null);
     const [clubForm, setClubForm] = useState({
         name: '', location: '', description: '', callNumber: '',
@@ -120,6 +123,18 @@ const MyPage = () => {
         }
     };
 
+    const fetchAdminClubs = async (page = 0) => {
+        if (!isAdmin) return;
+        try {
+            const response = await clubService.getClubs({page, size: 50, sortBy: 'name'}); // 50개씩 페이징
+            setAdminClubs(response.content || []);
+            setAdminClubsPage(page);
+            setAdminClubsTotalPages(response.totalPages || 0);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
     const handleSearchUsers = async () => {
         if (!searchNickname.trim()) {
             fetchAdminUsers();
@@ -177,7 +192,7 @@ const MyPage = () => {
         }
     };
 
-    const handleClubFormSubmit = async (e) => {
+    const handleClubFormSubmit = async (e, isEditMode = false) => {
         e.preventDefault();
         try {
             const formData = new FormData();
@@ -198,7 +213,13 @@ const MyPage = () => {
                 formData.append('file', clubForm.file);
             }
 
-            if (editingClub) {
+            if (isEditMode && clubToEdit) {
+                await clubService.updateClub(clubToEdit.id, formData);
+                setSuccess('클럽이 수정되었습니다.');
+                setClubToEdit(null);
+                setActiveTab('club-list-management'); // 클럽 목록으로 돌아가기
+                fetchAdminClubs(); // 클럽 목록 새로고침
+            } else if (editingClub) {
                 await clubService.updateClub(editingClub.id, formData);
                 setSuccess('클럽이 수정되었습니다.');
                 setEditingClub(null);
@@ -221,27 +242,26 @@ const MyPage = () => {
     const handleNicknameFormChange = (e) => {
         const value = e.target.value;
         setNickNameForm(prev => ({
-                ...prev,
-                nickName: value,
-                checked: false,
-                available: false,
+            ...prev,
+            nickName: value,
+            checked: false,
+            available: false,
             message: ''
         }));
     };
 
-    const handleDeleteClub = async (clubId) => {
+    const handleAdminDeleteClub = async (clubId) => {
         if (!window.confirm('정말로 이 클럽을 삭제하시겠습니까?')) return;
         try {
             await clubService.deleteClub(clubId);
             setSuccess('클럽이 삭제되었습니다.');
-            // 클럽 목록 새로고침 로직 필요
+            fetchAdminClubs(); // 클럽 목록 새로고침
         } catch (err) {
             setError(err.message);
         }
     };
-
-    const handleEditClub = (club) => {
-        setEditingClub(club);
+    const handleAdminEditClub = (club) => {
+        setClubToEdit(club);
         setClubForm({
             name: club.name,
             location: club.location,
@@ -251,7 +271,23 @@ const MyPage = () => {
             longitude: club.longitude.toString(),
             file: null
         });
-        setActiveTab('club-management');
+        setActiveTab('club-edit'); // 클럽 관리 탭으로 이동
+    };
+    const handleClubFormCancel = () => {
+        setEditingClub(null);
+        setClubForm({
+            name: '', location: '', description: '', callNumber: '',
+            latitude: '', longitude: '', file: null
+        });
+    };
+
+    const handleClubEditCancel = () => {
+        setClubToEdit(null);
+        setClubForm({
+                name: '', location: '', description: '', callNumber: '',
+            latitude: '', longitude: '', file: null
+        });
+        setActiveTab('club-list-management'); // 클럽 목록으로 돌아가기
     };
 
     // 카카오맵 장소 검색
@@ -265,7 +301,7 @@ const MyPage = () => {
         ps.keywordSearch(searchKeyword, (data, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
                 setSearchResults(data);
-                displayMarkers(data, { fitBounds: true });
+                displayMarkers(data, {fitBounds: true});
             } else {
                 alert('검색 결과가 없습니다.');
             }
@@ -273,7 +309,7 @@ const MyPage = () => {
     };
 
     // 지도에 마커 표시 (검색 결과 전용)
-    const displayMarkers = useCallback((places, { fitBounds = true } = {}) => {
+    const displayMarkers = useCallback((places, {fitBounds = true} = {}) => {
         if (!mapInstance) return;
 
         // 기존 "검색 결과" 마커만 제거 (선택 마커는 유지)
@@ -283,7 +319,7 @@ const MyPage = () => {
         const bounds = new window.kakao.maps.LatLngBounds();
         const newMarkers = places.map(place => {
             const pos = new window.kakao.maps.LatLng(place.y, place.x);
-            const marker = new window.kakao.maps.Marker({ position: pos });
+            const marker = new window.kakao.maps.Marker({position: pos});
             marker.setMap(mapInstance);
             window.kakao.maps.event.addListener(marker, 'click', () => selectPlace(place));
             bounds.extend(pos);
@@ -334,13 +370,14 @@ const MyPage = () => {
                             if (mapInstance) {
                                 const pos = new window.kakao.maps.LatLng(y, x);
                                 if (selectedMarkerRef.current) selectedMarkerRef.current.setMap(null);
-                                const marker = new window.kakao.maps.Marker({ position: pos });
+                                const marker = new window.kakao.maps.Marker({position: pos});
                                 marker.setZIndex(100);
                                 marker.setMap(mapInstance);
                                 selectedMarkerRef.current = marker;
                                 mapInstance.setCenter(pos);
                             }
-                        } catch (_) { /* 지도 미표시 시 무시 */ }
+                        } catch (_) { /* 지도 미표시 시 무시 */
+                        }
 
                     } else {
                         alert('주소를 좌표로 변환하는 데 실패했습니다.');
@@ -372,8 +409,10 @@ const MyPage = () => {
     // 탭 재진입 시에도 항상 현재 컨테이너에 새 맵을 생성하고 relayout 수행
     const mountMap = useCallback(async () => {
         await loadKakao();
-        const container = document.getElementById('club-map');
+        const containerId = activeTab === 'club-edit' ? 'club-edit-map' : 'club-map';
+        const container = document.getElementById(containerId);
         if (!container) return;
+        if (mapInstance) mapInstance = null;
         const center = (clubForm.latitude && clubForm.longitude)
             ? new window.kakao.maps.LatLng(clubForm.latitude, clubForm.longitude)
             : new window.kakao.maps.LatLng(37.5665, 126.9780);
@@ -388,7 +427,8 @@ const MyPage = () => {
                 // 기존 검색/선택 마커를 새 맵에 재부착
                 searchMarkersRef.current.forEach(m => m.setMap(map));
                 if (selectedMarkerRef.current) selectedMarkerRef.current.setMap(map);
-            } catch (_) {}
+            } catch (_) {
+            }
         }, 0);
     }, [loadKakao, clubForm.latitude, clubForm.longitude]);
 
@@ -397,7 +437,9 @@ const MyPage = () => {
     useEffect(() => {
         if (!mapInstance) return;
         const restore = () => {
-            searchMarkersRef.current.forEach(m => { if (!m.getMap()) m.setMap(mapInstance); });
+            searchMarkersRef.current.forEach(m => {
+                if (!m.getMap()) m.setMap(mapInstance);
+            });
             if (selectedMarkerRef.current && !selectedMarkerRef.current.getMap()) {
                 selectedMarkerRef.current.setMap(mapInstance);
             }
@@ -413,7 +455,7 @@ const MyPage = () => {
     }, [mapInstance]);
 
     useEffect(() => {
-        if (activeTab === 'club-management') {
+        if (activeTab === 'club-management' || activeTab === 'club-edit') {
             mountMap();
         }
     }, [activeTab, mountMap]);
@@ -425,6 +467,10 @@ const MyPage = () => {
             fetchAdminUsers();
         } else if (activeTab === 'review-management' && isAdmin) {
             fetchAdminReviews();
+        } else if (activeTab === 'club-list-management' && isAdmin) {
+            fetchAdminClubs();
+        } else if (activeTab === 'club-edit' && isAdmin) {
+            mountMap();
         }
     }, [activeTab, isAdmin]);
 
@@ -652,6 +698,20 @@ const MyPage = () => {
                                     <button className={`nav-link ${activeTab === 'review-management' ? 'active' : ''}`}
                                             onClick={() => setActiveTab('review-management')}>
                                         리뷰 관리
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button
+                                        className={`nav-link ${activeTab === 'club-list-management' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('club-list-management')}>
+                                        클럽 목록 관리
+                                    </button>
+                                </li>
+                                <li className="nav-item">
+                                    <button className={`nav-link ${activeTab === 'club-edit' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('club-edit')}
+                                            disabled={!clubToEdit}>
+                                        클럽 수정
                                     </button>
                                 </li>
                             </>
@@ -960,25 +1020,278 @@ const MyPage = () => {
                                     </div>
                                     <div className="d-flex gap-2">
                                         <button type="submit" className="btn btn-primary">
-                                            {editingClub ? '수정' : '등록'}
+                                            등록
                                         </button>
-                                        {editingClub && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary"
-                                                onClick={() => {
-                                                    setEditingClub(null);
-                                                    setClubForm({
-                                                        name: '', location: '', description: '', callNumber: '',
-                                                        latitude: '', longitude: '', file: null
-                                                    });
-                                                }}
-                                            >
-                                                취소
-                                            </button>
-                                        )}
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary ms-2"
+                                            onClick={handleClubFormCancel}
+                                        >
+                                            취소
+                                        </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 관리자 - 클럽 수정 탭 */}
+                    {activeTab === 'club-edit' && isAdmin && clubToEdit && (
+                        <div className="card">
+                            <div className="card-body">
+                                <h3 className="card-title">🔧 클럽 수정: {clubToEdit.name}</h3>
+
+                                {/* 현재 클럽 정보 표시 */}
+                                <div className="alert alert-info mb-4">
+                                    <strong>수정 중인 클럽:</strong> {clubToEdit.name}<br/>
+                                    <strong>현재 위치:</strong> {clubToEdit.location}<br/>
+                                    <strong>현재 평점:</strong> ⭐ {clubToEdit.averageRating.toFixed(1)}
+                                </div>
+
+                                {/* 카카오맵 장소 검색 */}
+                                <div className="mb-4">
+                                    <h5>장소 검색</h5>
+                                    <div className="input-group mb-3">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="장소명을 입력하세요"
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}
+                                        />
+                                        <button className="btn btn-primary" onClick={searchPlaces}>
+                                            검색
+                                        </button>
+                                    </div>
+
+                                    {/* 지도 */}
+                                    <div id="club-edit-map"
+                                         style={{width: '100%', height: '300px', marginBottom: '10px'}}></div>
+
+                                    {/* 검색 결과 */}
+                                    {searchResults.length > 0 && (
+                                        <div className="search-results" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                                            {searchResults.map((place, index) => (
+                                                <div key={index}
+                                                     className={`border p-2 mb-2 cursor-pointer ${selectedPlace?.id === place.id ? 'bg-primary text-white' : ''}`}
+                                                     onClick={() => selectPlace(place)}>
+                                                    <strong>{place.place_name}</strong><br/>
+                                                    <small>{place.address_name}</small>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleClubFormSubmit(e, true); // 수정 모드로 전달
+                                }} className="mb-4">
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">클럽명</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={clubForm.name}
+                                                    onChange={(e) => setClubForm({...clubForm, name: e.target.value})}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">위치</label>
+                                                <div className="input-group">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="주소를 입력하거나 오른쪽 버튼으로 검색"
+                                                        value={clubForm.location}
+                                                        onChange={(e) => setClubForm({
+                                                            ...clubForm,
+                                                            location: e.target.value
+                                                        })}
+                                                        required
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={openPostcodeSearch}
+                                                    >
+                                                        주소 검색
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-3">
+                                                <label className="form-label">전화번호</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={clubForm.callNumber}
+                                                    onChange={(e) => setClubForm({
+                                                        ...clubForm,
+                                                        callNumber: e.target.value
+                                                    })}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">설명</label>
+                                        <textarea
+                                            className="form-control"
+                                            rows="3"
+                                            value={clubForm.description}
+                                            onChange={(e) => setClubForm({...clubForm, description: e.target.value})}
+                                            required
+                                        ></textarea>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">사진 변경 (선택사항)</label>
+                                        <input
+                                            type="file"
+                                            className="form-control"
+                                            accept="image/*"
+                                            onChange={(e) => setClubForm({...clubForm, file: e.target.files[0]})}
+                                        />
+                                        <small className="text-muted">새 사진을 선택하지 않으면 기존 사진이 유지됩니다.</small>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <button type="submit" className="btn btn-success">
+                                            🔧 수정 완료
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={handleClubEditCancel}
+                                        >
+                                            취소
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                    {/* 관리자 - 클럽 목록 관리 탭 */}
+                    {activeTab === 'club-list-management' && isAdmin && (
+                        <div className="card">
+                            <div className="card-body">
+                                <h3 className="card-title">🏢 클럽 목록 관리</h3>
+
+                                {adminClubs.length === 0 ? (
+                                    <div className="text-center py-4">
+                                        <p className="text-muted">등록된 클럽이 없습니다.</p>
+                                    </div>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <table className="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>클럽명</th>
+                                                <th>위치</th>
+                                                <th>전화번호</th>
+                                                <th>평점</th>
+                                                <th>관리</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {adminClubs.map(club => (
+                                                <tr key={club.id}>
+                                                    <td>{club.id}</td>
+                                                    <td>
+                                                        <strong>{club.name}</strong>
+                                                        {club.photoUrl && (
+                                                            <div className="mt-1">
+                                                                <img
+                                                                    src={club.photoUrl}
+                                                                    alt="클럽 사진"
+                                                                    style={{
+                                                                        width: '50px',
+                                                                        height: '30px',
+                                                                        objectFit: 'cover'
+                                                                    }}
+                                                                    className="rounded"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <small>{club.location}</small>
+                                                    </td>
+                                                    <td>{club.callNumber}</td>
+                                                    <td>
+                                                                                            <span
+                                                                                                className="badge bg-warning text-dark">
+                                                                ⭐ {club.averageRating.toFixed(1)}
+                                                                                            </span>
+                                                    </td>
+                                                    <td>
+                                                        <button
+                                                            className="btn btn-primary btn-sm me-2"
+                                                            onClick={() => handleAdminEditClub(club)}
+                                                        >
+                                                            수정
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-danger btn-sm"
+                                                            onClick={() => handleAdminDeleteClub(club.id)}
+                                                        >
+                                                            삭제
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                {/* 클럽 목록 페이지네이션 */}
+                                {adminClubsTotalPages > 1 && (
+                                    <nav className="mt-4">
+                                        <ul className="pagination justify-content-center">
+                                            <li className={`page-item ${adminClubsPage === 0 ? 'disabled' : ''}`}>
+                                                <button className="page-link"
+                                                        onClick={() => fetchAdminClubs(adminClubsPage - 1)}
+                                                        disabled={adminClubsPage === 0}>이전
+                                                </button>
+                                            </li>
+                                            {[...Array(adminClubsTotalPages)].map((_, i) => (
+                                                <li key={i}
+                                                    className={`page-item ${i === adminClubsPage ? 'active' : ''}`}>
+                                                    <button className="page-link"
+                                                            onClick={() => fetchAdminClubs(i)}>{i + 1}</button>
+                                                </li>
+                                            ))}
+                                            <li className={`page-item ${adminClubsPage === adminClubsTotalPages - 1 ? 'disabled' : ''}`}>
+                                                <button className="page-link"
+                                                        onClick={() => fetchAdminClubs(adminClubsPage + 1)}
+                                                        disabled={adminClubsPage === adminClubsTotalPages - 1}>다음
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                )}
+                                <div className="mt-4">
+                                    <button
+                                        className="btn btn-success"
+                                        onClick={() => {
+                                            setEditingClub(null);
+                                            handleClubFormCancel();
+                                            setActiveTab('club-management');
+                                        }}
+                                    >
+                                        새 클럽 등록
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

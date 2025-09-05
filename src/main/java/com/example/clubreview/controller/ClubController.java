@@ -47,7 +47,7 @@ public class ClubController {
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ClubResponse>>> getClubs(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(1000) int size,
             @RequestParam(required = false) @Pattern(regexp = "name|rating") String sortBy) {
 // 11
         try {

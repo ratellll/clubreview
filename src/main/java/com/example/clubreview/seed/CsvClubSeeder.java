@@ -11,6 +11,9 @@ Minimal, drop‑in seeder with:
 - Basic logs
 */
 
+import com.example.clubreview.entity.User;
+import com.example.clubreview.repository.ReviewRepository;
+import com.example.clubreview.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +29,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -35,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -44,18 +49,26 @@ public class CsvClubSeeder implements ApplicationRunner {
 
     private final JdbcTemplate jdbc;
     private final ResourceLoader resourceLoader;
+    private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final SeedProps props;
 
-    public CsvClubSeeder(JdbcTemplate jdbc, ResourceLoader resourceLoader, SeedProps props) {
+    public CsvClubSeeder(JdbcTemplate jdbc, ResourceLoader resourceLoader, SeedProps props, UserRepository userRepository, ReviewRepository reviewRepository, BCryptPasswordEncoder passwordEncoder) {
         this.jdbc = jdbc;
         this.resourceLoader = resourceLoader;
         this.props = props;
+        this.userRepository = userRepository;
+        this.reviewRepository = reviewRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostConstruct
     void logProps() {
         log.info("[Seed] enabled={}, truncateBefore={}, csvPath={}, useCsvDesc={}, defaultRating={}",
                 props.isRunOnStartup(), props.isTruncateBefore(), props.getCsvPath(), props.isUseCsvDescription(), props.getDefaultAverageRating());
+        log.info("[Seed] enabled={}, truncateBefore={}, csvPath={}, useCsvDesc={}, defaultRating={}, createReviews={}",
+                props.isRunOnStartup(), props.isTruncateBefore(), props.getCsvPath(), props.isUseCsvDescription(), props.getDefaultAverageRating(), props.isCreateReviews());
     }
 
     @Override
@@ -109,6 +122,153 @@ public class CsvClubSeeder implements ApplicationRunner {
             log.warn("[Seed] IO failed: {}", e.getMessage());
         }
         log.info("[Seed] done. read={}, inserted={}, updated={}, skipped={}", read, inserted, updated, skipped);
+
+        if (props.isCreateReviews()) {
+            log.info("[Seed] 리뷰 시딩 시작--");
+            seedReview();
+        }
+    }
+
+    private void seedReview() {
+        try {
+            createTestUsers();
+
+            createReviewsForClubs();
+            log.info("[Seed] 리뷰 시딩 완료---");
+        } catch (Exception e) {
+            log.error("[Seed] 리뷰 시딩 . 오류 발생 ", e);
+        }
+    }
+
+    private void createTestUsers() {
+        List<String> nicknames = List.of(
+                "음악매니아", "댄스킹", "클럽러버", "파티걸", "비트마스터", "나이트오울",
+                "뮤직홀릭", "댄스퀸", "클럽고수", "파티남", "리듬감각", "밤의제왕",
+                "음향전문가", "춤신춤왕", "클럽탐험가", "파티피플", "비트박스", "나이트라이더",
+                "뮤직러버", "댄스머신", "클럽마니아", "파티타임", "사운드헌터", "밤샘족"
+        );
+
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 24; i++) {
+            String nickname = nicknames.get(i);
+            String username = "reviewer" + (i + 1);
+            String phone = String.format("010%08d", 30000000 + i); // 높은 번호로 시작
+
+            // 중복 체크
+            if (userRepository.existsByUserName(username) ||
+                    userRepository.existsByPhoneNumber(phone) ||
+                    userRepository.existsByNickName(nickname)) {
+                continue;
+            }
+
+            User user = User.builder()
+                    .userName(username)
+                    .password(passwordEncoder.encode("password123"))
+                    .nickName(nickname)
+                    .phoneNumber(phone)
+                    .role(User.Role.USER)
+                    .build();
+
+            users.add(user);
+        }
+
+        if (!users.isEmpty()) {
+            userRepository.saveAll(users);
+            log.info("[Seed] {} 명의 테스트 사용자 생성 완료", users.size());
+        }
+    }
+
+    private void createReviewsForClubs() {
+        // 클럽 목록을 직접 DB에서 조회
+        List<Map<String, Object>> clubs = jdbc.queryForList("SELECT id, name FROM club ORDER BY id");
+        List<User> users = userRepository.findAll().stream()
+                .filter(u -> u.getUserName().startsWith("reviewer"))
+                .collect(Collectors.toList());
+
+        if (users.isEmpty()) {
+            log.warn("[Seed] 테스트 사용자가 없어 리뷰를 생성할 수 없습니다.");
+            return;
+        }
+
+        List<String> positiveReviews = List.of(
+                "분위기가 정말 좋아요! 음악도 최고였습니다.",
+                "직원들이 친절하고 서비스가 훌륭해요.",
+                "인테리어가 세련되고 음료도 맛있어요.",
+                "친구들과 즐거운 시간 보냈습니다.",
+                "음악이 좋고 춤추기 좋은 공간이에요."
+        );
+
+        List<String> neutralReviews = List.of(
+                "무난한 클럽이에요. 나쁘지 않네요.",
+                "평범한 수준입니다.",
+                "그럭저럭 괜찮은 것 같아요."
+        );
+
+        List<String> negativeReviews = List.of(
+                "너무 시끄럽고 복잡해요.",
+                "가격이 비싼 편이네요.",
+                "서비스가 아쉬워요."
+        );
+
+        Random random = new Random();
+        int totalReviews = 0;
+
+        for (Map<String, Object> club : clubs) {
+            Long clubId = ((Number) club.get("id")).longValue();
+            int reviewCount = 3 + random.nextInt(2); // 3-4개 리뷰
+
+            for (int i = 0; i < reviewCount; i++) {
+                User reviewer = users.get(random.nextInt(users.size()));
+                int rating = generateWeightedRating(random);
+                String comment = getRandomReviewComment(rating, positiveReviews, neutralReviews, negativeReviews, random);
+
+                // 직접 SQL로 리뷰 삽입 (JPA 순환 참조 회피)
+                jdbc.update(
+                        "INSERT INTO review (club_id, user_id, rating, comment, create_time, update_time) VALUES (?, ?, ?, ?, NOW(6), NOW(6))",
+                        clubId, reviewer.getId(), rating, comment
+                );
+
+                totalReviews++;
+            }
+        }
+
+        log.info("[Seed] {} 개 클럽에 대해 {} 개의 리뷰 생성 완료", clubs.size(), totalReviews);
+
+        // 클럽 평균 평점 업데이트
+        updateClubAverageRatings();
+    }
+
+    private int generateWeightedRating(Random random) {
+        double rand = random.nextDouble();
+        if (rand < 0.4) return 5;        // 40%
+        else if (rand < 0.7) return 4;   // 30%
+        else if (rand < 0.85) return 3;  // 15%
+        else if (rand < 0.95) return 2;  // 10%
+        else return 1;                   // 5%
+    }
+
+    private String getRandomReviewComment(int rating, List<String> positive, List<String> neutral, List<String> negative, Random random) {
+        return switch (rating) {
+            case 5, 4 -> positive.get(random.nextInt(positive.size()));
+            case 3 -> neutral.get(random.nextInt(neutral.size()));
+            case 2, 1 -> negative.get(random.nextInt(negative.size()));
+            default -> "좋은 경험이었습니다.";
+        };
+    }
+
+    private void updateClubAverageRatings() {
+        log.info("[Seed] 클럽 평균 평점 업데이트 시작...");
+
+        jdbc.update("""
+                UPDATE club c 
+                SET average_rating = (
+                    SELECT COALESCE(AVG(r.rating), 0.0) 
+                    FROM review r 
+                    WHERE r.club_id = c.id
+                )
+                """);
+
+        log.info("[Seed] 클럽 평균 평점 업데이트 완료");
     }
 
     private void purgeBeforeSeed() {
@@ -119,6 +279,7 @@ public class CsvClubSeeder implements ApplicationRunner {
                 for (String t : safeTableList(props.getDependentTables())) {
                     try {
                         st.execute("TRUNCATE TABLE `" + t + "`");
+                        st.execute("TRUNCATE TABLE `review`");
                         log.info("[Seed] truncated {}", t);
                     } catch (Exception e) {
                         log.warn("[Seed] skip truncate {} : {}", t, e.getMessage());
@@ -224,7 +385,7 @@ public class CsvClubSeeder implements ApplicationRunner {
     private String genDescription(ClubRow r) {
         String loc = isBlank(r.location) ? "서울" : r.location;
         String phone = isBlank(r.callNumber) ? "" : (" 문의:" + r.callNumber);
-        return String.format("%s는 %s에 위치한 클럽/펍입니다. 위도 %.5f, 경도 %.5f.%s", r.name, loc, r.latitude, r.longitude, phone);
+        return String.format("%s는 %s에 위치한 클럽/펍입니다. ", r.name, loc, r.latitude, r.longitude, phone);
     }
 
     private void createUniqueIndexIfAbsent() {
@@ -302,6 +463,7 @@ public class CsvClubSeeder implements ApplicationRunner {
         private boolean runOnStartup = false;
         private boolean truncateBefore = false;
         private boolean useCsvDescription = false;
+        private boolean createReviews = true;
         private double defaultAverageRating = 0.0;
         /**
          * child tables referencing club.id (FK club_id)

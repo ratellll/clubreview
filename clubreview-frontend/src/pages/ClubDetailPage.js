@@ -1,10 +1,10 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { clubService } from '../services/clubService';
-import { reviewService } from '../services/reviewService';
-import { useAuth } from '../context/AuthContext';
+import React, {useState, useEffect, useCallback} from 'react';
+import {useParams, useNavigate, useLocation} from 'react-router-dom';
+import {clubService} from '../services/clubService';
+import {reviewService} from '../services/reviewService';
+import {useAuth} from '../context/AuthContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import {adminService} from '../services/adminService';
 import Alert from '../components/common/Alert';
 
 const normalize = (v) => (v ?? '').toString().trim().toLowerCase();
@@ -46,16 +46,16 @@ function isReviewAuthor(review, user) {
 }
 
 const ClubDetailPage = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAuthenticated, user } = useAuth();
+    const {isAuthenticated, user} = useAuth();
 
     const [club, setClub] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+    const [reviewForm, setReviewForm] = useState({rating: 5, comment: ''});
     const [editingReview, setEditingReview] = useState(null);
 
     const fetchClubDetail = useCallback(async () => {
@@ -103,9 +103,9 @@ const ClubDetailPage = () => {
         }
 
         try {
-            const reviewData = { clubId: parseInt(id, 10), rating: reviewForm.rating, comment: reviewForm.comment };
+            const reviewData = {clubId: parseInt(id, 10), rating: reviewForm.rating, comment: reviewForm.comment};
             await reviewService.createReview(reviewData);
-            setReviewForm({ rating: 5, comment: '' });
+            setReviewForm({rating: 5, comment: ''});
             fetchClubReviews();
             alert('리뷰가 등록되었습니다.');
         } catch (err) {
@@ -114,9 +114,13 @@ const ClubDetailPage = () => {
         }
     };
 
-    const handleEditReview = async (reviewId, updatedData) => {
+    const handleEditReview = async (reviewId, updatedData, isAdmin = false) => {
         try {
-            await reviewService.updateReview(reviewId, updatedData);
+            if (isAdmin) {
+                await adminService.updateReview(reviewId, updatedData);
+            }else {
+                await reviewService.updateReview(reviewId, updatedData);
+            }
             setEditingReview(null);
             fetchClubReviews();
             alert('리뷰가 수정되었습니다.');
@@ -138,14 +142,39 @@ const ClubDetailPage = () => {
         }
     };
 
+    // 어드민 권한으로 리뷰 삭제
+    const handleAdminDeleteReview = async (reviewId) => {
+        if (!window.confirm('관리자 권한으로 이 리뷰를 삭제하시겠습니까?')) return;
+        try {
+            await adminService.deleteReview(reviewId);
+            fetchClubReviews();
+            alert('리뷰가 삭제되었습니다.');
+        } catch (err) {
+            console.error('어드민 리뷰 삭제 실패:', err);
+            alert(err.message);
+        }
+    };
+    // 어드민 권한으로 리뷰 수정
+    const handleAdminEditReview = async (reviewId, updatedData) => {
+        try {
+            await adminService.updateReview(reviewId, updatedData);
+            setEditingReview(null);
+            fetchClubReviews();
+            alert('리뷰가 수정되었습니다.');
+        } catch (err) {
+            console.error('어드민 리뷰 수정 실패:', err);
+            alert(err.message);
+        }
+    };
+
     const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
-    if (loading) return <LoadingSpinner message="클럽 정보를 불러오는 중..." />;
+    if (loading) return <LoadingSpinner message="클럽 정보를 불러오는 중..."/>;
 
     if (!club) {
         return (
             <div className="container mt-5">
-                <Alert type="danger" message="클럽을 찾을 수 없습니다." />
+                <Alert type="danger" message="클럽을 찾을 수 없습니다."/>
                 <button onClick={() => navigate('/clubs')} className="btn btn-primary">클럽 목록으로 돌아가기</button>
             </div>
         );
@@ -154,7 +183,7 @@ const ClubDetailPage = () => {
     return (
         <div className="container mt-4">
             {error && (
-                <Alert type="danger" message={error} onClose={() => setError('')} dismissible />
+                <Alert type="danger" message={error} onClose={() => setError('')} dismissible/>
             )}
 
             {/* 클럽 정보 */}
@@ -170,7 +199,8 @@ const ClubDetailPage = () => {
                 </div>
                 <div className="col-md-4">
                     {club.photoUrl && (
-                        <img src={club.photoUrl} className="img-fluid rounded shadow" alt="클럽 사진" style={{ maxHeight: '300px', width: '100%', objectFit: 'cover' }} />
+                        <img src={club.photoUrl} className="img-fluid rounded shadow" alt="클럽 사진"
+                             style={{maxHeight: '300px', width: '100%', objectFit: 'cover'}}/>
                     )}
                 </div>
             </div>
@@ -191,22 +221,47 @@ const ClubDetailPage = () => {
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <strong>{review.userNickName || review.userName || review.username || review.authorName || '사용자'}</strong>
-                                            <small className="text-muted ms-2">{new Date(review.createTime).toLocaleDateString()}</small>
+                                            <small
+                                                className="text-muted ms-2">{new Date(review.createTime).toLocaleDateString()}</small>
                                             <div className="text-warning">{renderStars(review.rating)}</div>
                                         </div>
                                     </div>
 
                                     {editingReview === review.id ? (
-                                        <EditReviewForm review={review} onSave={handleEditReview} onCancel={() => setEditingReview(null)} />
+                                        <EditReviewForm review={review} onSave={handleEditReview}
+                                                        onCancel={() => setEditingReview(null)}/>
                                     ) : (
                                         <>
                                             <p className="card-text">{review.comment}</p>
 
-                                            {/* 수정/삭제 버튼: 작성자에게만 */}
-                                            {isAuthenticated && isReviewAuthor(review, user) && (
+                                            {/* 수정/삭제 버튼: 작성자 또는 어드민 */}
+                                            {isAuthenticated && (
                                                 <div className="mt-2">
-                                                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => setEditingReview(review.id)}>수정</button>
-                                                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteReview(review.id)}>삭제</button>
+                                                    {/* 일반 사용자: 본인 리뷰만 */}
+                                                    {isReviewAuthor(review, user) && (
+                                                        <>
+                                                            <button className="btn btn-sm btn-outline-primary me-2"
+                                                                    onClick={() => setEditingReview(review.id)}>수정
+                                                            </button>
+                                                            <button className="btn btn-sm btn-outline-danger me-2"
+                                                                    onClick={() => handleDeleteReview(review.id)}>삭제
+                                                            </button>
+                                                        </>
+                                                    )}
+
+                                                    {/* 어드민: 모든 리뷰 관리 가능 */}
+                                                    {user?.role === 'ADMIN' && (
+                                                        <>
+                                                            <button className="btn btn-sm btn-warning me-2"
+                                                                    onClick={() => setEditingReview(review.id)}>
+                                                                🛠️ 관리자 수정
+                                                            </button>
+                                                            <button className="btn btn-sm btn-danger"
+                                                                    onClick={() => handleAdminDeleteReview(review.id)}>
+                                                                🗑️ 관리자 삭제
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
                                         </>
@@ -226,7 +281,11 @@ const ClubDetailPage = () => {
                         <form onSubmit={handleReviewSubmit}>
                             <div className="mb-3">
                                 <label htmlFor="rating" className="form-label">평점</label>
-                                <select className="form-select" id="rating" value={reviewForm.rating} onChange={(e) => setReviewForm({ ...reviewForm, rating: parseInt(e.target.value, 10) })} required>
+                                <select className="form-select" id="rating" value={reviewForm.rating}
+                                        onChange={(e) => setReviewForm({
+                                            ...reviewForm,
+                                            rating: parseInt(e.target.value, 10)
+                                        })} required>
                                     <option value={5}>★★★★★ (5점)</option>
                                     <option value={4}>★★★★☆ (4점)</option>
                                     <option value={3}>★★★☆☆ (3점)</option>
@@ -236,7 +295,9 @@ const ClubDetailPage = () => {
                             </div>
                             <div className="mb-3">
                                 <label htmlFor="comment" className="form-label">리뷰 내용</label>
-                                <textarea className="form-control" id="comment" rows={4} value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} placeholder="리뷰를 작성해주세요" required />
+                                <textarea className="form-control" id="comment" rows={4} value={reviewForm.comment}
+                                          onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
+                                          placeholder="리뷰를 작성해주세요" required/>
                             </div>
                             <button type="submit" className="btn btn-primary">리뷰 등록</button>
                         </form>
@@ -258,14 +319,26 @@ const ClubDetailPage = () => {
 };
 
 // 리뷰 수정 폼 컴포넌트
-const EditReviewForm = ({ review, onSave, onCancel }) => {
-    const [editData, setEditData] = useState({ rating: review.rating, comment: review.comment });
-    const handleSubmit = (e) => { e.preventDefault(); onSave(review.id, editData); };
+const EditReviewForm = ({review, onSave, onCancel}) => {
+    const [editData, setEditData] = useState({rating: review.rating, comment: review.comment});
+    const {user} = useAuth();
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // 어드민인지 확인하여 적절한 핸들러 호출
+        if (user?.role === 'ADMIN') {
+            // 어드민은 adminService 사용
+            onSave(review.id, editData, true); // 세번째 파라미터로 어드민 여부 전달
+        } else {
+            // 일반 사용자는 기존 방식
+            onSave(review.id, editData);
+        }
+    };
     return (
         <form onSubmit={handleSubmit}>
             <div className="mb-3">
                 <label className="form-label">평점</label>
-                <select className="form-select form-select-sm" value={editData.rating} onChange={(e) => setEditData({ ...editData, rating: parseInt(e.target.value, 10) })} required>
+                <select className="form-select form-select-sm" value={editData.rating}
+                        onChange={(e) => setEditData({...editData, rating: parseInt(e.target.value, 10)})} required>
                     <option value={5}>★★★★★ (5점)</option>
                     <option value={4}>★★★★☆ (4점)</option>
                     <option value={3}>★★★☆☆ (3점)</option>
@@ -274,10 +347,11 @@ const EditReviewForm = ({ review, onSave, onCancel }) => {
                 </select>
             </div>
             <div className="mb-3">
-                <textarea className="form-control" rows={3} value={editData.comment} onChange={(e) => setEditData({ ...editData, comment: e.target.value })} required />
+                <textarea className="form-control" rows={3} value={editData.comment}
+                          onChange={(e) => setEditData({...editData, comment: e.target.value})} required/>
             </div>
             <div>
-                <button type="submit" className="btn btn-sm btn-primary me-2">수정 완료</button>
+                <button type="submit" className="btn btn-sm btn-primary me-2">{user?.role === 'ADMIN' ? '관리자 수정 완료' : '수정 완료'}</button>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={onCancel}>취소</button>
             </div>
         </form>
